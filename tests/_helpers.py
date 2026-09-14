@@ -59,7 +59,7 @@ class ScriptedLLM(AbstractLLMBackend):
     async def teardown(self) -> None: ...
 
     async def generate(  # type: ignore[override]
-        self, prompt: str, max_tokens: int = 256, **kwargs: Any,
+        self, prompt: str, max_tokens: int | None = None, **kwargs: Any,
     ) -> LLMResponse:
         self.prompts.append(prompt)
         self.call_kwargs.append({"max_tokens": max_tokens, **kwargs})
