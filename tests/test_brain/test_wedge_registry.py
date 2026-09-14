@@ -25,7 +25,9 @@ class _DummyWedge(Wedge):
         return EmissionCandidate(wedge_name=self.name, payload="hi")
 
     def build_prompt(
-        self, candidate: EmissionCandidate, ctx: PromptContext,
+        self,
+        candidate: EmissionCandidate,
+        ctx: PromptContext,
     ) -> str:
         return ""
 

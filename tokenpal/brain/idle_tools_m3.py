@@ -44,14 +44,16 @@ M3_CATALOG: tuple[str, ...] = (
 )
 
 # Subset of M3_CATALOG that requires web_fetches consent.
-M3_NEEDS_WEB: frozenset[str] = frozenset({
-    "word_of_the_day",
-    "joke_of_the_day",
-    "on_this_day",
-    "random_fact",
-    "trivia_question",
-    "weather_forecast_week",
-})
+M3_NEEDS_WEB: frozenset[str] = frozenset(
+    {
+        "word_of_the_day",
+        "joke_of_the_day",
+        "on_this_day",
+        "random_fact",
+        "trivia_question",
+        "weather_forecast_week",
+    }
+)
 
 # Per-tool cool-off window. Mirrors the tightest deterministic rule cooldown
 # for the same tool, so a deterministic fire of moon_phase blocks M3
@@ -78,9 +80,14 @@ CIRCUIT_COOLOFF_S: float = 2 * 3600
 # to the lowest-privacy probe (matches the deterministic floor in
 # tokenpal/brain/idle_tools.py:_MEMORY_RECALL_METRICS).
 MEMORY_QUERY_DEFAULT_METRIC: str = "session_count_today"
-MEMORY_QUERY_VALID_METRICS: frozenset[str] = frozenset({
-    "time_in_app", "switches_per_hour", "streaks", "session_count_today",
-})
+MEMORY_QUERY_VALID_METRICS: frozenset[str] = frozenset(
+    {
+        "time_in_app",
+        "switches_per_hour",
+        "streaks",
+        "session_count_today",
+    }
+)
 
 _PICKER_RULES: str = (
     "You are TokenPal's idle thought-tool picker.\n"
@@ -145,7 +152,8 @@ class LLMInitiatedRoller:
             self._log_skip(
                 "m3_ratecap",
                 "m3 skip: rate cap (%d m3 fires/h, max=%d)",
-                len(tr.m3_recent_fires), self._config.llm_initiated_max_per_hour,
+                len(tr.m3_recent_fires),
+                self._config.llm_initiated_max_per_hour,
             )
             return None
 
@@ -160,7 +168,8 @@ class LLMInitiatedRoller:
         tool_specs = self._build_tool_specs(now, ctx)
         if not tool_specs:
             self._log_skip(
-                "no_tools", "m3 skip: no tools eligible after consent + cool-off filter",
+                "no_tools",
+                "m3 skip: no tools eligible after consent + cool-off filter",
             )
             return None
 
@@ -219,7 +228,9 @@ class LLMInitiatedRoller:
         log.debug(msg, *args)
 
     def _build_tool_specs(
-        self, now: float, ctx: IdleToolContext,
+        self,
+        now: float,
+        ctx: IdleToolContext,
     ) -> list[dict[str, Any]]:
         out: list[dict[str, Any]] = []
         for name in M3_CATALOG:
@@ -235,10 +246,7 @@ class LLMInitiatedRoller:
             # Circuit breaker: if M3 picked the same tool N times in a row,
             # block it for CIRCUIT_COOLOFF_S even if its per-tool window is
             # otherwise expired.
-            if (
-                self._tracker.consecutive_same_tool.get(name, 0)
-                >= CONSECUTIVE_PICK_LIMIT
-            ):
+            if self._tracker.consecutive_same_tool.get(name, 0) >= CONSECUTIVE_PICK_LIMIT:
                 if last is not None and (now - last) < CIRCUIT_COOLOFF_S:
                     continue
                 self._tracker.consecutive_same_tool[name] = 0
@@ -256,7 +264,9 @@ class LLMInitiatedRoller:
         )
 
     def _sanitize_args(
-        self, tool_name: str, arguments: dict[str, Any],
+        self,
+        tool_name: str,
+        arguments: dict[str, Any],
     ) -> dict[str, Any]:
         if tool_name == "memory_query":
             metric = arguments.get("metric")
@@ -276,10 +286,6 @@ class LLMInitiatedRoller:
         # else reset all other tools to 0 and start a fresh streak.
         for name in M3_CATALOG:
             if name == tool_name:
-                tr.consecutive_same_tool[name] = (
-                    tr.consecutive_same_tool.get(name, 0) + 1
-                )
+                tr.consecutive_same_tool[name] = tr.consecutive_same_tool.get(name, 0) + 1
             else:
                 tr.consecutive_same_tool[name] = 0
-
-

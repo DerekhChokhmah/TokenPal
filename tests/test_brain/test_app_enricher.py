@@ -20,7 +20,9 @@ from tokenpal.senses.web_search.client import SearchResult
 
 def _cached(store: MemoryStore, name: str) -> tuple[str | None, bool] | None:
     return store.get_app_enrichment(
-        name, fresh_after_s=REFRESH_AFTER_S, retry_after_s=RETRY_AFTER_S,
+        name,
+        fresh_after_s=REFRESH_AFTER_S,
+        retry_after_s=RETRY_AFTER_S,
     )
 
 
@@ -47,25 +49,31 @@ def _patch_search(
         return result
 
     monkeypatch.setattr(
-        "tokenpal.brain.app_enricher.search", fake_search,
+        "tokenpal.brain.app_enricher.search",
+        fake_search,
     )
 
 
 def _grant_consent(monkeypatch: pytest.MonkeyPatch, granted: bool = True) -> None:
     monkeypatch.setattr(
-        "tokenpal.brain.app_enricher.has_consent", lambda _: granted,
+        "tokenpal.brain.app_enricher.has_consent",
+        lambda _: granted,
     )
 
 
 def _mk_result(text: str = "Cronometer is a nutrition and calorie tracking app.") -> SearchResult:
     return SearchResult(
-        query="q", backend="duckduckgo", title="Cronometer",
-        text=text, source_url="https://example.com",
+        query="q",
+        backend="duckduckgo",
+        title="Cronometer",
+        text=text,
+        source_url="https://example.com",
     )
 
 
 async def test_cached_description_returned_synchronously(
-    enricher: AppEnricher, store: MemoryStore,
+    enricher: AppEnricher,
+    store: MemoryStore,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     store.put_app_enrichment("Cronometer", "A nutrition tracker.", success=True)
@@ -79,7 +87,8 @@ async def test_cached_description_returned_synchronously(
 
 
 async def test_first_sighting_fetches_and_caches(
-    enricher: AppEnricher, store: MemoryStore,
+    enricher: AppEnricher,
+    store: MemoryStore,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     _patch_search(monkeypatch, _mk_result())
@@ -120,7 +129,8 @@ async def test_non_app_filter_skips_window_server(
 
 
 async def test_no_consent_does_not_fetch(
-    enricher: AppEnricher, store: MemoryStore,
+    enricher: AppEnricher,
+    store: MemoryStore,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     calls: list[str] = []
@@ -133,7 +143,8 @@ async def test_no_consent_does_not_fetch(
 
 
 async def test_failed_fetch_caches_failure(
-    enricher: AppEnricher, store: MemoryStore,
+    enricher: AppEnricher,
+    store: MemoryStore,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     _patch_search(monkeypatch, None)
@@ -148,7 +159,8 @@ async def test_failed_fetch_caches_failure(
 
 
 async def test_recent_failure_does_not_refetch(
-    enricher: AppEnricher, store: MemoryStore,
+    enricher: AppEnricher,
+    store: MemoryStore,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     store.put_app_enrichment("NeverHeardOfIt", None, success=False)
@@ -161,7 +173,8 @@ async def test_recent_failure_does_not_refetch(
 
 
 async def test_sensitive_term_in_result_filtered(
-    enricher: AppEnricher, store: MemoryStore,
+    enricher: AppEnricher,
+    store: MemoryStore,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     _patch_search(monkeypatch, _mk_result(text="Try Venmo for payments."))
@@ -204,7 +217,8 @@ async def test_in_flight_dedup_shares_fetch(
         return _mk_result()
 
     monkeypatch.setattr(
-        "tokenpal.brain.app_enricher.search", slow_search,
+        "tokenpal.brain.app_enricher.search",
+        slow_search,
     )
     _grant_consent(monkeypatch)
 

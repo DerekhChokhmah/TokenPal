@@ -188,21 +188,28 @@ async def test_runner_emits_end_of_run_telemetry(
     """Phase 5 telemetry: a one-line summary lands in the session log so we
     can measure post-ship backend mix and judge whether Playwright is worth
     adding."""
-    llm = _ScriptedLLM([
-        _ok(
-            '[{"query": "a", "backend": "stackexchange"},'
-            ' {"query": "b", "backend": "hn"}]'
-        ),
-        _ok('{"kind": "factual", "answer": "Summary.", "citations": []}'),
-    ])
+    llm = _ScriptedLLM(
+        [
+            _ok('[{"query": "a", "backend": "stackexchange"}, {"query": "b", "backend": "hn"}]'),
+            _ok('{"kind": "factual", "answer": "Summary.", "citations": []}'),
+        ]
+    )
 
     def fake_search_many(
-        q: str, backend: str = "duckduckgo", limit: int = 5, **_: Any,
+        q: str,
+        backend: str = "duckduckgo",
+        limit: int = 5,
+        **_: Any,
     ) -> list[SearchResult]:
-        return [SearchResult(
-            query=q, backend=backend,  # type: ignore[arg-type]
-            title="t", text="body", source_url=f"https://ex/{q}",
-        )]
+        return [
+            SearchResult(
+                query=q,
+                backend=backend,  # type: ignore[arg-type]
+                title="t",
+                text="body",
+                source_url=f"https://ex/{q}",
+            )
+        ]
 
     monkeypatch.setattr("tokenpal.brain.research.search_many", fake_search_many)
 
@@ -236,7 +243,9 @@ async def test_runner_telemetry_fires_on_no_queries() -> None:
     llm = _ScriptedLLM([_ok("")])
     logs: list[str] = []
     runner = ResearchRunner(
-        llm=llm, fetch_url=_noop_fetch, log_callback=lambda msg, **_kw: logs.append(msg),
+        llm=llm,
+        fetch_url=_noop_fetch,
+        log_callback=lambda msg, **_kw: logs.append(msg),
         max_queries=2,
     )
     await runner.run("?")
@@ -253,25 +262,35 @@ async def test_runner_preserves_backend_routing_through_plan_stage(
 ) -> None:
     """LLM emits mixed backend routing, runner preserves it on session.queries,
     and search_many is dispatched with the resolved backend for each query."""
-    llm = _ScriptedLLM([
-        _ok(
-            '[{"query": "how to parse json in python", "backend": "stackexchange"},'
-            ' {"query": "zed editor launch buzz", "backend": "hn"},'
-            ' {"query": "history of turing machines"}]'
-        ),
-        _ok('{"kind": "factual", "answer": "Summary.", "citations": []}'),
-    ])
+    llm = _ScriptedLLM(
+        [
+            _ok(
+                '[{"query": "how to parse json in python", "backend": "stackexchange"},'
+                ' {"query": "zed editor launch buzz", "backend": "hn"},'
+                ' {"query": "history of turing machines"}]'
+            ),
+            _ok('{"kind": "factual", "answer": "Summary.", "citations": []}'),
+        ]
+    )
 
     seen_backends: list[str] = []
 
     def fake_search_many(
-        q: str, backend: str = "duckduckgo", limit: int = 5, **_: Any,
+        q: str,
+        backend: str = "duckduckgo",
+        limit: int = 5,
+        **_: Any,
     ) -> list[SearchResult]:
         seen_backends.append(backend)
-        return [SearchResult(
-            query=q, backend=backend,  # type: ignore[arg-type]
-            title="t", text="body", source_url=f"https://ex/{q}",
-        )]
+        return [
+            SearchResult(
+                query=q,
+                backend=backend,  # type: ignore[arg-type]
+                title="t",
+                text="body",
+                source_url=f"https://ex/{q}",
+            )
+        ]
 
     monkeypatch.setattr("tokenpal.brain.research.search_many", fake_search_many)
 
@@ -301,12 +320,17 @@ async def test_telemetry_includes_tried_field_even_on_no_sources(
     Note: a single HN query that returns 0 sources will trigger the
     generalized thin-pool top-up (HN is a non-DDG backend), so DDG also
     ends up in `tried=`. That's the expected post-fix behavior."""
-    llm = _ScriptedLLM([
-        _ok('[{"query": "q1", "backend": "hn"}]'),
-    ])
+    llm = _ScriptedLLM(
+        [
+            _ok('[{"query": "q1", "backend": "hn"}]'),
+        ]
+    )
 
     def fake_search_many(
-        q: str, backend: str = "duckduckgo", limit: int = 5, **_: Any,
+        q: str,
+        backend: str = "duckduckgo",
+        limit: int = 5,
+        **_: Any,
     ) -> list[SearchResult]:
         return []  # every backend comes up empty
 
@@ -314,7 +338,9 @@ async def test_telemetry_includes_tried_field_even_on_no_sources(
 
     logs: list[str] = []
     runner = ResearchRunner(
-        llm=llm, fetch_url=_noop_fetch, log_callback=lambda msg, **_kw: logs.append(msg),
+        llm=llm,
+        fetch_url=_noop_fetch,
+        log_callback=lambda msg, **_kw: logs.append(msg),
         max_queries=1,
     )
     await runner.run("?")

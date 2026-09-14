@@ -27,7 +27,7 @@ def _toml(path: Path) -> dict:
 
 def test_set_speak_ambient_upserts_existing(fake_config: Path) -> None:
     fake_config.write_text(
-        '[audio]\nvoice_conversation_enabled = true\nspeak_ambient_enabled = false\n'
+        "[audio]\nvoice_conversation_enabled = true\nspeak_ambient_enabled = false\n"
     )
     set_speak_ambient_enabled(True)
     data = _toml(fake_config)["audio"]
@@ -45,7 +45,7 @@ def test_toggles_are_independent(fake_config: Path) -> None:
 
 
 def test_section_added_alongside_existing(fake_config: Path) -> None:
-    fake_config.write_text('[memory]\nenabled = true\n')
+    fake_config.write_text("[memory]\nenabled = true\n")
     set_voice_conversation_enabled(True)
     data = _toml(fake_config)
     assert data["audio"]["voice_conversation_enabled"] is True

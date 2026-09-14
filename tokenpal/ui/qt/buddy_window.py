@@ -139,7 +139,8 @@ class BuddyWindow(QWidget):
         self._core.sleep_tick_timer()
 
     def set_right_click_handler(
-        self, handler: Callable[[QPoint], None] | None,
+        self,
+        handler: Callable[[QPoint], None] | None,
     ) -> None:
         self._core.set_right_click_handler(handler)
 
@@ -233,9 +234,11 @@ class BuddyWindow(QWidget):
             corners.append(rot.map(QPointF(0.0, 0.0)))
             corners.append(rot.map(QPointF(float(c.art_w), 0.0)))
             corners.append(rot.map(QPointF(0.0, float(c.art_h))))
-            corners.append(rot.map(
-                QPointF(float(c.art_w), float(c.art_h)),
-            ))
+            corners.append(
+                rot.map(
+                    QPointF(float(c.art_w), float(c.art_h)),
+                )
+            )
         xs = [p.x() for p in corners]
         ys = [p.y() for p in corners]
         # 1 px slack for AA glyph edges + extra slack for the

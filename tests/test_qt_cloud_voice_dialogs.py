@@ -97,20 +97,29 @@ def test_cloud_refine_cap_clamps_out_of_range(qapp: QApplication) -> None:
 
 
 def _voice_state(
-    active: ProfileSummary | None = None, cloud_ready: bool = False,
+    active: ProfileSummary | None = None,
+    cloud_ready: bool = False,
 ) -> VoiceModalState:
     saved = [
         ProfileSummary(
-            slug="rick", character="Rick",
-            line_count=42, source="fandom", finetuned_model="",
+            slug="rick",
+            character="Rick",
+            line_count=42,
+            source="fandom",
+            finetuned_model="",
         ),
         ProfileSummary(
-            slug="morty", character="Morty",
-            line_count=38, source="fandom", finetuned_model="",
+            slug="morty",
+            character="Morty",
+            line_count=38,
+            source="fandom",
+            finetuned_model="",
         ),
     ]
     return VoiceModalState(
-        active_voice=active, saved=saved, cloud_ready=cloud_ready,
+        active_voice=active,
+        saved=saved,
+        cloud_ready=cloud_ready,
     )
 
 
@@ -134,8 +143,11 @@ def test_voice_switch_noop_when_nothing_selected(qapp: QApplication) -> None:
 def test_voice_off_action(qapp: QApplication) -> None:
     captured: list[VoiceModalResult | None] = []
     active = ProfileSummary(
-        slug="rick", character="Rick",
-        line_count=42, source="fandom", finetuned_model="",
+        slug="rick",
+        character="Rick",
+        line_count=42,
+        source="fandom",
+        finetuned_model="",
     )
     dlg = VoiceDialog(_voice_state(active=active), captured.append)
     dlg._action_off()

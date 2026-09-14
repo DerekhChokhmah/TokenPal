@@ -35,7 +35,7 @@ class IdleToolContext:
     now: datetime
     session_minutes: int
     first_session_of_day: bool
-    active_readings: Mapping[str, Any]   # SenseReading, loose-typed to avoid cycle
+    active_readings: Mapping[str, Any]  # SenseReading, loose-typed to avoid cycle
     mood: str
     weather_summary: str
     time_since_last_comment_s: float
@@ -86,6 +86,7 @@ class IdleToolRule:
 # Predicates
 # ---------------------------------------------------------------------------
 
+
 def _evening_window(ctx: IdleToolContext) -> bool:
     return 21 <= ctx.hour < 24
 
@@ -132,9 +133,7 @@ def _settled_in_session(ctx: IdleToolContext) -> bool:
 def _midday_quiet(ctx: IdleToolContext) -> bool:
     """Catch a mid-workday lull — same settled bar, noonish window."""
     return (
-        11 <= ctx.hour < 15
-        and ctx.session_minutes > 10
-        and ctx.time_since_last_comment_s > 300.0
+        11 <= ctx.hour < 15 and ctx.session_minutes > 10 and ctx.time_since_last_comment_s > 300.0
     )
 
 
@@ -413,16 +412,12 @@ M1_RULES: tuple[IdleToolRule, ...] = (
         ),
         running_bit=True,
         bit_decay_s=4 * 3600,
-        opener_framing=(
-            "It's a full moon and it's late. Lean into it. One line, in-character."
-        ),
+        opener_framing=("It's a full moon and it's late. Lean into it. One line, in-character."),
     ),
     IdleToolRule(
         name="todays_joke_bit",
         tool_name="joke_of_the_day",
-        description=(
-            "Heard a joke earlier today — referenceable for 4h, callback-only."
-        ),
+        description=("Heard a joke earlier today — referenceable for 4h, callback-only."),
         weight=0.8,
         cooldown_s=12 * 3600,
         predicate=_midday_quiet,

@@ -71,12 +71,11 @@ async def test_sensitive_or_unusable_reports_gracefully(
 ) -> None:
     """Both sensitive filtering and unreachable URL share the 'nothing usable'
     error surface — fetch_and_extract returns None either way."""
+
     async def none_fetch(_url: str, **_kw: Any) -> None:
         return None
 
-    monkeypatch.setattr(
-        "tokenpal.actions.research.fetch_url.fetch_and_extract", none_fetch
-    )
+    monkeypatch.setattr("tokenpal.actions.research.fetch_url.fetch_and_extract", none_fetch)
 
     action = FetchUrlAction({})
     result = await action.execute(url="https://example.com")
@@ -98,9 +97,7 @@ async def test_fetch_and_extract_filters_sensitive_content(
         return "Open your 1Password vault and paste the password."
 
     monkeypatch.setattr("tokenpal.actions.research.fetch_url._fetch", sensitive_fetch)
-    monkeypatch.setattr(
-        "tokenpal.actions.research.fetch_url._extract", sensitive_extract
-    )
+    monkeypatch.setattr("tokenpal.actions.research.fetch_url._extract", sensitive_extract)
 
     result = await fetch_and_extract("https://example.com")
     assert result is None

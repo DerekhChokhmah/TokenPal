@@ -22,13 +22,12 @@ def isolated(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> dict[str, Any]:
         config_path.write_text(json.dumps(state["toml_data"]))
         return config_path
 
-    monkeypatch.setattr(
-        "tokenpal.config.audio_writer.update_config", fake_update_config
-    )
+    monkeypatch.setattr("tokenpal.config.audio_writer.update_config", fake_update_config)
     # Default: pretend audio deps ARE installed so existing tests that
     # don't care about the installer path don't trip the deps warning.
     monkeypatch.setattr(
-        "tokenpal.audio.deps.missing_deps", lambda: (),
+        "tokenpal.audio.deps.missing_deps",
+        lambda: (),
     )
     return state
 
@@ -56,18 +55,14 @@ def test_on_flips_voice_and_persists(isolated, cfg: TokenPalConfig) -> None:
     result = _handle_voice_io_command("on", cfg)
     assert "voice on" in result.message
     assert cfg.audio.voice_conversation_enabled is True
-    assert (
-        isolated["toml_data"]["audio"]["voice_conversation_enabled"] is True
-    )
+    assert isolated["toml_data"]["audio"]["voice_conversation_enabled"] is True
 
 
 def test_off_flips_voice_back(isolated, cfg: TokenPalConfig) -> None:
     cfg.audio.voice_conversation_enabled = True
     _handle_voice_io_command("off", cfg)
     assert cfg.audio.voice_conversation_enabled is False
-    assert (
-        isolated["toml_data"]["audio"]["voice_conversation_enabled"] is False
-    )
+    assert isolated["toml_data"]["audio"]["voice_conversation_enabled"] is False
 
 
 def test_ambient_on_off(isolated, cfg: TokenPalConfig) -> None:
@@ -88,14 +83,16 @@ def test_voice_and_ambient_independent(isolated, cfg: TokenPalConfig) -> None:
 
 
 def test_unknown_subcommand_returns_usage(
-    isolated, cfg: TokenPalConfig,
+    isolated,
+    cfg: TokenPalConfig,
 ) -> None:
     result = _handle_voice_io_command("garbage", cfg)
     assert "usage" in result.message.lower()
 
 
 def test_ambient_without_value_returns_usage(
-    isolated, cfg: TokenPalConfig,
+    isolated,
+    cfg: TokenPalConfig,
 ) -> None:
     result = _handle_voice_io_command("ambient", cfg)
     assert "usage" in result.message.lower()
@@ -103,7 +100,9 @@ def test_ambient_without_value_returns_usage(
 
 
 def test_bare_warns_when_deps_missing(
-    isolated, deps_missing, cfg: TokenPalConfig,
+    isolated,
+    deps_missing,
+    cfg: TokenPalConfig,
 ) -> None:
     msg = _handle_voice_io_command("", cfg).message
     assert "missing deps" in msg
@@ -112,7 +111,9 @@ def test_bare_warns_when_deps_missing(
 
 
 def test_turning_on_warns_when_deps_missing(
-    isolated, deps_missing, cfg: TokenPalConfig,
+    isolated,
+    deps_missing,
+    cfg: TokenPalConfig,
 ) -> None:
     msg = _handle_voice_io_command("on", cfg).message
     assert "voice on" in msg
@@ -120,7 +121,9 @@ def test_turning_on_warns_when_deps_missing(
 
 
 def test_turning_off_does_not_warn(
-    isolated, deps_missing, cfg: TokenPalConfig,
+    isolated,
+    deps_missing,
+    cfg: TokenPalConfig,
 ) -> None:
     cfg.audio.voice_conversation_enabled = True
     msg = _handle_voice_io_command("off", cfg).message
@@ -129,7 +132,9 @@ def test_turning_off_does_not_warn(
 
 
 def test_install_subcommand_invokes_installer(
-    isolated, monkeypatch: pytest.MonkeyPatch, cfg: TokenPalConfig,
+    isolated,
+    monkeypatch: pytest.MonkeyPatch,
+    cfg: TokenPalConfig,
 ) -> None:
     from tokenpal.audio.deps import InstallResult
 
@@ -144,10 +149,12 @@ def test_install_subcommand_invokes_installer(
 
     monkeypatch.setattr("tokenpal.audio.deps.install", fake_install)
     monkeypatch.setattr(
-        "tokenpal.audio.deps.install_models", fake_install_models,
+        "tokenpal.audio.deps.install_models",
+        fake_install_models,
     )
     monkeypatch.setattr(
-        "tokenpal.audio.deps.install_input_models", fake_install_models,
+        "tokenpal.audio.deps.install_input_models",
+        fake_install_models,
     )
     result = _handle_voice_io_command("install", cfg)
     assert called["n"] == 1
@@ -155,14 +162,17 @@ def test_install_subcommand_invokes_installer(
 
 
 def test_install_failure_surfaces_error(
-    isolated, monkeypatch: pytest.MonkeyPatch, cfg: TokenPalConfig,
+    isolated,
+    monkeypatch: pytest.MonkeyPatch,
+    cfg: TokenPalConfig,
 ) -> None:
     from tokenpal.audio.deps import InstallResult
 
     monkeypatch.setattr(
         "tokenpal.audio.deps.install",
         lambda timeout_s=600.0: InstallResult(
-            ok=False, message="pip install failed (exit 1): blah",
+            ok=False,
+            message="pip install failed (exit 1): blah",
         ),
     )
     result = _handle_voice_io_command("install", cfg)

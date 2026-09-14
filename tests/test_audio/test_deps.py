@@ -66,7 +66,8 @@ def test_missing_deps_include_input_false_skips_input_side() -> None:
     with _patch_find_spec(present={"kokoro_onnx", "sounddevice"}):
         assert missing_deps(include_input=False) == ()
         assert missing_deps(include_input=True) == (
-            "openwakeword", "faster-whisper",
+            "openwakeword",
+            "faster-whisper",
         )
 
 
@@ -110,8 +111,13 @@ def test_install_runs_pip_for_missing_only(
     result = install()
     assert result.ok is True
     assert captured["cmd"] == [
-        sys.executable, "-m", "pip", "install",
-        "--progress-bar", "off", "-q",
+        sys.executable,
+        "-m",
+        "pip",
+        "install",
+        "--progress-bar",
+        "off",
+        "-q",
         "kokoro-onnx",
     ]
 
@@ -119,7 +125,10 @@ def test_install_runs_pip_for_missing_only(
 def test_install_reports_pip_failure(monkeypatch: pytest.MonkeyPatch) -> None:
     def fake_run(cmd: list[str], **kwargs: Any) -> Any:
         return subprocess.CompletedProcess(
-            cmd, 1, stdout="", stderr="ERROR: No matching distribution\n",
+            cmd,
+            1,
+            stdout="",
+            stderr="ERROR: No matching distribution\n",
         )
 
     monkeypatch.setattr(audio_deps.subprocess, "run", fake_run)
@@ -194,6 +203,7 @@ def test_install_reports_post_install_still_missing(
 ) -> None:
     """pip claimed success but the import still fails — surface it
     instead of silently lying."""
+
     def fake_run(cmd: list[str], **kwargs: Any) -> Any:
         return subprocess.CompletedProcess(cmd, 0, stdout="ok", stderr="")
 
@@ -208,5 +218,3 @@ def test_install_reports_post_install_still_missing(
     assert result.ok is False
     assert "still missing" in result.message
     assert "restart" in result.message.lower()
-
-

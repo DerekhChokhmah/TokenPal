@@ -102,7 +102,9 @@ def test_listening_timeout_returns_to_idle() -> None:
 
 def test_sensitive_app_kills_session_from_any_state() -> None:
     for state in (
-        VoiceState.LISTENING, VoiceState.SPEAKING, VoiceState.TRAILING,
+        VoiceState.LISTENING,
+        VoiceState.SPEAKING,
+        VoiceState.TRAILING,
     ):
         s = VoiceSession()
         s.state = state
@@ -114,7 +116,9 @@ def test_sensitive_app_kills_session_from_any_state() -> None:
 
 def test_typed_input_kills_session_from_any_state() -> None:
     for state in (
-        VoiceState.LISTENING, VoiceState.SPEAKING, VoiceState.TRAILING,
+        VoiceState.LISTENING,
+        VoiceState.SPEAKING,
+        VoiceState.TRAILING,
     ):
         s = VoiceSession()
         s.state = state

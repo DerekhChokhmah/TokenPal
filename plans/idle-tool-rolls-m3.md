@@ -137,9 +137,9 @@ class IdleToolsConfig:
     rules: dict[str, bool] = field(default_factory=dict)
 
     # NEW for M3
-    llm_initiated_enabled: bool = False          # default OFF until baked
-    llm_initiated_cooldown_s: float = 1800.0     # 30min min-gap (issue #33)
-    llm_initiated_max_per_hour: int = 1          # paranoid cap
+    llm_initiated_enabled: bool = False  # default OFF until baked
+    llm_initiated_cooldown_s: float = 1800.0  # 30min min-gap (issue #33)
+    llm_initiated_max_per_hour: int = 1  # paranoid cap
     llm_initiated_mood_block: tuple[str, ...] = ("focused", "sleepy")
     llm_initiated_consecutive_tool_block: int = 3  # circuit breaker trip count
     llm_initiated_consecutive_tool_cooldown_s: float = 7200.0  # 2h cool-off

@@ -103,9 +103,7 @@ def _parse_lines_file(text: str) -> list[str]:
     return lines
 
 
-def _filter_lines(
-    lines: list[str], min_len: int = 8, max_len: int = 150
-) -> list[str]:
+def _filter_lines(lines: list[str], min_len: int = 8, max_len: int = 150) -> list[str]:
     """Apply length filtering and deduplication."""
     seen: set[str] = set()
     result: list[str] = []

@@ -8,6 +8,7 @@ touching the user's real ~/.tokenpal.
 from __future__ import annotations
 
 import json
+import os
 import stat
 from pathlib import Path
 from typing import Any
@@ -30,9 +31,7 @@ def isolated(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> dict[str, Any]:
     }
 
     # Redirect secrets storage
-    monkeypatch.setattr(
-        "tokenpal.config.secrets._default_path", lambda: secrets_path
-    )
+    monkeypatch.setattr("tokenpal.config.secrets._default_path", lambda: secrets_path)
 
     # Stub out the TOML writer — /cloud enable/disable/model call it.
     def fake_update_config(mutate, **_kwargs):  # type: ignore[no-untyped-def]
@@ -40,9 +39,7 @@ def isolated(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> dict[str, Any]:
         config_path.write_text(json.dumps(state["toml_data"]))
         return config_path
 
-    monkeypatch.setattr(
-        "tokenpal.config.cloud_writer.update_config", fake_update_config
-    )
+    monkeypatch.setattr("tokenpal.config.cloud_writer.update_config", fake_update_config)
     return state
 
 
@@ -63,8 +60,7 @@ def test_status_disabled_no_key(isolated, cfg: TokenPalConfig) -> None:
 
 
 def test_status_subcommand_alias(isolated, cfg: TokenPalConfig) -> None:
-    assert _handle_cloud_command("status", cfg).message == \
-        _handle_cloud_command("", cfg).message
+    assert _handle_cloud_command("status", cfg).message == _handle_cloud_command("", cfg).message
 
 
 def test_status_enabled_no_key(isolated, cfg: TokenPalConfig) -> None:
@@ -73,9 +69,7 @@ def test_status_enabled_no_key(isolated, cfg: TokenPalConfig) -> None:
     assert "enabled but no key" in msg
 
 
-def test_status_enabled_with_key_shows_fingerprint(
-    isolated, cfg: TokenPalConfig
-) -> None:
+def test_status_enabled_with_key_shows_fingerprint(isolated, cfg: TokenPalConfig) -> None:
     _handle_cloud_command("enable sk-ant-api03-" + "a" * 40, cfg)
     msg = _handle_cloud_command("", cfg).message
     assert "enabled" in msg.lower()
@@ -89,17 +83,13 @@ def test_status_enabled_with_key_shows_fingerprint(
 # ---------------------------------------------------------------------------
 
 
-def test_enable_requires_key_arg_when_none_stored(
-    isolated, cfg: TokenPalConfig
-) -> None:
+def test_enable_requires_key_arg_when_none_stored(isolated, cfg: TokenPalConfig) -> None:
     msg = _handle_cloud_command("enable", cfg).message
     assert "Usage:" in msg
     assert "console.anthropic.com" in msg
 
 
-def test_bare_enable_re_enables_when_key_already_stored(
-    isolated, cfg: TokenPalConfig
-) -> None:
+def test_bare_enable_re_enables_when_key_already_stored(isolated, cfg: TokenPalConfig) -> None:
     # First enable stores + flips on; disable flips off but retains key.
     key = "sk-ant-api03-" + "r" * 40
     _handle_cloud_command(f"enable {key}", cfg)
@@ -119,9 +109,7 @@ def test_enable_rejects_bad_shape(isolated, cfg: TokenPalConfig) -> None:
     assert cfg.cloud_llm.enabled is False
 
 
-def test_enable_stores_key_and_flips_config(
-    isolated, cfg: TokenPalConfig
-) -> None:
+def test_enable_stores_key_and_flips_config(isolated, cfg: TokenPalConfig) -> None:
     key = "sk-ant-api03-" + "b" * 40
     result = _handle_cloud_command(f"enable {key}", cfg)
     # Config live-flipped
@@ -136,6 +124,10 @@ def test_enable_stores_key_and_flips_config(
     assert "sk-ant-..." in result.message
 
 
+@pytest.mark.skipif(
+    os.name == "nt",
+    reason="Unix file permissions are not enforced on Windows",
+)
 def test_enable_persists_key_at_0o600(isolated, cfg: TokenPalConfig) -> None:
     key = "sk-ant-api03-" + "c" * 40
     _handle_cloud_command(f"enable {key}", cfg)
@@ -143,9 +135,7 @@ def test_enable_persists_key_at_0o600(isolated, cfg: TokenPalConfig) -> None:
     assert mode == 0o600
 
 
-def test_enable_scrubs_raw_key_from_all_returned_fields(
-    isolated, cfg: TokenPalConfig
-) -> None:
+def test_enable_scrubs_raw_key_from_all_returned_fields(isolated, cfg: TokenPalConfig) -> None:
     """Defense-in-depth: scan the whole CommandResult for the raw key."""
     key = "sk-ant-api03-" + "d" * 40
     result = _handle_cloud_command(f"enable {key}", cfg)
@@ -170,9 +160,7 @@ def test_disable_flips_off_keeps_key(isolated, cfg: TokenPalConfig) -> None:
     assert "anthropic_key" in stored
 
 
-def test_disable_without_key_no_retained_suffix(
-    isolated, cfg: TokenPalConfig
-) -> None:
+def test_disable_without_key_no_retained_suffix(isolated, cfg: TokenPalConfig) -> None:
     msg = _handle_cloud_command("disable", cfg).message
     assert "retained" not in msg.lower()
 
@@ -308,9 +296,7 @@ def test_search_off_clears_flag(isolated, cfg: TokenPalConfig) -> None:
     assert cfg.cloud_llm.research_search is False
 
 
-def test_search_on_while_deep_on_notes_override(
-    isolated, cfg: TokenPalConfig
-) -> None:
+def test_search_on_while_deep_on_notes_override(isolated, cfg: TokenPalConfig) -> None:
     _handle_cloud_command("model claude-sonnet-4-6", cfg)
     _handle_cloud_command("deep on", cfg)
     msg = _handle_cloud_command("search on", cfg).message
@@ -336,9 +322,7 @@ def test_tavily_status_disabled_no_key(isolated, cfg: TokenPalConfig) -> None:
     assert "disabled" in msg
 
 
-def test_tavily_enable_stores_key_and_flips_config(
-    isolated, cfg: TokenPalConfig
-) -> None:
+def test_tavily_enable_stores_key_and_flips_config(isolated, cfg: TokenPalConfig) -> None:
     key = "tvly-" + "a" * 32
     result = _handle_cloud_command(f"tavily enable {key}", cfg)
     assert cfg.cloud_search.enabled is True
@@ -359,9 +343,7 @@ def test_tavily_disable_flips_off_keeps_key(isolated, cfg: TokenPalConfig) -> No
     assert "tavily_key" in stored
 
 
-def test_tavily_forget_wipes_key_and_disables(
-    isolated, cfg: TokenPalConfig
-) -> None:
+def test_tavily_forget_wipes_key_and_disables(isolated, cfg: TokenPalConfig) -> None:
     _handle_cloud_command("tavily enable tvly-" + "c" * 32, cfg)
     _handle_cloud_command("tavily forget", cfg)
     assert cfg.cloud_search.enabled is False
@@ -397,13 +379,15 @@ def test_brave_enable_rejects_too_short(isolated, cfg: TokenPalConfig) -> None:
 def test_brave_forget_wipes_key(isolated, cfg: TokenPalConfig) -> None:
     _handle_cloud_command("brave enable BSA-" + "y" * 28, cfg)
     _handle_cloud_command("brave forget", cfg)
-    stored = json.loads(isolated["secrets_path"].read_text()) if isolated["secrets_path"].exists() else {}
+    stored = (
+        json.loads(isolated["secrets_path"].read_text())
+        if isolated["secrets_path"].exists()
+        else {}
+    )
     assert "brave_key" not in stored
 
 
-def test_brave_status_with_key_shows_fingerprint(
-    isolated, cfg: TokenPalConfig
-) -> None:
+def test_brave_status_with_key_shows_fingerprint(isolated, cfg: TokenPalConfig) -> None:
     _handle_cloud_command("brave enable BSA-" + "z" * 28, cfg)
     msg = _handle_cloud_command("brave status", cfg).message
     assert "..." in msg  # fingerprint tail marker
@@ -415,9 +399,7 @@ def test_brave_status_with_key_shows_fingerprint(
 # ---------------------------------------------------------------------------
 
 
-def test_aggregate_status_lists_all_backends(
-    isolated, cfg: TokenPalConfig
-) -> None:
+def test_aggregate_status_lists_all_backends(isolated, cfg: TokenPalConfig) -> None:
     msg = _handle_cloud_command("", cfg).message
     assert "Anthropic:" in msg
     assert "Tavily:" in msg
@@ -439,9 +421,7 @@ def test_legacy_enable_routes_to_anthropic(isolated, cfg: TokenPalConfig) -> Non
     assert stored["anthropic_key"] == key
 
 
-def test_legacy_model_subcommand_still_works(
-    isolated, cfg: TokenPalConfig
-) -> None:
+def test_legacy_model_subcommand_still_works(isolated, cfg: TokenPalConfig) -> None:
     _handle_cloud_command("enable sk-ant-api03-" + "r" * 40, cfg)
     _handle_cloud_command("model claude-sonnet-4-6", cfg)
     assert cfg.cloud_llm.model == "claude-sonnet-4-6"

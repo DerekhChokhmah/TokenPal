@@ -47,7 +47,9 @@ def _make_sim(
             "weather_code": weather_code,
             "temperature": temperature,
             "unit": unit,
-        } if weather_code is not None else None,
+        }
+        if weather_code is not None
+        else None,
         idle_event=idle_event,
         sensitive_suppressed=sensitive,
     )
@@ -274,10 +276,16 @@ def test_rain_contact_spawns_splash() -> None:
     # spawn splash particles.
     sky = QRectF(2000.0, 20.0, 260.0, 200.0)
     buddy = QRectF(
-        sky.left(), sky.bottom() + 20.0, sky.width(), 100.0,
+        sky.left(),
+        sky.bottom() + 20.0,
+        sky.width(),
+        100.0,
     )
     sim = _make_sim(
-        weather_code=65, sky_rect=sky, buddy_rect=buddy, seed=11,
+        weather_code=65,
+        sky_rect=sky,
+        buddy_rect=buddy,
+        seed=11,
     )
     _run(sim, 4.0)
     splashes = [p for p in sim.particles if p.kind == "splash"]
@@ -289,14 +297,30 @@ def test_clear_buddy_accum_removes_snow_dust() -> None:
     sim = _make_sim(weather_code=0, seed=12)
     # Inject a fake snow-dust particle and make sure clear_buddy_accum
     # wipes it without touching other particles.
-    sim.particles.append(w.WeatherParticle(
-        kind="snow_dust", x=0, y=0, vx=0, vy=0, life=10.0, glyph="·",
-        color=w._COL_SNOW,
-    ))
-    sim.particles.append(w.WeatherParticle(
-        kind="rain", x=0, y=0, vx=0, vy=0, life=10.0, glyph=".",
-        color=w._COL_RAIN,
-    ))
+    sim.particles.append(
+        w.WeatherParticle(
+            kind="snow_dust",
+            x=0,
+            y=0,
+            vx=0,
+            vy=0,
+            life=10.0,
+            glyph="·",
+            color=w._COL_SNOW,
+        )
+    )
+    sim.particles.append(
+        w.WeatherParticle(
+            kind="rain",
+            x=0,
+            y=0,
+            vx=0,
+            vy=0,
+            life=10.0,
+            glyph=".",
+            color=w._COL_RAIN,
+        )
+    )
     sim.clear_buddy_accum()
     assert [p.kind for p in sim.particles] == ["rain"]
 
@@ -364,6 +388,7 @@ def test_overcast_clouds_share_pixmap_cache_entry(qapp: QApplication) -> None:
     ``sprite.lines`` so both must hit the same entry — otherwise we
     waste a pixmap rendering the same content twice."""
     from tokenpal.ui.ascii_props import OVERCAST_CLOUD_A, OVERCAST_CLOUD_B
+
     sim = _make_sim(weather_code=0, seed=23)
     sky = w.SkyWindow(sim)
     color = QColor("#aaaaaa")

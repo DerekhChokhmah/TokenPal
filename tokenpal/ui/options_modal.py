@@ -55,8 +55,8 @@ def _same_server(a: str, b: str) -> bool:
 class ServerEntry:
     """One row in the Server section's known-servers list."""
 
-    url: str           # canonical URL used for switching
-    label: str         # short display label (e.g. "local", "remote", host)
+    url: str  # canonical URL used for switching
+    label: str  # short display label (e.g. "local", "remote", host)
     model: str | None  # remembered model, or None if we haven't seen one
 
 
@@ -223,9 +223,7 @@ class OptionsModal(ModalScreen[OptionsModalResult | None]):
     }
     """
 
-    BINDINGS: ClassVar[
-        list[Binding | tuple[str, str] | tuple[str, str, str]]
-    ] = [
+    BINDINGS: ClassVar[list[Binding | tuple[str, str] | tuple[str, str, str]]] = [
         Binding("escape", "cancel", "Cancel", show=False),
     ]
 
@@ -245,9 +243,7 @@ class OptionsModal(ModalScreen[OptionsModalResult | None]):
         # means "probe in flight"; () means "probe failed / empty".
         self._probed_models: dict[str, tuple[str, ...] | None] = {}
         if state.current_api_url:
-            self._probed_models[_canon_url(state.current_api_url)] = tuple(
-                state.available_models
-            )
+            self._probed_models[_canon_url(state.current_api_url)] = tuple(state.available_models)
 
     def compose(self) -> ComposeResult:
         s = self._state
@@ -259,7 +255,8 @@ class OptionsModal(ModalScreen[OptionsModalResult | None]):
             # --------------------------------------------------------------
             yield Label("Chat history", classes="section-header")
             persist_line = (
-                "Persist enabled" if s.persist_enabled
+                "Persist enabled"
+                if s.persist_enabled
                 else "Persist disabled (edit config.toml to re-enable)"
             )
             yield Label(
@@ -354,8 +351,7 @@ class OptionsModal(ModalScreen[OptionsModalResult | None]):
             else:
                 current_line = ""
             yield Label(
-                current_line
-                + "Give the wifi you're on a friendly name (restart to apply).",
+                current_line + "Give the wifi you're on a friendly name (restart to apply).",
                 classes="section-help",
             )
             with Horizontal(id="wifi-row"):
@@ -416,9 +412,7 @@ class OptionsModal(ModalScreen[OptionsModalResult | None]):
             self.query_one("#max-persisted-input", Input).focus()
         except Exception:
             pass
-        self.query_one("#options-body", VerticalScroll).scroll_home(
-            animate=False
-        )
+        self.query_one("#options-body", VerticalScroll).scroll_home(animate=False)
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         btn_id = event.button.id or ""
@@ -536,7 +530,8 @@ class OptionsModal(ModalScreen[OptionsModalResult | None]):
         return f"{marker}{entry.label}\n{model}"
 
     def _server_variant(
-        self, idx: int,
+        self,
+        idx: int,
     ) -> Literal["default", "primary", "success", "warning", "error"]:
         entry = self._state.known_servers[idx]
         if _same_server(entry.url, self._state.current_api_url):
@@ -576,7 +571,11 @@ class OptionsModal(ModalScreen[OptionsModalResult | None]):
         return widgets
 
     def _model_label_text(
-        self, name: str, is_current: bool, *, is_pending: bool,
+        self,
+        name: str,
+        is_current: bool,
+        *,
+        is_pending: bool,
     ) -> str:
         if is_current:
             return "● " + name
@@ -645,10 +644,7 @@ class OptionsModal(ModalScreen[OptionsModalResult | None]):
     async def _probe_models_worker(self, canon: str) -> None:
         """Background fetch of /v1/models for *canon*. Best-effort: a
         failure caches an empty tuple so we don't re-probe in a loop."""
-        if (
-            canon in self._probed_models
-            and self._probed_models[canon] is not None
-        ):
+        if canon in self._probed_models and self._probed_models[canon] is not None:
             return
         self._probed_models[canon] = None  # in-flight marker
         if self._displayed_server_url == canon:
@@ -661,11 +657,7 @@ class OptionsModal(ModalScreen[OptionsModalResult | None]):
                 resp = await client.get(f"{canon}/models")
                 resp.raise_for_status()
                 data = resp.json()
-                ids = tuple(
-                    str(m.get("id", ""))
-                    for m in data.get("data", [])
-                    if m.get("id")
-                )
+                ids = tuple(str(m.get("id", "")) for m in data.get("data", []) if m.get("id"))
         except Exception:
             ids = ()
         self._probed_models[canon] = ids
@@ -694,7 +686,8 @@ class OptionsModal(ModalScreen[OptionsModalResult | None]):
         # the server-col).
         try:
             self.query_one(
-                "#server-model-status", Label,
+                "#server-model-status",
+                Label,
             ).update(f"Pending: {raw}  —  save to connect.")
         except Exception:
             pass

@@ -51,9 +51,7 @@ async def test_sunrise_config_load_failure(monkeypatch: pytest.MonkeyPatch) -> N
     def boom() -> tuple[float, float]:
         raise RuntimeError("disk on fire")
 
-    monkeypatch.setattr(
-        "tokenpal.actions.utilities.sunrise_sunset._load_default_latlon", boom
-    )
+    monkeypatch.setattr("tokenpal.actions.utilities.sunrise_sunset._load_default_latlon", boom)
     action = SunriseSunsetAction({})
     result = await action.execute()
     assert result.success is False

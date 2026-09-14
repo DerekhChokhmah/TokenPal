@@ -37,9 +37,7 @@ def _default_phase_message(phase: str, cycle_num: int) -> str:
 @register_action
 class PomodoroAction(AbstractAction):
     action_name = "pomodoro"
-    description = (
-        "Start a pomodoro work/break cycle. Announces each phase in character."
-    )
+    description = "Start a pomodoro work/break cycle. Announces each phase in character."
     parameters = {
         "type": "object",
         "properties": {
@@ -76,17 +74,11 @@ class PomodoroAction(AbstractAction):
         cycles = int(kwargs.get("cycles", 4))
 
         if work_min < 1 or work_min > _MAX_MINUTES:
-            return ActionResult(
-                output=f"work_min must be 1-{_MAX_MINUTES}.", success=False
-            )
+            return ActionResult(output=f"work_min must be 1-{_MAX_MINUTES}.", success=False)
         if break_min < 1 or break_min > _MAX_MINUTES:
-            return ActionResult(
-                output=f"break_min must be 1-{_MAX_MINUTES}.", success=False
-            )
+            return ActionResult(output=f"break_min must be 1-{_MAX_MINUTES}.", success=False)
         if cycles < 1 or cycles > _MAX_CYCLES:
-            return ActionResult(
-                output=f"cycles must be 1-{_MAX_CYCLES}.", success=False
-            )
+            return ActionResult(output=f"cycles must be 1-{_MAX_CYCLES}.", success=False)
 
         if self._task and not self._task.done():
             return ActionResult(
@@ -94,13 +86,9 @@ class PomodoroAction(AbstractAction):
                 success=False,
             )
 
-        self._task = asyncio.create_task(
-            self._run_cycle(work_min, break_min, cycles)
-        )
+        self._task = asyncio.create_task(self._run_cycle(work_min, break_min, cycles))
         return ActionResult(
-            output=(
-                f"Pomodoro started: {cycles} x ({work_min}m work + {break_min}m break)."
-            )
+            output=(f"Pomodoro started: {cycles} x ({work_min}m work + {break_min}m break).")
         )
 
     async def _run_cycle(self, work_min: int, break_min: int, cycles: int) -> None:

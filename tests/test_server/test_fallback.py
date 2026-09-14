@@ -25,13 +25,16 @@ def _remote_fails_local_ok(request: httpx.Request) -> httpx.Response:
 
 
 async def test_fallback_to_local_when_remote_unreachable():
-    backend = HttpBackend({
-        "api_url": "http://geefourteen:8585/v1",
-        "model_name": "gemma4",
-        "server_mode": "auto",
-    })
+    backend = HttpBackend(
+        {
+            "api_url": "http://geefourteen:8585/v1",
+            "model_name": "gemma4",
+            "server_mode": "auto",
+        }
+    )
     with patch.object(
-        httpx, "AsyncClient",
+        httpx,
+        "AsyncClient",
         return_value=httpx.AsyncClient(transport=httpx.MockTransport(_remote_fails_local_ok)),
     ):
         await backend.setup()
@@ -42,13 +45,16 @@ async def test_fallback_to_local_when_remote_unreachable():
 
 
 async def test_no_fallback_when_remote_reachable():
-    backend = HttpBackend({
-        "api_url": "http://geefourteen:8585/v1",
-        "model_name": "gemma4",
-        "server_mode": "auto",
-    })
+    backend = HttpBackend(
+        {
+            "api_url": "http://geefourteen:8585/v1",
+            "model_name": "gemma4",
+            "server_mode": "auto",
+        }
+    )
     with patch.object(
-        httpx, "AsyncClient",
+        httpx,
+        "AsyncClient",
         return_value=httpx.AsyncClient(transport=httpx.MockTransport(_models_ok)),
     ):
         await backend.setup()
@@ -59,13 +65,16 @@ async def test_no_fallback_when_remote_reachable():
 
 
 async def test_no_fallback_when_mode_remote():
-    backend = HttpBackend({
-        "api_url": "http://geefourteen:8585/v1",
-        "model_name": "gemma4",
-        "server_mode": "remote",
-    })
+    backend = HttpBackend(
+        {
+            "api_url": "http://geefourteen:8585/v1",
+            "model_name": "gemma4",
+            "server_mode": "remote",
+        }
+    )
     with patch.object(
-        httpx, "AsyncClient",
+        httpx,
+        "AsyncClient",
         return_value=httpx.AsyncClient(transport=httpx.MockTransport(_always_refuse)),
     ):
         await backend.setup()
@@ -75,13 +84,16 @@ async def test_no_fallback_when_mode_remote():
 
 
 async def test_no_fallback_when_already_local():
-    backend = HttpBackend({
-        "api_url": "http://localhost:11434/v1",
-        "model_name": "gemma4",
-        "server_mode": "auto",
-    })
+    backend = HttpBackend(
+        {
+            "api_url": "http://localhost:11434/v1",
+            "model_name": "gemma4",
+            "server_mode": "auto",
+        }
+    )
     with patch.object(
-        httpx, "AsyncClient",
+        httpx,
+        "AsyncClient",
         return_value=httpx.AsyncClient(transport=httpx.MockTransport(_always_refuse)),
     ):
         await backend.setup()
@@ -91,13 +103,16 @@ async def test_no_fallback_when_already_local():
 
 
 async def test_primary_url_preserved_after_fallback():
-    backend = HttpBackend({
-        "api_url": "http://geefourteen:8585/v1",
-        "model_name": "gemma4",
-        "server_mode": "auto",
-    })
+    backend = HttpBackend(
+        {
+            "api_url": "http://geefourteen:8585/v1",
+            "model_name": "gemma4",
+            "server_mode": "auto",
+        }
+    )
     with patch.object(
-        httpx, "AsyncClient",
+        httpx,
+        "AsyncClient",
         return_value=httpx.AsyncClient(transport=httpx.MockTransport(_remote_fails_local_ok)),
     ):
         await backend.setup()

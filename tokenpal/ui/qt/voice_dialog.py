@@ -103,10 +103,11 @@ class VoiceDialog(QDialog, _OneShotCallback):
             parent.addWidget(_help("Default TokenPal voice"))
         else:
             av = self._state.active_voice
-            parent.addWidget(_help(
-                f"{av.character} — {av.line_count} lines — "
-                f"source: {av.source or 'unknown'}",
-            ))
+            parent.addWidget(
+                _help(
+                    f"{av.character} — {av.line_count} lines — source: {av.source or 'unknown'}",
+                )
+            )
             off_btn = QPushButton("Use default voice")
             off_btn.clicked.connect(self._action_off)
             parent.addWidget(off_btn)
@@ -130,9 +131,11 @@ class VoiceDialog(QDialog, _OneShotCallback):
 
     def _build_train(self, parent: QVBoxLayout) -> None:
         parent.addWidget(_header("Train a new voice"))
-        parent.addWidget(_help(
-            "Wiki URL + character name. Takes ~60s of LLM time.",
-        ))
+        parent.addWidget(
+            _help(
+                "Wiki URL + character name. Takes ~60s of LLM time.",
+            )
+        )
         self._wiki_input = QLineEdit()
         self._wiki_input.setPlaceholderText("https://fandom.com/wiki/...")
         parent.addWidget(self._wiki_input)
@@ -146,13 +149,14 @@ class VoiceDialog(QDialog, _OneShotCallback):
     def _build_maintenance(self, parent: QVBoxLayout) -> None:
         parent.addWidget(_header("Maintenance"))
         active_name = (
-            self._state.active_voice.character
-            if self._state.active_voice is not None else ""
+            self._state.active_voice.character if self._state.active_voice is not None else ""
         )
         if not active_name:
-            parent.addWidget(_help(
-                "Switch to a custom voice to enable these.",
-            ))
+            parent.addWidget(
+                _help(
+                    "Switch to a custom voice to enable these.",
+                )
+            )
             return
         row = QHBoxLayout()
         regen_btn = QPushButton("Regenerate (~60s)")
@@ -170,10 +174,12 @@ class VoiceDialog(QDialog, _OneShotCallback):
     def _build_cloud_classifier(self, parent: QVBoxLayout) -> None:
         parent.addWidget(_header("ASCII classifier"))
         if not self._state.cloud_ready:
-            parent.addWidget(_help(
-                "Haiku-backed ASCII classifier is unavailable — "
-                "enable Cloud LLM + set an Anthropic key first.",
-            ))
+            parent.addWidget(
+                _help(
+                    "Haiku-backed ASCII classifier is unavailable — "
+                    "enable Cloud LLM + set an Anthropic key first.",
+                )
+            )
             return
         self._classifier_cb = QCheckBox(
             "Use Haiku to pick ASCII skeleton + palette at voice-load",
@@ -232,7 +238,8 @@ class VoiceDialog(QDialog, _OneShotCallback):
         self._deliver(
             self._on_result,
             VoiceModalResult(
-                action="cloud_classifier", payload={"enabled": enabled},
+                action="cloud_classifier",
+                payload={"enabled": enabled},
             ),
         )
         self.accept()

@@ -79,8 +79,6 @@ def test_result_carries_switch_server_to() -> None:
     assert r.navigate_to is None
 
 
-
-
 def test_result_defaults_switch_server_to_none() -> None:
     r = OptionsModalResult(max_persisted=42)
     assert r.switch_server_to is None
@@ -88,12 +86,8 @@ def test_result_defaults_switch_server_to_none() -> None:
 
 def test_state_accepts_known_servers_tuple() -> None:
     entries = (
-        ServerEntry(
-            url="http://localhost:11434/v1", label="local", model="gemma4"
-        ),
-        ServerEntry(
-            url="http://10.0.0.2:8585/v1", label="remote", model=None
-        ),
+        ServerEntry(url="http://localhost:11434/v1", label="local", model="gemma4"),
+        ServerEntry(url="http://10.0.0.2:8585/v1", label="remote", model=None),
     )
     s = OptionsModalState(
         max_persisted=200,
@@ -140,9 +134,7 @@ def test_state_model_fields_default_empty() -> None:
 
 
 def test_result_carries_set_zip_and_wifi_label() -> None:
-    r = OptionsModalResult(
-        max_persisted=42, set_zip="90210", set_wifi_label="home"
-    )
+    r = OptionsModalResult(max_persisted=42, set_zip="90210", set_wifi_label="home")
     assert r.set_zip == "90210"
     assert r.set_wifi_label == "home"
 
@@ -161,16 +153,10 @@ def test_state_weather_and_wifi_label_defaults() -> None:
 
 def test_same_server_canonicalizes() -> None:
     # Same URL with and without trailing /v1 or slash collapses.
-    assert _same_server(
-        "http://h:11434", "http://h:11434/v1"
-    ) is True
-    assert _same_server(
-        "http://h:11434/v1/", "http://h:11434/v1"
-    ) is True
+    assert _same_server("http://h:11434", "http://h:11434/v1") is True
+    assert _same_server("http://h:11434/v1/", "http://h:11434/v1") is True
     # Different hosts don't match.
-    assert _same_server(
-        "http://h:11434/v1", "http://other:11434/v1"
-    ) is False
+    assert _same_server("http://h:11434/v1", "http://other:11434/v1") is False
     # Empty strings never match (guards the "no current URL" case).
     assert _same_server("", "http://h:11434/v1") is False
     assert _same_server("http://h:11434/v1", "") is False
@@ -185,10 +171,14 @@ def _make_modal() -> OptionsModal:
         available_models=("gemma4", "gemma2"),
         known_servers=(
             ServerEntry(
-                url="http://localhost:11434/v1", label="local", model="gemma4",
+                url="http://localhost:11434/v1",
+                label="local",
+                model="gemma4",
             ),
             ServerEntry(
-                url="http://10.0.0.2:8585/v1", label="remote", model="qwen3",
+                url="http://10.0.0.2:8585/v1",
+                label="remote",
+                model="qwen3",
             ),
         ),
     )
@@ -236,7 +226,8 @@ def test_modal_collect_omits_unset_picks() -> None:
 
 
 def test_set_max_persisted_writes_clamped_value(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
     captured: dict[str, Any] = {}
 
@@ -246,9 +237,7 @@ def test_set_max_persisted_writes_clamped_value(
         captured["data"] = data
         return tmp_path / "config.toml"
 
-    monkeypatch.setattr(
-        "tokenpal.config.chatlog_writer.update_config", fake_update_config
-    )
+    monkeypatch.setattr("tokenpal.config.chatlog_writer.update_config", fake_update_config)
 
     set_max_persisted(99_999)
     assert captured["data"] == {"chat_log": {"max_persisted": MAX_PERSISTED}}
@@ -260,18 +249,22 @@ def test_set_max_persisted_writes_clamped_value(
     assert captured["data"] == {"chat_log": {"max_persisted": MIN_PERSISTED}}
 
 
-@pytest.mark.parametrize("value,expected", [
-    ("#000000", "#000000"),
-    ("#FFFFFF", "#ffffff"),
-    ("#AbCdEf", "#abcdef"),
-    ("#fff", "#000000"),        # short form rejected
-    ("000000", "#000000"),      # missing hash rejected
-    ("#xxxxxx", "#000000"),     # non-hex rejected
-    ("", "#000000"),
-    ("garbage", "#000000"),
-])
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        ("#000000", "#000000"),
+        ("#FFFFFF", "#ffffff"),
+        ("#AbCdEf", "#abcdef"),
+        ("#fff", "#000000"),  # short form rejected
+        ("000000", "#000000"),  # missing hash rejected
+        ("#xxxxxx", "#000000"),  # non-hex rejected
+        ("", "#000000"),
+        ("garbage", "#000000"),
+    ],
+)
 def test_normalize_hex_color_accepts_rrggbb(
-    value: str, expected: str,
+    value: str,
+    expected: str,
 ) -> None:
     assert normalize_hex_color(value, fallback="#000000") == expected
 
@@ -281,7 +274,8 @@ def test_normalize_hex_color_uses_supplied_fallback() -> None:
 
 
 def test_set_background_color_writes_normalized_hex(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
     captured: dict[str, Any] = {}
 
@@ -292,7 +286,8 @@ def test_set_background_color_writes_normalized_hex(
         return tmp_path / "config.toml"
 
     monkeypatch.setattr(
-        "tokenpal.config.chatlog_writer.update_config", fake_update_config,
+        "tokenpal.config.chatlog_writer.update_config",
+        fake_update_config,
     )
 
     set_background_color("#AABBCC")
@@ -305,7 +300,8 @@ def test_set_background_color_writes_normalized_hex(
 
 
 def test_set_font_color_writes_normalized_hex(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
     captured: dict[str, Any] = {}
 
@@ -316,7 +312,8 @@ def test_set_font_color_writes_normalized_hex(
         return tmp_path / "config.toml"
 
     monkeypatch.setattr(
-        "tokenpal.config.chatlog_writer.update_config", fake_update_config,
+        "tokenpal.config.chatlog_writer.update_config",
+        fake_update_config,
     )
 
     set_font_color("#112233")

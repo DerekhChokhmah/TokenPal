@@ -45,9 +45,7 @@ def test_dock_repositions_when_buddy_moves(qapp: QApplication) -> None:
         _pump(qapp, ms=150)
 
         after = (overlay._dock.x(), overlay._dock.y())
-        assert after != before, (
-            "dock should follow the buddy via the position_changed signal"
-        )
+        assert after != before, "dock should follow the buddy via the position_changed signal"
     finally:
         overlay.teardown()
         _pump(qapp, ms=20)
@@ -114,9 +112,7 @@ def test_dock_placement_follows_buddy_and_history_state(
         overlay._update_dock_placement()
         assert not overlay._dock_docked
         assert overlay._dock.parent() is None
-        assert overlay._user_visible.get("chat", False), (
-            "showing buddy must not close history"
-        )
+        assert overlay._user_visible.get("chat", False), "showing buddy must not close history"
     finally:
         overlay.teardown()
         _pump(qapp, ms=20)

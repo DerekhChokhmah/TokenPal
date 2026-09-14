@@ -13,12 +13,15 @@ def app(tmp_path):
     def mock_transport(request: httpx.Request) -> httpx.Response:
         path = str(request.url)
         if "/api/tags" in path:
-            return httpx.Response(200, json={
-                "models": [
-                    {"name": "gemma4", "size": 5000000000, "modified_at": "2026-04-01"},
-                    {"name": "tokenpal-bmo", "size": 3000000000},
-                ],
-            })
+            return httpx.Response(
+                200,
+                json={
+                    "models": [
+                        {"name": "gemma4", "size": 5000000000, "modified_at": "2026-04-01"},
+                        {"name": "tokenpal-bmo", "size": 3000000000},
+                    ],
+                },
+            )
         if "/api/pull" in path:
             return httpx.Response(200, json={"status": "success"})
         if path.endswith("/"):

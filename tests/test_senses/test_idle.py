@@ -56,9 +56,7 @@ async def test_sustained_emits_on_cadence(monkeypatch) -> None:
     assert quiet is None
 
     # Polling past the 60s cadence should emit a sustained reading.
-    out = await _poll_at(
-        sense, monkeypatch, base + _SHORT_IDLE + _SUSTAINED_EMIT_INTERVAL_S + 2
-    )
+    out = await _poll_at(sense, monkeypatch, base + _SHORT_IDLE + _SUSTAINED_EMIT_INTERVAL_S + 2)
     assert out is not None
     assert out.data["event"] == "sustained"
     assert out.data["tier"] == "short"
@@ -74,9 +72,7 @@ async def test_sustained_emits_on_tier_bump(monkeypatch) -> None:
     await _poll_at(sense, monkeypatch, base + _SHORT_IDLE + 1)
 
     # First sustained emission inside short tier.
-    short = await _poll_at(
-        sense, monkeypatch, base + _SHORT_IDLE + _SUSTAINED_EMIT_INTERVAL_S + 1
-    )
+    short = await _poll_at(sense, monkeypatch, base + _SHORT_IDLE + _SUSTAINED_EMIT_INTERVAL_S + 1)
     assert short is not None
     assert short.data["tier"] == "short"
 
@@ -95,9 +91,7 @@ async def test_return_emits_exactly_one_reading(monkeypatch) -> None:
 
     # Enter and confirm sustained idle.
     await _poll_at(sense, monkeypatch, base + _SHORT_IDLE + 1)
-    await _poll_at(
-        sense, monkeypatch, base + _SHORT_IDLE + _SUSTAINED_EMIT_INTERVAL_S + 1
-    )
+    await _poll_at(sense, monkeypatch, base + _SHORT_IDLE + _SUSTAINED_EMIT_INTERVAL_S + 1)
 
     # User returns: first event opens the pending window — no emission yet.
     return_ts = base + _MEDIUM_IDLE + 30
@@ -185,9 +179,7 @@ async def test_long_tier_summary_uses_hours(monkeypatch) -> None:
     # First poll past _SHORT_IDLE -> transition (silent).
     assert out is None
     # Wait for the cadence window before the next emission.
-    out = await _poll_at(
-        sense, monkeypatch, base + _LONG_IDLE + _SUSTAINED_EMIT_INTERVAL_S + 2
-    )
+    out = await _poll_at(sense, monkeypatch, base + _LONG_IDLE + _SUSTAINED_EMIT_INTERVAL_S + 2)
     assert out is not None
     assert out.data["tier"] == "long"
     assert out.confidence == 0.7

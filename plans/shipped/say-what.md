@@ -114,9 +114,9 @@ Concrete ABC shape (informed by Pipecat / RealtimeTTS prior art):
 
 ```python
 class TTSBackend(ABC):
-    sample_rate: ClassVar[int]               # 24000 for Kokoro, 22050 for Piper, etc.
+    sample_rate: ClassVar[int]  # 24000 for Kokoro, 22050 for Piper, etc.
     channels: ClassVar[int] = 1
-    sample_format: ClassVar[str] = "int16"   # backends declare their output format
+    sample_format: ClassVar[str] = "int16"  # backends declare their output format
 
     @abstractmethod
     def list_voices(self) -> list[VoiceInfo]: ...
@@ -124,10 +124,10 @@ class TTSBackend(ABC):
     @abstractmethod
     async def synthesize(
         self, text: str, voice_id: str, *, speed: float = 1.0
-    ) -> AsyncIterator[bytes]: ...           # streaming-first; buffer-first backends yield one chunk
+    ) -> AsyncIterator[bytes]: ...  # streaming-first; buffer-first backends yield one chunk
 
-    async def warmup(self) -> None: ...      # lazy-load on first use, not at import
-    async def aclose(self) -> None: ...      # release model RAM on toggle-off
+    async def warmup(self) -> None: ...  # lazy-load on first use, not at import
+    async def aclose(self) -> None: ...  # release model RAM on toggle-off
 ```
 
 `ASRBackend` mirrors the shape (declares expected input sample rate; takes audio bytes + sample rate, returns text). `WakeWordBackend` exposes `stream() -> AsyncIterator[WakeEvent]`.

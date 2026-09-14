@@ -30,9 +30,7 @@ def test_set_chat_log_width_creates_file(fake_config: Path) -> None:
 
 
 def test_set_chat_log_width_upserts_existing(fake_config: Path) -> None:
-    fake_config.write_text(
-        '[ui]\noverlay = "textual"\nchat_log_width = 40\n'
-    )
+    fake_config.write_text('[ui]\noverlay = "textual"\nchat_log_width = 40\n')
     set_chat_log_width(72)
     data = _toml(fake_config)
     assert data["ui"]["chat_log_width"] == 72

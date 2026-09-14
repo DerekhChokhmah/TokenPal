@@ -4,6 +4,7 @@ Both halves of ``make_agent_log``'s persist handling were mutation-tested and
 found uncovered: deleting either one left the whole suite green while desktop
 content flowed into ~/.tokenpal/logs and memory.db. These pin them.
 """
+
 from __future__ import annotations
 
 import logging
@@ -19,7 +20,11 @@ class _RecordingOverlay:
         self.logged: list[tuple[str, bool]] = []
 
     def log_buddy_message(
-        self, text: str, *, markup: bool = False, url: str | None = None,
+        self,
+        text: str,
+        *,
+        markup: bool = False,
+        url: str | None = None,
         persist: bool = True,
     ) -> None:
         self.logged.append((text, persist))

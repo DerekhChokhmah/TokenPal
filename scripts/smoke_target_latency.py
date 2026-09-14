@@ -17,7 +17,6 @@ from tokenpal.brain.memory import MemoryStore
 from tokenpal.config.loader import load_config
 from tokenpal.llm.http_backend import HttpBackend
 
-
 PROMPTS = [
     "In one sentence, describe a rainy afternoon.",
     "Give a single-line weather forecast for Tokyo.",
@@ -28,17 +27,19 @@ PROMPTS = [
 
 
 def _make_backend(llm: object, store: MemoryStore) -> HttpBackend:
-    return HttpBackend({
-        "api_url": llm.api_url,                          # type: ignore[attr-defined]
-        "model_name": llm.model_name,                    # type: ignore[attr-defined]
-        "max_tokens": llm.max_tokens,                    # type: ignore[attr-defined]
-        "temperature": llm.temperature,                  # type: ignore[attr-defined]
-        "disable_reasoning": llm.disable_reasoning,      # type: ignore[attr-defined]
-        "inference_engine": llm.inference_engine,        # type: ignore[attr-defined]
-        "per_server_models": llm.per_server_models,      # type: ignore[attr-defined]
-        "per_server_max_tokens": llm.per_server_max_tokens,  # type: ignore[attr-defined]
-        "memory_store": store,
-    })
+    return HttpBackend(
+        {
+            "api_url": llm.api_url,  # type: ignore[attr-defined]
+            "model_name": llm.model_name,  # type: ignore[attr-defined]
+            "max_tokens": llm.max_tokens,  # type: ignore[attr-defined]
+            "temperature": llm.temperature,  # type: ignore[attr-defined]
+            "disable_reasoning": llm.disable_reasoning,  # type: ignore[attr-defined]
+            "inference_engine": llm.inference_engine,  # type: ignore[attr-defined]
+            "per_server_models": llm.per_server_models,  # type: ignore[attr-defined]
+            "per_server_max_tokens": llm.per_server_max_tokens,  # type: ignore[attr-defined]
+            "memory_store": store,
+        }
+    )
 
 
 async def main() -> int:
@@ -67,7 +68,9 @@ async def main() -> int:
 
     for i, prompt in enumerate(PROMPTS, start=1):
         resp = await backend.generate(
-            prompt, target_latency_s=target_s, min_tokens=min_t,
+            prompt,
+            target_latency_s=target_s,
+            min_tokens=min_t,
         )
         decode = backend._decode_tps_ewma
         ttft = backend._ttft_ewma_s
@@ -109,12 +112,13 @@ async def main() -> int:
     target_s = llm.target_latency_s.observation
     min_t = llm.min_tokens_per_path.observation
     resp = await b2.generate(
-        PROMPTS[0], target_latency_s=target_s, min_tokens=min_t,
+        PROMPTS[0],
+        target_latency_s=target_s,
+        min_tokens=min_t,
     )
     resolved = b2._resolve_max_tokens(None, target_s, min_t)
     print(
-        f"call 1: elapsed={resp.latency_ms / 1000:.2f}s "
-        f"resolved_max={resolved} (no bootstrap burn)"
+        f"call 1: elapsed={resp.latency_ms / 1000:.2f}s resolved_max={resolved} (no bootstrap burn)"
     )
     await b2.teardown()
     store.teardown()

@@ -11,6 +11,7 @@ with the buddy item offset by ``-com_art`` from the pivot's origin).
 invariant per (frame_lines, font, zoom), so reading it from the render
 thread is safe.
 """
+
 from __future__ import annotations
 
 import time
@@ -36,9 +37,7 @@ class BuddyQuickItem(QQuickItem):
         self._cached_pixmap_id: int | None = None
         self._texture: QSGTexture | None = None
         self.setFlag(QQuickItem.Flag.ItemHasContents, True)
-        self.setAcceptedMouseButtons(
-            Qt.MouseButton.LeftButton | Qt.MouseButton.RightButton
-        )
+        self.setAcceptedMouseButtons(Qt.MouseButton.LeftButton | Qt.MouseButton.RightButton)
         self.paint_samples_ms: deque[float] = deque(maxlen=600)
 
     def updatePaintNode(

@@ -14,8 +14,15 @@ log = logging.getLogger(__name__)
 
 # Browser apps identified by macOS display name (kCGWindowOwnerName).
 _BROWSERS: set[str] = {
-    "google chrome", "firefox", "safari", "arc", "brave browser",
-    "microsoft edge", "chromium", "opera", "vivaldi",
+    "google chrome",
+    "firefox",
+    "safari",
+    "arc",
+    "brave browser",
+    "microsoft edge",
+    "chromium",
+    "opera",
+    "vivaldi",
 }
 
 

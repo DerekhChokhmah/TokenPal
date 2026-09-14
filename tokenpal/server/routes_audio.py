@@ -60,8 +60,7 @@ async def _ensure_model(requested_size: str) -> WhisperModel:
             raise HTTPException(
                 status_code=503,
                 detail=(
-                    "ASR not available on this server — install with "
-                    "pip install tokenpal[audio]."
+                    "ASR not available on this server — install with pip install tokenpal[audio]."
                 ),
             ) from e
 
@@ -72,7 +71,9 @@ async def _ensure_model(requested_size: str) -> WhisperModel:
         )
         log.info(
             "asr-server: loading %s on %s/%s",
-            requested_size, device, compute_type,
+            requested_size,
+            device,
+            compute_type,
         )
         # Run blocking load off the event loop so the request that
         # triggered it doesn't tie up FastAPI's worker.
@@ -101,7 +102,8 @@ def _wav_bytes_to_pcm(buf: bytes) -> tuple[bytes, int]:
             return wav.readframes(wav.getnframes()), sr
     except wave.Error as e:
         raise HTTPException(
-            status_code=400, detail=f"could not decode WAV: {e}",
+            status_code=400,
+            detail=f"could not decode WAV: {e}",
         ) from e
 
 

@@ -185,9 +185,7 @@ def _code_string_constants(module_name: str) -> list[str]:
     docstrings = {
         id(node.body[0].value)
         for node in ast.walk(tree)
-        if isinstance(
-            node, ast.Module | ast.ClassDef | ast.FunctionDef | ast.AsyncFunctionDef
-        )
+        if isinstance(node, ast.Module | ast.ClassDef | ast.FunctionDef | ast.AsyncFunctionDef)
         and node.body
         and isinstance(node.body[0], ast.Expr)
         and isinstance(node.body[0].value, ast.Constant)
@@ -228,8 +226,12 @@ def _dummy_args(cls: type[AbstractAction]) -> dict[str, object]:
     props = schema.get("properties", {}) if isinstance(schema, dict) else {}
     required = schema.get("required", list(props)) if isinstance(schema, dict) else []
     by_type: dict[str, object] = {
-        "string": "x", "integer": 1, "number": 1.0, "boolean": True,
-        "array": [], "object": {},
+        "string": "x",
+        "integer": 1,
+        "number": 1.0,
+        "boolean": True,
+        "array": [],
+        "object": {},
     }
     out: dict[str, object] = {}
     for name in required:
@@ -280,7 +282,8 @@ def test_marked_action_is_absent_from_every_ambient_path(
 
 @pytest.mark.parametrize("cls", _MARKED, ids=lambda c: c.action_name)
 async def test_marked_action_checks_consent_before_arguments(
-    cls: type[AbstractAction], monkeypatch: pytest.MonkeyPatch,
+    cls: type[AbstractAction],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Consent is checked first, before any argument validation, so a missing
     grant refuses identically no matter how the model called the tool."""
@@ -325,9 +328,7 @@ def test_every_network_reaching_action_declares_a_consent_category() -> None:
         return found is not None and bool(found[0].consent_category)
 
     ungated = sorted(
-        name
-        for name, cls in _ACTION_REGISTRY.items()
-        if _reaches_network(cls) and not gated(name)
+        name for name, cls in _ACTION_REGISTRY.items() if _reaches_network(cls) and not gated(name)
     )
     assert ungated == [], f"network tools with no consent category: {ungated}"
 
@@ -362,8 +363,7 @@ def test_marked_action_does_not_hand_build_the_envelope(
         f"tags and sanitizes both attributes"
     )
     assert any(
-        "to_prompt_block" in (inspect.getsource(sys.modules[m]) if m in sys.modules
-                              else "")
+        "to_prompt_block" in (inspect.getsource(sys.modules[m]) if m in sys.modules else "")
         for m in own
     ), "no call to to_prompt_block(): the envelope must not be built by hand"
 

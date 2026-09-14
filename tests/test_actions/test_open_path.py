@@ -83,9 +83,7 @@ def test_open_path_requires_confirm() -> None:
 # --- happy path ---
 
 
-@pytest.mark.parametrize(
-    "name", ["a.pdf", "notes.txt", "page.html", "README", "notes.unknownext"]
-)
+@pytest.mark.parametrize("name", ["a.pdf", "notes.txt", "page.html", "README", "notes.unknownext"])
 async def test_openable_shapes_open(root: Path, launcher: _Launcher, name: str) -> None:
     target = _write(root / name)
 
@@ -123,9 +121,7 @@ async def test_refuses_a_symlink_that_resolves_outside(
     assert launcher.calls == []
 
 
-async def test_refuses_a_dotdot_escape(
-    root: Path, tmp_path: Path, launcher: _Launcher
-) -> None:
+async def test_refuses_a_dotdot_escape(root: Path, tmp_path: Path, launcher: _Launcher) -> None:
     _write(tmp_path / "outside" / "a.pdf")
 
     result = await invoke_tool(OpenPathAction({}), path=str(root / ".." / "outside" / "a.pdf"))
@@ -169,9 +165,7 @@ async def test_refuses_a_directory(root: Path, launcher: _Launcher) -> None:
 
 
 @pytest.mark.parametrize("raw", ["", "   ", None])
-async def test_refuses_a_missing_argument(
-    root: Path, launcher: _Launcher, raw: str | None
-) -> None:
+async def test_refuses_a_missing_argument(root: Path, launcher: _Launcher, raw: str | None) -> None:
     result = await invoke_tool(OpenPathAction({}), path=raw)
 
     assert result.success is False
@@ -179,8 +173,6 @@ async def test_refuses_a_missing_argument(
 
 
 # --- executables, scripts, bundles ---
-
-
 @pytest.mark.parametrize(
     ("name", "mode"),
     [
@@ -195,15 +187,31 @@ async def test_refuses_a_missing_argument(
         ("d.pkg", 0o644),
         ("e.dmg", 0o644),
         ("f.webloc", 0o644),
-        ("bare", 0o755),
-        ("notes.txt", 0o755),
+        pytest.param(
+            "bare",
+            0o755,
+            marks=pytest.mark.skipif(
+                os.name == "nt",
+                reason="Windows does not expose Unix executable permission bits",
+            ),
+        ),
+        pytest.param(
+            "notes.txt",
+            0o755,
+            marks=pytest.mark.skipif(
+                os.name == "nt",
+                reason="Windows does not expose Unix executable permission bits",
+            ),
+        ),
     ],
 )
 async def test_refuses_anything_that_could_run(
-    root: Path, launcher: _Launcher, name: str, mode: int
+    root: Path,
+    launcher: _Launcher,
+    name: str,
+    mode: int,
 ) -> None:
     target = _write(root / name, mode)
-
     result = await invoke_tool(OpenPathAction({}), path=str(target))
 
     assert result.success is False, f"{name} was opened"
@@ -244,9 +252,7 @@ async def test_refuses_a_sensitive_name_without_repeating_it(
     "name",
     [".hidden/a.pdf", "Library/a.pdf", "x.env", "credentials.json", "id_rsa.txt"],
 )
-async def test_refuses_protected_paths(
-    root: Path, launcher: _Launcher, name: str
-) -> None:
+async def test_refuses_protected_paths(root: Path, launcher: _Launcher, name: str) -> None:
     target = _write(root / name)
 
     result = await invoke_tool(OpenPathAction({}), path=str(target))

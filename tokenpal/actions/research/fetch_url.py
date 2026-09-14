@@ -33,10 +33,7 @@ _MAX_BYTES = 2 * 1024 * 1024
 _DEFAULT_TIMEOUT_S = 8.0
 # Descriptive UA required by a handful of endpoints (Wikimedia, TheSportsDB).
 # Passed per-request so we don't override the shared session's global UA.
-_FETCH_UA = (
-    "TokenPal/1.0 (+https://github.com/smabe/TokenPal; "
-    "abraham.awadallah@gmail.com)"
-)
+_FETCH_UA = "TokenPal/1.0 (+https://github.com/smabe/TokenPal; abraham.awadallah@gmail.com)"
 _MAX_EXTRACT_CHARS = 8000
 # Extractions shorter than this are usually title-only dregs from a page
 # trafilatura couldn't parse (heavy JS, paywall, anti-bot). Treat as
@@ -69,7 +66,9 @@ async def fetch_and_extract(url: str, *, timeout_s: float = _DEFAULT_TIMEOUT_S) 
     if len(text) < _MIN_EXTRACT_CHARS:
         log.debug(
             "fetch_url: extraction too short (%d < %d chars) for %s",
-            len(text), _MIN_EXTRACT_CHARS, url,
+            len(text),
+            _MIN_EXTRACT_CHARS,
+            url,
         )
         return None
     if contains_sensitive_content_term(text):
@@ -91,9 +90,7 @@ async def _fetch_via_aiohttp(url: str, *, timeout_s: float) -> str:
         return ""
     text = _extract(raw, url)
     if not text:
-        log.debug(
-            "fetch_url: extraction empty (%d HTML bytes) for %s", len(raw), url
-        )
+        log.debug("fetch_url: extraction empty (%d HTML bytes) for %s", len(raw), url)
     return text
 
 
@@ -163,7 +160,7 @@ class FetchUrlAction(AbstractAction):
                 success=False,
             )
 
-        body = f"<tool_result tool=\"fetch_url\" url=\"{url}\">\n{text}\n</tool_result>"
+        body = f'<tool_result tool="fetch_url" url="{url}">\n{text}\n</tool_result>'
         return ActionResult(output=body, success=True)
 
 
@@ -209,7 +206,9 @@ def _extract_trafilatura(html: str, url: str) -> str:
     except ImportError:
         return ""
     modes: list[dict[str, Any]] = [
-        {"favor_precision": True}, {"favor_recall": True}, {},
+        {"favor_precision": True},
+        {"favor_recall": True},
+        {},
     ]
     for mode in modes:
         try:
@@ -251,6 +250,7 @@ def _extract_readability(html: str, url: str) -> str:
         return ""
     try:
         import re
+
         doc = Document(html)
         summary_html = doc.summary(html_partial=True)
         return re.sub(r"<[^>]+>", " ", summary_html).strip()

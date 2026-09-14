@@ -46,7 +46,10 @@ _DARK_SHADE_DARKEN = 120  # ~17% darker
 
 
 def paint_block_char(
-    painter: QPainter, ch: str, rect: QRect, color: QColor,
+    painter: QPainter,
+    ch: str,
+    rect: QRect,
+    color: QColor,
 ) -> bool:
     """Paint ``ch`` into ``rect`` as a solid/shaded fill, bypassing the
     font. Returns False if ``ch`` isn't a recognized block char so the
@@ -66,8 +69,11 @@ def paint_block_char(
         return True
     if ch == _BLOCK_LOWER_HALF:
         painter.fillRect(
-            rect.x(), rect.y() + half,
-            rect.width(), rect.height() - half, color,
+            rect.x(),
+            rect.y() + half,
+            rect.width(),
+            rect.height() - half,
+            color,
         )
         return True
     return False
@@ -129,7 +135,8 @@ def render_sprite_pixmap(
         target_w = max(int(math.ceil(cols * cell_w * dpr)), 1)
         target_h = max(int(math.ceil(rows * line_h * dpr)), 1)
         image = image.scaled(
-            target_w, target_h,
+            target_w,
+            target_h,
             Qt.AspectRatioMode.IgnoreAspectRatio,
             Qt.TransformationMode.SmoothTransformation,
         )
@@ -266,5 +273,3 @@ def scale_font(base: QFont, factor: float) -> QFont:
     if base_size > 0 and factor > 0.0:
         font.setPointSize(max(1, int(round(base_size * factor))))
     return font
-
-

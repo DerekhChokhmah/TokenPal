@@ -109,6 +109,7 @@ def _trim_to_last_sentence(text: str) -> str:
 # Conversation session — tracks multi-turn history for user conversations
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class ConversationSession:
     """Tracks state for an active multi-turn conversation."""
@@ -224,6 +225,7 @@ _RETRY_NEAR_DUP_INSTRUCTION = (
     "Rephrase with fresh wording. Avoid the opening structure you just used."
 )
 
+
 class BrainMode(StrEnum):
     """Heavyweight mode of the brain. Conversation isn't a mode because it
     carries history state on ``_conversation`` rather than a flag."""
@@ -320,17 +322,13 @@ class Brain:
         # User input queue (thread-safe, fed from main thread). Carries
         # (text, source) so voice-vs-typed routing survives the cross-thread
         # hop without a side channel.
-        self._user_input_queue: asyncio.Queue[tuple[str, InputSource]] = (
-            asyncio.Queue()
-        )
+        self._user_input_queue: asyncio.Queue[tuple[str, InputSource]] = asyncio.Queue()
         self._agent_goal_queue: asyncio.Queue[str] = asyncio.Queue()
         self._research_queue: asyncio.Queue[str] = asyncio.Queue()
         self._refine_queue: asyncio.Queue[str] = asyncio.Queue()
         self._followup_queue: asyncio.Queue[str] = asyncio.Queue()
         # (task, inline text); None = read the source app's selection.
-        self._desktop_task_queue: asyncio.Queue[tuple[DesktopTask, str | None]] = (
-            asyncio.Queue()
-        )
+        self._desktop_task_queue: asyncio.Queue[tuple[DesktopTask, str | None]] = asyncio.Queue()
         # Physical-reaction events (overlay → brain). Items are "poke"/"shake".
         self._buddy_event_queue: asyncio.Queue[str] = asyncio.Queue()
         # Last time a buddy-reaction bubble was emitted — 5s cooldown so
@@ -406,9 +404,7 @@ class Brain:
         self._recent_outputs: deque[str] = deque(maxlen=_RECENT_OUTPUTS_MAX)
         # Conv-only mirror. Observation pollution would make a fresh chat reply
         # look like a duplicate, so the conv suppression check reads from here.
-        self._conversation_recent_outputs: deque[str] = deque(
-            maxlen=_CONV_RECENT_OUTPUTS_MAX
-        )
+        self._conversation_recent_outputs: deque[str] = deque(maxlen=_CONV_RECENT_OUTPUTS_MAX)
 
         # Conversation session state
         self._conversation: ConversationSession | None = None
@@ -465,9 +461,7 @@ class Brain:
         self._first_session_of_day: bool = True
         self._session_started_at: float = time.monotonic()
 
-        self._app_enricher = (
-            AppEnricher(memory=self._memory) if self._memory is not None else None
-        )
+        self._app_enricher = AppEnricher(memory=self._memory) if self._memory is not None else None
         self._observation_enricher = (
             ObservationEnricher(app_enricher=self._app_enricher)
             if self._app_enricher is not None
@@ -477,9 +471,7 @@ class Brain:
         # Target-latency budgets + token floors per call-path.
         # See plans/shipped/gpu-scaling.md.
         self._budgets: TargetLatencyConfig = target_latency_s or TargetLatencyConfig()
-        self._min_tokens: MinTokensPerPathConfig = (
-            min_tokens_per_path or MinTokensPerPathConfig()
-        )
+        self._min_tokens: MinTokensPerPathConfig = min_tokens_per_path or MinTokensPerPathConfig()
 
         # Session handoff — periodic summarizer + the last note we loaded
         # at startup. See plans/buddy-utility-wedges.md.
@@ -621,9 +613,7 @@ class Brain:
             return
         asyncio.create_task(self._emit_eod_bubble(date_str, mark_shown=True))
 
-    async def _emit_eod_bubble(
-        self, date_str: str, *, mark_shown: bool
-    ) -> bool:
+    async def _emit_eod_bubble(self, date_str: str, *, mark_shown: bool) -> bool:
         """Render and emit an EOD bubble for date_str. Returns True on emit."""
         if self._eod is None or self._memory is None:
             return False
@@ -704,9 +694,7 @@ class Brain:
             min_tokens=self._min_tokens.observation,
         )
         if cfg.enabled:
-            self._session_summary_task = asyncio.create_task(
-                self._session_summarizer.run_forever()
-            )
+            self._session_summary_task = asyncio.create_task(self._session_summarizer.run_forever())
 
     def _compute_first_session_of_day(self) -> bool:
         """True when no prior session_start landed in today's memory.db."""
@@ -743,9 +731,7 @@ class Brain:
         """
         if not log.isEnabledFor(logging.DEBUG):
             return
-        loggable = "\n".join(
-            line for line in snapshot.split("\n") if not line.startswith("CPU ")
-        )
+        loggable = "\n".join(line for line in snapshot.split("\n") if not line.startswith("CPU "))
         now = time.monotonic()
         if not self._log_context_full and (
             loggable == self._last_context_log
@@ -813,10 +799,7 @@ class Brain:
 
                 # Git transitions bypass the comment-rate cap. Compute once
                 # per tick — _should_comment() jitters and has side effects.
-                has_urgent = any(
-                    r.sense_name == "git" and r.changed_from
-                    for r in readings
-                )
+                has_urgent = any(r.sense_name == "git" and r.changed_from for r in readings)
                 cap_open = has_urgent or self._should_comment()
                 chosen = self._select_candidate(cap_open=cap_open)
                 emitted = False
@@ -1002,7 +985,9 @@ class Brain:
             history = [dict(m) for m in session.history]
             task = asyncio.create_task(
                 self._session_summarizer.summarize_conversation(
-                    history, started_at=session.started_at, ended_at=time.time(),
+                    history,
+                    started_at=session.started_at,
+                    ended_at=time.time(),
                 )
             )
             self._conversation_summary_tasks.add(task)
@@ -1045,9 +1030,7 @@ class Brain:
             ts, text = row
             age_s = time.time() - ts
             session.recap = self._personality.build_conversation_recap(text, age_s)
-            log.info(
-                "Injected conversation recap (%d chars, %.0f min old)", len(text), age_s / 60
-            )
+            log.info("Injected conversation recap (%d chars, %.0f min old)", len(text), age_s / 60)
         return session
 
     def _clear_conversation(self) -> None:
@@ -1099,7 +1082,8 @@ class Brain:
         if self._consecutive_comments >= _FORCED_SILENCE_AFTER:
             log.debug(
                 "Gate: forced %ds silence after %d consecutive comments",
-                int(_FORCED_SILENCE_DURATION), self._consecutive_comments,
+                int(_FORCED_SILENCE_DURATION),
+                self._consecutive_comments,
             )
             self._forced_silence_until = now + _FORCED_SILENCE_DURATION
             self._consecutive_comments = 0
@@ -1134,7 +1118,9 @@ class Brain:
 
         log.debug(
             "Gate: interestingness %.2f vs threshold %.2f (activity %.2f)",
-            score, threshold, activity,
+            score,
+            threshold,
+            activity,
         )
         return score >= threshold
 
@@ -1164,9 +1150,7 @@ class Brain:
             return False
 
         chance = (
-            _FREEFORM_CHANCE_RICH
-            if self._personality.has_rich_voice
-            else self._FREEFORM_CHANCE
+            _FREEFORM_CHANCE_RICH if self._personality.has_rich_voice else self._FREEFORM_CHANCE
         )
         if random.random() >= chance:
             return False
@@ -1287,8 +1271,7 @@ class Brain:
             if wait > 0:
                 await asyncio.sleep(wait)
             if self._proactive_paused():
-                log.debug("Nudge '%s' suppressed: gate closed while generating",
-                          reminder_id)
+                log.debug("Nudge '%s' suppressed: gate closed while generating", reminder_id)
                 return
             self._last_nudge_delivery = time.monotonic()
             try:
@@ -1399,7 +1382,9 @@ class Brain:
         if self._suppressed_streak >= _FORCED_SILENCE_AFTER_SUPPRESSIONS:
             log.info(
                 "Gate: forced silence for %ds after %d consecutive suppressions (%s)",
-                int(_FORCED_SILENCE_DURATION), self._suppressed_streak, reason,
+                int(_FORCED_SILENCE_DURATION),
+                self._suppressed_streak,
+                reason,
             )
             self._forced_silence_until = now + _FORCED_SILENCE_DURATION
             self._suppressed_streak = 0
@@ -1410,10 +1395,12 @@ class Brain:
         normalized = " ".join(normalized.split())
         if len(normalized) < 3:
             return {normalized}
-        return {normalized[i:i + 3] for i in range(len(normalized) - 2)}
+        return {normalized[i : i + 3] for i in range(len(normalized) - 2)}
 
     def _is_near_duplicate(
-        self, text: str, recent: deque[str] | None = None,
+        self,
+        text: str,
+        recent: deque[str] | None = None,
     ) -> bool:
         """True if `text` overlaps ≥ _NEAR_DUPLICATE_JACCARD with recent output."""
         recent = recent if recent is not None else self._recent_outputs
@@ -1433,7 +1420,8 @@ class Brain:
             if jaccard >= _NEAR_DUPLICATE_JACCARD:
                 log.debug(
                     "Gate: near-duplicate suppressed (jaccard=%.2f vs %r)",
-                    jaccard, prior[:60],
+                    jaccard,
+                    prior[:60],
                 )
                 return True
         return self._has_recent_prefix_lock(text, recent)
@@ -1445,7 +1433,9 @@ class Brain:
         return " ".join(cleaned.split()[:n])
 
     def _has_recent_prefix_lock(
-        self, text: str, recent: deque[str] | None = None,
+        self,
+        text: str,
+        recent: deque[str] | None = None,
     ) -> bool:
         """True if `text` shares its leading N tokens with M+ recent outputs.
 
@@ -1457,14 +1447,13 @@ class Brain:
         prefix = self._leading_tokens(text)
         if not prefix:
             return False
-        matches = sum(
-            1 for prior in recent
-            if self._leading_tokens(prior) == prefix
-        )
+        matches = sum(1 for prior in recent if self._leading_tokens(prior) == prefix)
         if matches >= _PREFIX_LOCK_MIN_MATCHES:
             log.info(
                 "Gate: prefix-lock suppressed %r (%d matches in last %d)",
-                prefix, matches, len(recent),
+                prefix,
+                matches,
+                len(recent),
             )
             return True
         return False
@@ -1507,7 +1496,9 @@ class Brain:
         return True
 
     def _select_candidate(
-        self, *, cap_open: bool,
+        self,
+        *,
+        cap_open: bool,
     ) -> tuple[Wedge, EmissionCandidate] | None:
         """Pick at most one Wedge candidate to riff this tick (priority-ordered, gate-filtered).
 
@@ -1535,7 +1526,9 @@ class Brain:
         return None
 
     async def _riff(
-        self, wedge: Wedge, candidate: EmissionCandidate,
+        self,
+        wedge: Wedge,
+        candidate: EmissionCandidate,
     ) -> bool:
         """Shared pipeline: build_prompt, LLM, filter, emit.
 
@@ -1567,7 +1560,8 @@ class Brain:
         if filtered and self._is_near_duplicate(filtered):
             log.info(
                 "TokenPal (%s suppressed near-duplicate): %s",
-                wedge.name, filtered,
+                wedge.name,
+                filtered,
             )
             self._handle_suppressed_output(f"{wedge.name} near-duplicate")
             wedge.on_emitted(candidate, success=False)
@@ -1575,7 +1569,9 @@ class Brain:
         if filtered:
             log.info(
                 "TokenPal (%s): %s (%.0fms)",
-                wedge.name, filtered, response.latency_ms,
+                wedge.name,
+                filtered,
+                response.latency_ms,
             )
             self._emit_comment(filtered, acknowledge=wedge.acknowledge_emit)
             self._recent_outputs.append(filtered)
@@ -1600,10 +1596,7 @@ class Brain:
         # ("Ghostty is foreground") from monopolizing topic picks once the user
         # has clearly walked away — without naming app_awareness directly, so
         # any other stale-and-unchanged sense gets the same treatment.
-        afk_penalty = (
-            self._sustained_idle_active()
-            and self._context.activity_level() < 0.15
-        )
+        afk_penalty = self._sustained_idle_active() and self._context.activity_level() < 0.15
 
         for sense_name, reading in active.items():
             # Freshness: newer readings are more interesting
@@ -1663,7 +1656,8 @@ class Brain:
         if self._observation_enricher is None:
             return snapshot
         return await self._observation_enricher.enrich(
-            snapshot, self._context.active_readings(),
+            snapshot,
+            self._context.active_readings(),
         )
 
     async def _generate_comment(self, snapshot: str | None = None) -> bool:
@@ -1759,7 +1753,8 @@ class Brain:
                 # Record comment milestones
                 if self._memory and self._personality._total_comments % 10 == 0:
                     self._memory.record_observation(
-                        "system", "milestone",
+                        "system",
+                        "milestone",
                         f"Comment #{self._personality._total_comments}",
                     )
                 return True
@@ -1834,11 +1829,7 @@ class Brain:
         # included, advisory on the one path that has no user watching.
         offered = {s["function"]["name"] for s in specs}
 
-        deadline = (
-            time.monotonic() + target_latency_s
-            if target_latency_s is not None
-            else None
-        )
+        deadline = time.monotonic() + target_latency_s if target_latency_s is not None else None
 
         def _remaining() -> float | None:
             return max(0.0, deadline - time.monotonic()) if deadline is not None else None
@@ -1874,11 +1865,13 @@ class Brain:
             for tc, result_text in zip(response.tool_calls, results):
                 if log.isEnabledFor(logging.DEBUG):
                     log.debug("Tool round %d result [%s]: %.200s", _round, tc.name, result_text)
-                messages.append({
-                    "role": "tool",
-                    "tool_call_id": tc.id,
-                    "content": result_text,
-                })
+                messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": tc.id,
+                        "content": result_text,
+                    }
+                )
 
         log.warning("Hit tool round limit (%d), forcing text response", self._MAX_TOOL_ROUNDS)
         return await self._llm.generate_with_tools(
@@ -1901,11 +1894,14 @@ class Brain:
         for attempt in range(self._MAX_CONTINUATIONS + 1):
             if use_tools:
                 response = await self._generate_with_tools(
-                    messages=work, max_tokens=max_tokens,
+                    messages=work,
+                    max_tokens=max_tokens,
                 )
             else:
                 response = await self._llm.generate_with_tools(
-                    messages=work, tools=[], max_tokens=max_tokens,
+                    messages=work,
+                    tools=[],
+                    max_tokens=max_tokens,
                 )
             piece = response.text or ""
             pieces.append(piece)
@@ -1965,7 +1961,9 @@ class Brain:
             if log.isEnabledFor(logging.DEBUG):
                 log.debug(
                     "Action '%s'(%s) -> %.200s",
-                    tc.name, fmt_args(tc.arguments), result.output,
+                    tc.name,
+                    fmt_args(tc.arguments),
+                    result.output,
                 )
             if result.display_text and self._log_callback:
                 self._log_callback(result.display_text)
@@ -1981,7 +1979,8 @@ class Brain:
 
     @staticmethod
     async def _drain(
-        queue: asyncio.Queue[_QT], handler: Callable[[_QT], Awaitable[object]],
+        queue: asyncio.Queue[_QT],
+        handler: Callable[[_QT], Awaitable[object]],
     ) -> None:
         """Handle every item already queued, in order, and stop."""
         while not queue.empty():
@@ -1992,7 +1991,10 @@ class Brain:
             await handler(item)
 
     def _post_threadsafe(
-        self, queue: asyncio.Queue[_QT], item: _QT, label: str,
+        self,
+        queue: asyncio.Queue[_QT],
+        item: _QT,
+        label: str,
     ) -> None:
         if self._loop is None:
             return
@@ -2003,7 +2005,9 @@ class Brain:
 
     def submit_user_input(self, text: str, source: InputSource = "typed") -> None:
         self._post_threadsafe(
-            self._user_input_queue, (text, source), "user input",
+            self._user_input_queue,
+            (text, source),
+            "user input",
         )
 
     def submit_agent_goal(self, goal: str) -> None:
@@ -2011,7 +2015,9 @@ class Brain:
 
     def submit_desktop_task(self, task: DesktopTask, text: str | None) -> None:
         self._post_threadsafe(
-            self._desktop_task_queue, (task, text), "desktop task",
+            self._desktop_task_queue,
+            (task, text),
+            "desktop task",
         )
 
     def submit_research_question(self, question: str) -> None:
@@ -2022,7 +2028,9 @@ class Brain:
 
     def submit_followup_question(self, question: str) -> None:
         self._post_threadsafe(
-            self._followup_queue, question, "research followup",
+            self._followup_queue,
+            question,
+            "research followup",
         )
 
     def on_buddy_poked(self) -> None:
@@ -2046,11 +2054,7 @@ class Brain:
         return self._mode is BrainMode.RESEARCH
 
     def _build_conversation_specs(self) -> list[dict[str, Any]]:
-        return [
-            a.to_tool_spec()
-            for a in self._actions.values()
-            if not a.reads_desktop_content
-        ]
+        return [a.to_tool_spec() for a in self._actions.values() if not a.reads_desktop_content]
 
     @staticmethod
     def _is_ambient_eligible(action: AbstractAction) -> bool:
@@ -2085,9 +2089,7 @@ class Brain:
         observations + freeform for the duration and swaps to the agent
         model if configured."""
         if self._agent.log_callback is None or self._agent.confirm_callback is None:
-            self._ui_callback(
-                "/agent isn't wired up — the overlay can't show confirm modals yet."
-            )
+            self._ui_callback("/agent isn't wired up — the overlay can't show confirm modals yet.")
             return AgentSession(goal=goal, stopped_reason=AgentStopReason.UNAVAILABLE)
 
         if self._refuse_if_sensitive_window():
@@ -2165,7 +2167,9 @@ class Brain:
         self._ui_callback(await self._desktop_done_line())
 
     async def _handle_desktop_task(
-        self, task: DesktopTask, text: str | None,
+        self,
+        task: DesktopTask,
+        text: str | None,
     ) -> None:
         """Run one /proofread or /explain: read (or take the inline text),
         prompt the LLM, deliver the reply to the chat pane unpersisted."""
@@ -2201,7 +2205,8 @@ class Brain:
         reply = ""
         try:
             response = await self._llm.generate(
-                prompt, max_tokens=task_max_tokens(len(content.text)),
+                prompt,
+                max_tokens=task_max_tokens(len(content.text)),
             )
             reply = response.text
             if reply.strip() and response.finish_reason == "length":
@@ -2259,11 +2264,10 @@ class Brain:
         log_cb = self._agent.log_callback or noop_log
 
         if self._refuse_if_sensitive_window():
-            return ResearchSession(
-                question=question, stopped_reason=ResearchStopReason.UNAVAILABLE
-            )
+            return ResearchSession(question=question, stopped_reason=ResearchStopReason.UNAVAILABLE)
 
         from tokenpal.llm.cloud_backend import DEEP_MODE_MODELS
+
         cloud_cfg = self._research.cloud_config
         cloud_enabled = (
             cloud_cfg is not None
@@ -2279,9 +2283,7 @@ class Brain:
 
         cached = self._load_research_cache(question, mode=cloud_mode)
         if cached is not None:
-            label = (
-                f"research ({cloud_mode})" if cloud_mode else "research"
-            )
+            label = f"research ({cloud_mode})" if cloud_mode else "research"
             log_cb(f"> {label}: {question} (cached)")
             self._ui_callback(cached.answer)
             self._last_comment_time = time.monotonic()
@@ -2301,8 +2303,7 @@ class Brain:
         previous_model = self._llm.model_name
         active_model = previous_model
         target = (
-            self._research.config.planner_model.strip()
-            or self._research.config.synth_model.strip()
+            self._research.config.planner_model.strip() or self._research.config.synth_model.strip()
         )
         swapped = False
         if target and target != previous_model:
@@ -2315,9 +2316,11 @@ class Brain:
                 log.debug("Backend does not support model swap")
 
         from tokenpal.actions.research.research_action import _build_cloud_backend
+
         cloud_backend = _build_cloud_backend(self._research.cloud_config)
         cloud_plan = bool(
-            cloud_backend and self._research.cloud_config
+            cloud_backend
+            and self._research.cloud_config
             and getattr(self._research.cloud_config, "research_plan", False)
         )
         # Cloud mode was pre-computed from config above; re-confirm the
@@ -2330,6 +2333,7 @@ class Brain:
         # and any future backend flow through without extra wiring here.
         cs_cfg = self._research.cloud_search_config
         from tokenpal.config.secrets import load_search_keys
+
         api_keys = load_search_keys(bool(cs_cfg and cs_cfg.enabled))
         runner = ResearchRunner(
             llm=self._llm,
@@ -2362,9 +2366,7 @@ class Brain:
                 session = await runner.run(question)
         except Exception:
             log.exception("Research run crashed")
-            session = ResearchSession(
-                question=question, stopped_reason=ResearchStopReason.CRASHED
-            )
+            session = ResearchSession(question=question, stopped_reason=ResearchStopReason.CRASHED)
         finally:
             self._mode = BrainMode.IDLE
             if swapped:
@@ -2377,7 +2379,9 @@ class Brain:
         synth_note = f", cloud synth={cloud_backend.model}" if cloud_backend else ""
         log.debug(
             "Research: planner model=%s, %d total tokens%s",
-            active_model, session.tokens_used, synth_note,
+            active_model,
+            session.tokens_used,
+            synth_note,
         )
 
         summary = _format_research_summary(session)
@@ -2396,7 +2400,10 @@ class Brain:
         return session
 
     def _maybe_stash_followup_session(
-        self, session: ResearchSession, *, cloud_mode: str,
+        self,
+        session: ResearchSession,
+        *,
+        cloud_mode: str,
     ) -> None:
         """Build a FollowupSession after a successful cloud /research.
 
@@ -2429,7 +2436,9 @@ class Brain:
         )
         log.info(
             "followup session stashed: mode=%s model=%s ttl=%ds cap=%d",
-            mode, session.cloud_model, cfg.followup_ttl_s,
+            mode,
+            session.cloud_model,
+            cfg.followup_ttl_s,
             cfg.followup_max_per_session,
         )
 
@@ -2443,9 +2452,7 @@ class Brain:
         log_cb = self._agent.log_callback or noop_log
 
         if self._memory is None or not self._memory.enabled:
-            self._ui_callback(
-                "/refine: memory is off, can't find your last research."
-            )
+            self._ui_callback("/refine: memory is off, can't find your last research.")
             return
 
         # Max age for "recent" research - separate from the 24h question-hash
@@ -2497,6 +2504,7 @@ class Brain:
             return
 
         from tokenpal.actions.research.research_action import _build_cloud_backend
+
         cloud_backend = _build_cloud_backend(self._research.cloud_config)
         if cloud_backend is None:
             # The /refine slash handler already gates on enabled/synth/key/SDK
@@ -2582,9 +2590,7 @@ class Brain:
         # Write expanded pool back to research_cache so the next /refine
         # sees the wider pool. Capped by refine_cache_max_sources.
         if outcome.new_sources:
-            cap = max(1, int(
-                cs_cfg.refine_cache_max_sources if cs_cfg else 15
-            ))
+            cap = max(1, int(cs_cfg.refine_cache_max_sources if cs_cfg else 15))
             question_hash = MemoryStore.research_cache_key(prior_question)
             new_payload = [
                 {
@@ -2596,18 +2602,19 @@ class Brain:
                 }
                 for s in outcome.new_sources
             ]
-            added = self._memory.append_research_sources(
-                question_hash, new_payload, cap
-            )
+            added = self._memory.append_research_sources(question_hash, new_payload, cap)
             log.info(
-                "refine: appended %d supplemental source(s) to cache "
-                "(cap=%d, stop=%s)",
-                added, cap, outcome.supplemental_stop,
+                "refine: appended %d supplemental source(s) to cache (cap=%d, stop=%s)",
+                added,
+                cap,
+                outcome.supplemental_stop,
             )
 
         log.info(
             "refine: cloud (%s), %d tokens, %.1fs age of source pool, stop=%s",
-            cloud_backend.model, outcome.tokens_used, age_s,
+            cloud_backend.model,
+            outcome.tokens_used,
+            age_s,
             outcome.supplemental_stop,
         )
 
@@ -2627,9 +2634,9 @@ class Brain:
             tail_note = " (supplemental: fetches failed)"
         elif outcome.supplemental_stop == "ok":
             tail_note = " (supplemental)"
-        summary_line = _format_session_summary(
-            fake_session, _RESEARCH_REASON_LABELS, counts
-        ) + tail_note
+        summary_line = (
+            _format_session_summary(fake_session, _RESEARCH_REASON_LABELS, counts) + tail_note
+        )
         log_cb(f"= {summary_line}")
         final = fake_session.answer.strip() or "(no refined answer)"
         self._ui_callback(final)
@@ -2648,8 +2655,7 @@ class Brain:
         action = self._actions.get("research_followup")
         if action is None:
             self._ui_callback(
-                "/followup: research_followup tool not registered. "
-                "Enable it in /tools and restart."
+                "/followup: research_followup tool not registered. Enable it in /tools and restart."
             )
             return
 
@@ -2670,7 +2676,8 @@ class Brain:
         if result.success:
             match = re.search(
                 r"<answer>\s*(.*?)\s*</answer>",
-                result.output, re.DOTALL,
+                result.output,
+                re.DOTALL,
             )
             rendered = match.group(1).strip() if match else result.output
             self._ui_callback(rendered)
@@ -2700,11 +2707,7 @@ class Brain:
         # so follow-ups like "tell me more" have a subject; the assistant
         # turn is the actual answer text. Both get the research tag.
         user_label = f"[research: {question}]"
-        assistant_payload = (
-            f"[prior research context]\n"
-            f"Question: {question}\n"
-            f"Answer:\n{excerpt}"
-        )
+        assistant_payload = f"[prior research context]\nQuestion: {question}\nAnswer:\n{excerpt}"
         self._conversation.add_user_turn(user_label)
         self._conversation.add_assistant_turn(assistant_payload)
         log.debug(
@@ -2716,6 +2719,7 @@ class Brain:
         # Shared helper so slash-invoked and tool-invoked research paths
         # produce identical keys. See MemoryStore.research_cache_key.
         from tokenpal.brain.memory import MemoryStore
+
         return MemoryStore.research_cache_key(question, mode=mode)
 
     def _research_cache_ttl(self) -> float | None:
@@ -2725,9 +2729,7 @@ class Brain:
         ttl = self._research.config.cache_ttl_s
         return ttl if ttl > 0 else None
 
-    def _load_research_cache(
-        self, question: str, mode: str = ""
-    ) -> ResearchSession | None:
+    def _load_research_cache(self, question: str, mode: str = "") -> ResearchSession | None:
         ttl = self._research_cache_ttl()
         if ttl is None:
             return None
@@ -2760,22 +2762,22 @@ class Brain:
             stopped_reason=ResearchStopReason.COMPLETE,
         )
 
-    def _save_research_cache(
-        self, question: str, session: ResearchSession, mode: str = ""
-    ) -> None:
+    def _save_research_cache(self, question: str, session: ResearchSession, mode: str = "") -> None:
         if self._research_cache_ttl() is None:
             return
         assert self._memory is not None
-        payload = json.dumps([
-            {
-                "number": s.number,
-                "url": s.url,
-                "title": s.title,
-                "excerpt": s.excerpt,
-                "backend": s.backend,
-            }
-            for s in session.sources
-        ])
+        payload = json.dumps(
+            [
+                {
+                    "number": s.number,
+                    "url": s.url,
+                    "title": s.title,
+                    "excerpt": s.excerpt,
+                    "backend": s.backend,
+                }
+                for s in session.sources
+            ]
+        )
         self._memory.cache_research_answer(
             self._research_cache_key(question, mode=mode),
             question,
@@ -2784,7 +2786,9 @@ class Brain:
         )
 
     async def _handle_user_input(
-        self, user_message: str, source: InputSource = "typed",
+        self,
+        user_message: str,
+        source: InputSource = "typed",
     ) -> None:
         """Respond to direct user input using multi-turn conversation context."""
         # Typed input mid-voice-session: drop the voice path. The input
@@ -2848,7 +2852,7 @@ class Brain:
             # so we exclude it here and re-add it below with fresh context injected
             *session.history[:-1],
             {"role": "system", "content": context_msg},  # fresh context
-            {"role": "user", "content": user_message},    # current turn
+            {"role": "user", "content": user_message},  # current turn
         ]
 
         try:
@@ -2861,7 +2865,8 @@ class Brain:
             )
             effective_max_tokens = self._effective_conv_max_tokens()
             reply_text = await self._reply_with_continuation(
-                messages, effective_max_tokens,
+                messages,
+                effective_max_tokens,
             )
             self._push_status()
             if self._conversation is not session:
@@ -2881,7 +2886,8 @@ class Brain:
                     {"role": "user", "content": user_message},
                 ]
                 retry_text = await self._reply_with_continuation(
-                    retry_messages, effective_max_tokens,
+                    retry_messages,
+                    effective_max_tokens,
                 )
                 if self._conversation is not session:
                     log.debug("Conversation cleared mid-retry; dropping response")
@@ -2901,9 +2907,9 @@ class Brain:
                 char_cap = effective_max_tokens * 4 * (self._MAX_CONTINUATIONS + 1)
                 if len(filtered) > char_cap:
                     log.info(
-                        "Conversation response %d chars > cap %d — truncating "
-                        "(likely LLM drift)",
-                        len(filtered), char_cap,
+                        "Conversation response %d chars > cap %d — truncating (likely LLM drift)",
+                        len(filtered),
+                        char_cap,
                     )
                     filtered = filtered[: char_cap - 3] + "..."
                 session.add_assistant_turn(filtered)
@@ -2927,9 +2933,7 @@ class Brain:
             quip = self._personality.get_confused_quip()
             await _emit_reply(quip)
 
-    def _record_memory_events(
-        self, snapshot: str, readings: list[SenseReading]
-    ) -> None:
+    def _record_memory_events(self, snapshot: str, readings: list[SenseReading]) -> None:
         """Record meaningful events to persistent memory."""
         if not self._memory:
             return
@@ -2937,18 +2941,14 @@ class Brain:
         # App switch — only record when the foreground app changes
         current_app = self._personality._last_seen_app
         if current_app and current_app != self._last_recorded_app:
-            self._memory.record_observation(
-                "app_awareness", "app_switch", current_app
-            )
+            self._memory.record_observation("app_awareness", "app_switch", current_app)
             log.debug("Memory recorded: app_switch → %s", current_app)
             self._last_recorded_app = current_app
 
         # Idle return — check if any reading is from the idle sense
         for r in readings:
             if r.sense_name == "idle" and "returned" in r.summary.lower():
-                self._memory.record_observation(
-                    "idle", "idle_return", r.summary
-                )
+                self._memory.record_observation("idle", "idle_return", r.summary)
 
     def _push_mood_if_changed(self) -> None:
         """Fire mood_callback whenever personality.mood_role transitions.
@@ -3073,7 +3073,8 @@ class Brain:
             except Exception:
                 log.exception("Error tearing down action '%s'", action.action_name)
         tasks = [
-            t for t in (
+            t
+            for t in (
                 self._session_summary_task,
                 *self._conversation_summary_tasks,
                 *self._nudge_tasks.values(),
@@ -3127,9 +3128,7 @@ def _format_session_summary(
     counts: list[tuple[str, int]],
 ) -> str:
     duration_s = time.monotonic() - session.started_at
-    reason = labels.get(
-        session.stopped_reason, str(session.stopped_reason) or "unknown"
-    )
+    reason = labels.get(session.stopped_reason, str(session.stopped_reason) or "unknown")
     tail = ", ".join(f"{n} {name}" for name, n in counts)
     return f"{reason} in {duration_s:.1f}s ({tail}, {session.tokens_used} tokens)"
 
@@ -3143,6 +3142,4 @@ def _format_research_summary(session: ResearchSession) -> str:
 
 
 def _format_agent_summary(session: AgentSession) -> str:
-    return _format_session_summary(
-        session, _STOP_REASON_LABELS, [("step(s)", len(session.steps))]
-    )
+    return _format_session_summary(session, _STOP_REASON_LABELS, [("step(s)", len(session.steps))])

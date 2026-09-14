@@ -23,5 +23,3 @@ def get_lat_lon() -> tuple[float, float] | None:
 
 def get_temperature_unit() -> str:
     return load_config().weather.temperature_unit
-
-

@@ -11,6 +11,7 @@ World coords throughout (no widget-local pixel offsets). The QWidget
 adapter lives in ``tokenpal.ui.qt.buddy_window``; the Quick host in
 ``tokenpal.ui.quick.buddy_window``.
 """
+
 from __future__ import annotations
 
 import dataclasses
@@ -57,7 +58,7 @@ FIXED_DT_S = 1.0 / 240.0
 # stall building up many seconds of physics to catch up on, which then
 # blows the next pump's budget and stalls again).
 _MAX_FRAME_TIME_S = 0.25
-EDGE_DOCK_THRESHOLD = 20       # px from screen edge triggers snap
+EDGE_DOCK_THRESHOLD = 20  # px from screen edge triggers snap
 # 2 s grace lets a fling overshoot and bounce back via momentum before
 # the rescue stomps in.
 OFFSCREEN_RESCUE_DELAY_S = 2.0
@@ -162,8 +163,7 @@ class BuddyCore(QObject):
         # Greyscale AA only; subpixel AA on translucent widgets dots glyphs
         # (QTBUG-43774).
         self._base_font.setStyleStrategy(
-            QFont.StyleStrategy.PreferAntialias
-            | QFont.StyleStrategy.NoSubpixelAntialias,
+            QFont.StyleStrategy.PreferAntialias | QFont.StyleStrategy.NoSubpixelAntialias,
         )
         self._zoom = 1.0
         self._font = QFont(self._base_font)
@@ -171,7 +171,8 @@ class BuddyCore(QObject):
         # never touched after init, so the per-pose cache is zoom-invariant.
         self._master_font = scale_font(self._base_font, _MASTER_ZOOM)
         self._cell_w_master = max(
-            measure_block_paint_width(self._master_font) - 1, 1,
+            measure_block_paint_width(self._master_font) - 1,
+            1,
         )
         self._line_h_master = QFontMetrics(self._master_font).height()
 
@@ -188,7 +189,8 @@ class BuddyCore(QObject):
 
         self._base_physics = physics_config or RigidBodyConfig()
         self._sim = RigidBodySimulator(
-            home=initial_anchor, config=self._zoomed_physics_config(),
+            home=initial_anchor,
+            config=self._zoomed_physics_config(),
         )
 
         # Fix-Your-Timestep state.
@@ -216,7 +218,9 @@ class BuddyCore(QObject):
         self._debug_log_fp = None
         if _PHYSICS_DEBUG:
             self._debug_log_fp = open(  # noqa: SIM115 — lifetime = object
-                _PHYSICS_DEBUG_LOG_PATH, "w", buffering=1,
+                _PHYSICS_DEBUG_LOG_PATH,
+                "w",
+                buffering=1,
             )
 
         self._tick_intervals: deque[float] = deque(maxlen=600)
@@ -284,7 +288,8 @@ class BuddyCore(QObject):
         return self._on_right_click
 
     def set_right_click_handler(
-        self, handler: Callable[[QPoint], None] | None,
+        self,
+        handler: Callable[[QPoint], None] | None,
     ) -> None:
         self._on_right_click = handler
 
@@ -367,11 +372,7 @@ class BuddyCore(QObject):
         position alpha is clamped to [0, 1] so the residual stays
         bounded by the adapter's AABB slack. Shortest-arc delta avoids
         a one-frame ghost flash through upright when θ crosses ±π."""
-        sample_ts = (
-            self._paint_target_ts
-            if self._paint_target_ts is not None
-            else time.monotonic()
-        )
+        sample_ts = self._paint_target_ts if self._paint_target_ts is not None else time.monotonic()
         delta_s = max(0.0, sample_ts - self._last_step_ts)
         alpha = delta_s / FIXED_DT_S
         delta_theta = self._sim.theta - self._theta_prev
@@ -396,11 +397,7 @@ class BuddyCore(QObject):
         FIXED_DT), where the unclamped theta extrapolation visibly
         back-steps. The QWidget path runs the unclamped form because
         its paint cadence stays inside FIXED_DT."""
-        sample_ts = (
-            self._paint_target_ts
-            if self._paint_target_ts is not None
-            else time.monotonic()
-        )
+        sample_ts = self._paint_target_ts if self._paint_target_ts is not None else time.monotonic()
         delta_s = max(0.0, sample_ts - self._last_step_ts)
         alpha = max(0.0, min(1.0, delta_s / FIXED_DT_S))
         delta_theta = self._sim.theta - self._theta_prev
@@ -460,7 +457,8 @@ class BuddyCore(QObject):
             self.art_frame_point_world(float(self._art_w), 0.0),
             self.art_frame_point_world(0.0, float(self._art_h)),
             self.art_frame_point_world(
-                float(self._art_w), float(self._art_h),
+                float(self._art_w),
+                float(self._art_h),
             ),
         )
         xs = [p.x() for p in corners]
@@ -515,14 +513,8 @@ class BuddyCore(QObject):
         refresh_hz = float(primary.refreshRate()) if primary else 60.0
         self._paint_target_ts = now + 1.0 / max(refresh_hz, 1.0)
         self.tick_offscreen_rescue(now)
-        rescue_pending = (
-            self._offscreen_since is not None or self._rescue_t0 is not None
-        )
-        is_idle = (
-            self._sim.sleeping
-            and not self._drag_active
-            and not rescue_pending
-        )
+        rescue_pending = self._offscreen_since is not None or self._rescue_t0 is not None
+        is_idle = self._sim.sleeping and not self._drag_active and not rescue_pending
         # Skip the emit (and the four-slot cascade it drives) while
         # the buddy is fully at rest — but still emit on the
         # transition-into-rest tick so observers paint the settled
@@ -593,11 +585,16 @@ class BuddyCore(QObject):
         log.info(
             "tick: %.0ffps n=%d  interval p50/p95/p99/max=%.1f/%.1f/%.1f/%.1fms  "
             "body p50/p95/p99/max=%.2f/%.2f/%.2f/%.2fms",
-            fps, len(intervals),
-            pct(intervals, 0.50), pct(intervals, 0.95),
-            pct(intervals, 0.99), intervals[-1] * 1000.0,
-            pct(durations, 0.50), pct(durations, 0.95),
-            pct(durations, 0.99), durations[-1] * 1000.0,
+            fps,
+            len(intervals),
+            pct(intervals, 0.50),
+            pct(intervals, 0.95),
+            pct(intervals, 0.99),
+            intervals[-1] * 1000.0,
+            pct(durations, 0.50),
+            pct(durations, 0.95),
+            pct(durations, 0.99),
+            durations[-1] * 1000.0,
         )
         self._tick_intervals.clear()
         self._tick_durations.clear()
@@ -631,7 +628,9 @@ class BuddyCore(QObject):
             return
 
         target = offscreen_rescue_target(
-            self._sim.position, self.screen_rects(), OFFSCREEN_RESCUE_INSET,
+            self._sim.position,
+            self.screen_rects(),
+            OFFSCREEN_RESCUE_INSET,
         )
         if target is None:
             self._offscreen_since = None
@@ -652,7 +651,9 @@ class BuddyCore(QObject):
     # --- Drag input ---------------------------------------------------
 
     def begin_drag(
-        self, art_pos: QPointF, cursor_global: QPointF,
+        self,
+        art_pos: QPointF,
+        cursor_global: QPointF,
     ) -> None:
         """Start a grab. Convert the art-frame click point to a body-
         local offset (relative to COM) and hand it to the simulator
@@ -737,7 +738,9 @@ class BuddyCore(QObject):
         phys_h = max(int(math.ceil(rows * line_h * scale)), 1)
 
         image = QImage(
-            phys_w, phys_h, QImage.Format.Format_ARGB32_Premultiplied,
+            phys_w,
+            phys_h,
+            QImage.Format.Format_ARGB32_Premultiplied,
         )
         image.fill(0)
         painter = QPainter(image)
@@ -777,7 +780,9 @@ class BuddyCore(QObject):
     # --- Physics debug -------------------------------------------------
 
     def paint_physics_debug(
-        self, painter: QPainter, com_widget: tuple[int, int],
+        self,
+        painter: QPainter,
+        com_widget: tuple[int, int],
     ) -> None:
         """Render the magenta-crosshair physics HUD into ``painter`` at
         widget-local coords. Public so the QWidget adapter can call it
@@ -793,13 +798,9 @@ class BuddyCore(QObject):
         speed = math.hypot(vx, vy)
         cx, cy = sim.position
         hx, hy = sim.home
-        state = (
-            "DRAG" if self._drag_active
-            else ("SLEEP" if sim.sleeping else "swing")
-        )
+        state = "DRAG" if self._drag_active else ("SLEEP" if sim.sleeping else "swing")
         lines = [
-            f"theta {math.degrees(sim.theta):+6.1f}deg  "
-            f"w {sim.omega:+5.2f}rad/s",
+            f"theta {math.degrees(sim.theta):+6.1f}deg  w {sim.omega:+5.2f}rad/s",
             f"COM    ({cx:6.0f}, {cy:6.0f})",
             f"home   ({hx:6.0f}, {hy:6.0f})",
             f"cursor ({cursor.x():6d}, {cursor.y():6d})",
@@ -816,8 +817,10 @@ class BuddyCore(QObject):
         backdrop = QColor(0, 0, 0, 160)
         longest = max(fm.horizontalAdvance(line) for line in lines)
         painter.fillRect(
-            text_x - 4, text_y - fm.ascent() - 2,
-            longest + 8, line_h * len(lines) + 4,
+            text_x - 4,
+            text_y - fm.ascent() - 2,
+            longest + 8,
+            line_h * len(lines) + 4,
             backdrop,
         )
         painter.setPen(QColor("#ff66cc"))
@@ -831,10 +834,7 @@ class BuddyCore(QObject):
         sim = self._sim
         vx, vy = sim.velocity
         cursor = QCursor.pos()
-        state = (
-            "DRAG" if self._drag_active
-            else ("SLEEP" if sim.sleeping else "swing")
-        )
+        state = "DRAG" if self._drag_active else ("SLEEP" if sim.sleeping else "swing")
         self._debug_log_fp.write(
             f"t={time.monotonic():.3f} "
             f"theta={math.degrees(sim.theta):+7.2f} "

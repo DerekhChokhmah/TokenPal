@@ -76,7 +76,7 @@ def test_set_ssid_label_creates_section(fake_config: Path) -> None:
 
 def test_set_ssid_label_upserts_existing(fake_config: Path) -> None:
     fake_config.write_text(
-        '[network_state]\n'
+        "[network_state]\n"
         'ssid_labels = { "aaaaaaaaaaaaaaaa" = "home", '
         '"bbbbbbbbbbbbbbbb" = "coffee" }\n'
     )

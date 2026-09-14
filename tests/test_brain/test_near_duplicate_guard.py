@@ -39,17 +39,13 @@ def test_exact_duplicate_rejected() -> None:
 def test_drifting_integer_still_near_duplicate() -> None:
     o = _make_harness()
     o._recent_outputs.append("Bro, 64 switches per hour — hyperactive squirrel vibes!")
-    assert o._is_near_duplicate(
-        "Bro, 63 switches per hour — hyperactive squirrel vibes!"
-    )
+    assert o._is_near_duplicate("Bro, 63 switches per hour — hyperactive squirrel vibes!")
 
 
 def test_unrelated_line_passes() -> None:
     o = _make_harness()
     o._recent_outputs.append("Jake, you've been in Xcode for twenty minutes, nice.")
-    assert not o._is_near_duplicate(
-        "The weather outside looks absolutely dreadful, Finn."
-    )
+    assert not o._is_near_duplicate("The weather outside looks absolutely dreadful, Finn.")
 
 
 def test_empty_ring_never_duplicate() -> None:
@@ -64,9 +60,7 @@ def test_prefix_lock_catches_template_drift() -> None:
     o._recent_outputs.append("Jake, good cop... this commit's got more letters than a wizard!")
     o._recent_outputs.append("Jake, good cop... midnight's creepin' in, bro!")
     # Fourth time, same lead — should be suppressed.
-    assert o._is_near_duplicate(
-        "Jake, good cop... this app's got more bugs than a witch's hat!"
-    )
+    assert o._is_near_duplicate("Jake, good cop... this app's got more bugs than a witch's hat!")
 
 
 def test_prefix_lock_leaves_varied_leads_alone() -> None:
@@ -75,9 +69,7 @@ def test_prefix_lock_leaves_varied_leads_alone() -> None:
     o._recent_outputs.append("Jake, good cop... this keyboard's slow!")
     o._recent_outputs.append("Jake, good cop... this commit's weird!")
     # Only 2 matches; still below the threshold.
-    assert not o._is_near_duplicate(
-        "The weather outside is absolutely dreadful, Finn."
-    )
+    assert not o._is_near_duplicate("The weather outside is absolutely dreadful, Finn.")
 
 
 def test_prefix_lock_threshold_constant_is_sane() -> None:

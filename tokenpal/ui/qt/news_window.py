@@ -89,8 +89,7 @@ def _format_row(item: NewsItem, font_color: str) -> str:
     extras_html = ""
     if extras:
         extras_html = (
-            f'<br><span style="color:#bbbbbb; font-size: small">'
-            f'{" · ".join(extras)}</span>'
+            f'<br><span style="color:#bbbbbb; font-size: small">{" · ".join(extras)}</span>'
         )
     # Single block per item: QTextBrowser appends each call as a paragraph,
     # and CSS block-margin tricks (margin-left on a child div) leak indent

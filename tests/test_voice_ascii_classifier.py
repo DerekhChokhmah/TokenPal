@@ -30,8 +30,12 @@ def _good_json(**overrides: object) -> str:
     data = {
         "skeleton": "humanoid_tall",
         "palette": {
-            "hair": "#ffffff", "skin": "#f4d4a8", "outfit": "#3da8e8",
-            "accent": "#ffd700", "shadow": "#2a6fa5", "highlight": "#66ccff",
+            "hair": "#ffffff",
+            "skin": "#f4d4a8",
+            "outfit": "#3da8e8",
+            "accent": "#ffd700",
+            "shadow": "#2a6fa5",
+            "highlight": "#66ccff",
         },
         "eye": "●",
         "mouth": "▽",
@@ -53,14 +57,20 @@ def test_parse_accepts_full_v1b_json() -> None:
 
 
 def test_parse_falls_back_highlight_to_outfit_when_missing() -> None:
-    legacy = json.dumps({
-        "skeleton": "humanoid_tall",
-        "palette": {
-            "hair": "#ffffff", "skin": "#f4d4a8", "outfit": "#3da8e8",
-            "accent": "#ffd700", "shadow": "#2a6fa5",
-        },
-        "eye": "●", "mouth": "▽",
-    })
+    legacy = json.dumps(
+        {
+            "skeleton": "humanoid_tall",
+            "palette": {
+                "hair": "#ffffff",
+                "skin": "#f4d4a8",
+                "outfit": "#3da8e8",
+                "accent": "#ffd700",
+                "shadow": "#2a6fa5",
+            },
+            "eye": "●",
+            "mouth": "▽",
+        }
+    )
     parsed = _parse_classification_json(legacy)
     assert parsed is not None
     assert parsed["palette"]["highlight"] == "#3da8e8"
@@ -84,7 +94,8 @@ def test_parse_coerces_illegal_zone_combo() -> None:
 
 def test_build_classifier_prompt_includes_visual_canon_when_available() -> None:
     persona = attach_visual_tells(
-        "VOICE: x", "white bear-ear hood, cyan tee, navy shorts",
+        "VOICE: x",
+        "white bear-ear hood, cyan tee, navy shorts",
     )
     prompt = _build_classifier_prompt("Finn", persona, "adventuretime.fandom.com")
     assert "Visual canon" in prompt
@@ -120,7 +131,8 @@ def test_local_classifier_retries_on_bad_then_succeeds(
 ) -> None:
     responses = iter(["garbage not json", _good_json()])
     monkeypatch.setattr(
-        train_voice, "_ollama_generate",
+        train_voice,
+        "_ollama_generate",
         lambda *a, **kw: next(responses),
     )
     result = _classify_character_for_skeleton("test", "VOICE: x", "")
@@ -164,7 +176,9 @@ def test_cloud_classifier_returns_none_when_flag_off(
         (
             "humanoid_tall",
             {
-                "hair": "#ffffff", "skin": "#ffdab9", "outfit": "#00ffff",
+                "hair": "#ffffff",
+                "skin": "#ffdab9",
+                "outfit": "#00ffff",
                 "accent": "#000080",
             },
             "white bear-ear hood, pale peach skin, cyan tee, navy shorts",
@@ -174,7 +188,9 @@ def test_cloud_classifier_returns_none_when_flag_off(
         (
             "robot_boxy",
             {
-                "hair": "#c0c0c0", "skin": "#c0c0c0", "outfit": "#c0c0c0",
+                "hair": "#c0c0c0",
+                "skin": "#c0c0c0",
+                "outfit": "#c0c0c0",
                 "accent": "#ffff00",
             },
             "shiny silver-gray metal, yellow eyes, antenna",
@@ -183,13 +199,14 @@ def test_cloud_classifier_returns_none_when_flag_off(
     ],
 )
 def test_hue_buckets_match_canonical(
-    skeleton: str, palette_overrides: dict, visual_tells: str,
+    skeleton: str,
+    palette_overrides: dict,
+    visual_tells: str,
     expected: dict,
 ) -> None:
     for key, bucket in expected.items():
         assert hex_to_hue_bucket(palette_overrides[key]) == bucket, (
-            f"{skeleton}:{key} expected {bucket}, "
-            f"got {hex_to_hue_bucket(palette_overrides[key])}"
+            f"{skeleton}:{key} expected {bucket}, got {hex_to_hue_bucket(palette_overrides[key])}"
         )
 
 
@@ -247,9 +264,7 @@ def test_render_mood_frames_emits_triple_per_known_role() -> None:
     assert set(out.keys()) == {"sleepy", "bored", "hyper"}
     for triple in out.values():
         assert set(triple.keys()) == {"idle", "idle_alt", "talking"}
-        assert len(triple["idle"]) == len(triple["idle_alt"]) == len(
-            triple["talking"]
-        )
+        assert len(triple["idle"]) == len(triple["idle_alt"]) == len(triple["talking"])
 
 
 def test_render_mood_frames_sleepy_differs_from_default_idle() -> None:

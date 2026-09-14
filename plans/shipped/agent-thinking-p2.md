@@ -18,11 +18,7 @@ See the master `plans/agent-thinking.md`. The decisions binding this phase, all 
 - `tokenpal/brain/agent.py` — `AgentRunner.__init__` (`:72-112`) gains `thinking: bool = False`, `thinking_effort: str = "low"`, `max_tokens: int = 2048` (proposed names), and `per_step_timeout_s` default moves to `60.0`. Runner defaults mirror `AgentConfig` the way `max_steps`, `token_budget`, and `per_step_timeout_s` already do (`agent.py:81-112` vs `schema.py:309-317`). In `run` (`:141-156`) the step call becomes:
   ```python
   response = await self._step(messages, thinking=self._thinking)
-  if (
-      self._thinking
-      and response.finish_reason == "length"
-      and not response.tool_calls
-  ):
+  if self._thinking and response.finish_reason == "length" and not response.tool_calls:
       log.warning("Agent step %d truncated at max_tokens while thinking; retrying without", step)
       self._log("(step truncated while thinking; retrying without thinking)")
       response = await self._step(messages, thinking=False)

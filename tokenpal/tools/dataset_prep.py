@@ -41,14 +41,8 @@ _CONTEXT_POOL: list[str] = [
         'App: VS Code, window title: "server.py"\n'
         "It's 9:15 AM on Monday, user has been working for 12 minutes"
     ),
-    (
-        "App: Terminal\n"
-        "It's 2:30 AM on Wednesday, user has been working for 5 hours"
-    ),
-    (
-        "App: Slack\n"
-        "It's 3:00 PM on Friday, user has been working for 6 hours"
-    ),
+    ("App: Terminal\nIt's 2:30 AM on Wednesday, user has been working for 5 hours"),
+    ("App: Slack\nIt's 3:00 PM on Friday, user has been working for 6 hours"),
     (
         'App: Google Chrome, window title: "YouTube"\n'
         "It's 1:15 PM on Thursday, user has been working for 45 minutes"
@@ -64,10 +58,7 @@ _CONTEXT_POOL: list[str] = [
     # App + idle returns
     "App: VS Code\nUser returned after a 5-minute break",
     "App: Google Chrome\nUser returned after 15 minutes away",
-    (
-        "App: Terminal\n"
-        "User returned after being away for 1.2 hours"
-    ),
+    ("App: Terminal\nUser returned after being away for 1.2 hours"),
     # Full context blocks (multiple senses)
     (
         'App: VS Code, window title: "test_auth.py"\n'
@@ -80,21 +71,13 @@ _CONTEXT_POOL: list[str] = [
         "user has been working for 20 minutes\n"
         "CPU 5%, RAM 38%"
     ),
-    (
-        "App: Terminal\n"
-        "It's 3:33 AM on Sunday, user has been working for 7 hours\n"
-        "CPU 45%, RAM 61%"
-    ),
+    ("App: Terminal\nIt's 3:33 AM on Sunday, user has been working for 7 hours\nCPU 45%, RAM 61%"),
     (
         'App: Finder, window title: "Desktop"\n'
         "It's 8:00 AM on Wednesday, "
         "user has been working for 2 minutes"
     ),
-    (
-        "App: Discord\n"
-        "It's 4:15 PM on Friday, user has been working for 7 hours\n"
-        "CPU 9%, RAM 55%"
-    ),
+    ("App: Discord\nIt's 4:15 PM on Friday, user has been working for 7 hours\nCPU 9%, RAM 55%"),
     # Hardware stress
     (
         "App: Terminal\n"
@@ -193,10 +176,7 @@ def build_system_prompt(profile: VoiceProfile) -> str:
 
 def _filter_lines(lines: list[str], config: DatasetConfig) -> list[str]:
     """Filter voice lines by length constraints."""
-    return [
-        line for line in lines
-        if config.min_line_length <= len(line) <= config.max_line_length
-    ]
+    return [line for line in lines if config.min_line_length <= len(line) <= config.max_line_length]
 
 
 def voice_to_conversations(
@@ -235,13 +215,15 @@ def voice_to_conversations(
     for i in range(n_observation):
         context = rng.choice(_CONTEXT_POOL)
         human_msg = f"What you see right now:\n{context}\n\nYour comment:"
-        conversations.append({
-            "conversations": [
-                {"from": "system", "value": system_prompt},
-                {"from": "human", "value": human_msg},
-                {"from": "gpt", "value": shuffled[idx]},
-            ]
-        })
+        conversations.append(
+            {
+                "conversations": [
+                    {"from": "system", "value": system_prompt},
+                    {"from": "human", "value": human_msg},
+                    {"from": "gpt", "value": shuffled[idx]},
+                ]
+            }
+        )
         idx += 1
 
     # Conversation-style: user message → character response
@@ -249,28 +231,31 @@ def voice_to_conversations(
         context = rng.choice(_CONTEXT_POOL)
         user_msg = rng.choice(_USER_MESSAGES)
         human_msg = (
-            f"What you see right now:\n{context}\n\n"
-            f'User says: "{user_msg}"\n\nYour response:'
+            f'What you see right now:\n{context}\n\nUser says: "{user_msg}"\n\nYour response:'
         )
-        conversations.append({
-            "conversations": [
-                {"from": "system", "value": system_prompt},
-                {"from": "human", "value": human_msg},
-                {"from": "gpt", "value": shuffled[idx]},
-            ]
-        })
+        conversations.append(
+            {
+                "conversations": [
+                    {"from": "system", "value": system_prompt},
+                    {"from": "human", "value": human_msg},
+                    {"from": "gpt", "value": shuffled[idx]},
+                ]
+            }
+        )
         idx += 1
 
     # Freeform: no screen context, just speak in character
     for i in range(n_freeform):
         human_msg = rng.choice(_FREEFORM_PROMPTS)
-        conversations.append({
-            "conversations": [
-                {"from": "system", "value": system_prompt},
-                {"from": "human", "value": human_msg},
-                {"from": "gpt", "value": shuffled[idx]},
-            ]
-        })
+        conversations.append(
+            {
+                "conversations": [
+                    {"from": "system", "value": system_prompt},
+                    {"from": "human", "value": human_msg},
+                    {"from": "gpt", "value": shuffled[idx]},
+                ]
+            }
+        )
         idx += 1
 
     # Shuffle final order so types are intermixed

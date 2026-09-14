@@ -32,13 +32,13 @@ class _BackendRegistry[B]:
                 log.debug("re-registering %s backend %r", self._kind, name)
             self._backends[name] = cls
             return cls
+
         return decorator
 
     def get(self, name: str) -> type[B]:
         if name not in self._backends:
             raise KeyError(
-                f"unknown {self._kind} backend {name!r} — "
-                f"registered: {sorted(self._backends)}",
+                f"unknown {self._kind} backend {name!r} — registered: {sorted(self._backends)}",
             )
         return self._backends[name]
 

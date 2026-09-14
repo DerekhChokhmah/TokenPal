@@ -71,17 +71,13 @@ class HydrationLogAction(AbstractAction):
             )
         self._memory.log_hydration(amount)
         total = self._memory.get_hydration_today()
-        return ActionResult(
-            output=f"Logged {amount:.0f}oz. Today's total: {total:.0f}oz."
-        )
+        return ActionResult(output=f"Logged {amount:.0f}oz. Today's total: {total:.0f}oz.")
 
 
 @register_action
 class HabitStreakAction(AbstractAction):
     action_name = "habit_streak"
-    description = (
-        "Log (or query) a named habit for today and return current + longest streak."
-    )
+    description = "Log (or query) a named habit for today and return current + longest streak."
     parameters = {
         "type": "object",
         "properties": {
@@ -120,11 +116,7 @@ class HabitStreakAction(AbstractAction):
         if should_log:
             self._memory.log_habit(name)
         current, longest = self._memory.get_habit_streak(name)
-        return ActionResult(
-            output=(
-                f"'{name}': {current} day streak (longest {longest})."
-            )
-        )
+        return ActionResult(output=(f"'{name}': {current} day streak (longest {longest})."))
 
 
 @register_action
@@ -139,9 +131,7 @@ class MoodCheckAction(AbstractAction):
         "properties": {
             "mood": {
                 "type": "string",
-                "description": (
-                    "Optional mood label to record (e.g. 'tired', 'focused')."
-                ),
+                "description": ("Optional mood label to record (e.g. 'tired', 'focused')."),
             },
         },
     }

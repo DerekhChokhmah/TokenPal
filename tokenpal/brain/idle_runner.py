@@ -69,9 +69,7 @@ class IdleToolRunner:
                 )
         return build_context(
             now=datetime.now(),
-            session_minutes=int(
-                (time.monotonic() - b._session_started_at) / 60
-            ),
+            session_minutes=int((time.monotonic() - b._session_started_at) / 60),
             first_session_of_day=b._first_session_of_day,
             active_readings=b._context.active_readings(),
             mood=str(b._personality.mood),
@@ -189,7 +187,8 @@ class IdleToolRunner:
         if filtered and b._is_near_duplicate(filtered):
             log.info(
                 "TokenPal (idle-tool %s suppressed near-duplicate): %s",
-                fire.rule_name, filtered,
+                fire.rule_name,
+                filtered,
             )
             # Skip _handle_suppressed_output — the observation-path silence
             # window would starve freeform + drift nudges for 2 minutes on
@@ -204,13 +203,18 @@ class IdleToolRunner:
                 response.text[:80] if response.text else "",
             )
             self.record_fire(
-                fire, emitted=False, filter_reason=filter_reason or "empty",
+                fire,
+                emitted=False,
+                filter_reason=filter_reason or "empty",
             )
             return False
 
         log.info(
             "TokenPal (idle-tool %s -> %s): %s (%.0fms)",
-            fire.rule_name, fire.tool_name, filtered, response.latency_ms,
+            fire.rule_name,
+            fire.tool_name,
+            filtered,
+            response.latency_ms,
         )
         b._emit_comment(filtered)
         b._recent_outputs.append(filtered)
@@ -234,11 +238,7 @@ class IdleToolRunner:
         b = self._brain
         if b._memory is None:
             return
-        source = (
-            "llm_initiated"
-            if fire.rule_name.startswith("llm_initiated:")
-            else "deterministic"
-        )
+        source = "llm_initiated" if fire.rule_name.startswith("llm_initiated:") else "deterministic"
         data: dict[str, Any] = {
             "tool": fire.tool_name,
             "emitted": emitted,

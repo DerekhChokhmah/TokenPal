@@ -61,11 +61,14 @@ def list_transcript_pages(wiki: str, limit: int = 500) -> list[str]:
 def fetch_transcript_wikitext(wiki: str, page_title: str) -> str | None:
     """Fetch raw wikitext for a single transcript page."""
     try:
-        data = _api_get(wiki, {
-            "action": "parse",
-            "page": page_title,
-            "prop": "wikitext",
-        })
+        data = _api_get(
+            wiki,
+            {
+                "action": "parse",
+                "page": page_title,
+                "prop": "wikitext",
+            },
+        )
         wikitext = data.get("parse", {}).get("wikitext", {}).get("*")
         return str(wikitext) if wikitext is not None else None
     except (urllib.error.URLError, KeyError):

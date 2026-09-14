@@ -77,9 +77,7 @@ class BuddyItem(QQuickItem):
         self.setHeight(image.height())
         self.setTransformOrigin(QQuickItem.TransformOrigin.Center)
         self.setAcceptedMouseButtons(
-            Qt.MouseButton.LeftButton
-            | Qt.MouseButton.RightButton
-            | Qt.MouseButton.MiddleButton
+            Qt.MouseButton.LeftButton | Qt.MouseButton.RightButton | Qt.MouseButton.MiddleButton
         )
         self.update_samples_ms: deque[float] = deque(maxlen=480)
 
@@ -102,8 +100,10 @@ class BuddyItem(QQuickItem):
         return False
 
     def mousePressEvent(self, event):
-        print(f"[hit] item-local=({event.position().x():.1f},{event.position().y():.1f}) "
-              f"-- click-through is working: empty alpha would not have hit this item")
+        print(
+            f"[hit] item-local=({event.position().x():.1f},{event.position().y():.1f}) "
+            f"-- click-through is working: empty alpha would not have hit this item"
+        )
         event.accept()
 
 
@@ -183,9 +183,18 @@ class Win32ClickThroughToggle:
         # SetWindowPos with SWP_FRAMECHANGED forces Windows to re-read the
         # ext style for hit-testing.
         self._u32.SetWindowPos(
-            self._hwnd, None, 0, 0, 0, 0,
-            _SWP_NOMOVE | _SWP_NOSIZE | _SWP_NOZORDER
-            | _SWP_NOACTIVATE | _SWP_NOREDRAW | _SWP_FRAMECHANGED,
+            self._hwnd,
+            None,
+            0,
+            0,
+            0,
+            0,
+            _SWP_NOMOVE
+            | _SWP_NOSIZE
+            | _SWP_NOZORDER
+            | _SWP_NOACTIVATE
+            | _SWP_NOREDRAW
+            | _SWP_FRAMECHANGED,
         )
 
 
@@ -208,9 +217,7 @@ def main() -> int:
     window = QQuickWindow()
     window.setColor(QColor(Qt.GlobalColor.transparent))
     window.setFlags(
-        Qt.WindowType.FramelessWindowHint
-        | Qt.WindowType.WindowStaysOnTopHint
-        | Qt.WindowType.Tool
+        Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool
     )
     window.resize(600, 600)
 
@@ -239,17 +246,25 @@ def main() -> int:
                 ex |= _WS_EX_TRANSPARENT
                 u32.SetWindowLongPtrW(hwnd, _GWL_EXSTYLE, ex)
                 ex2 = u32.GetWindowLongPtrW(hwnd, _GWL_EXSTYLE)
-                print(f"[ext-style] after force-set=0x{ex2 & 0xFFFFFFFF:08x} "
-                      f"(WS_EX_TRANSPARENT bit={'on' if ex2 & _WS_EX_TRANSPARENT else 'off'})")
+                print(
+                    f"[ext-style] after force-set=0x{ex2 & 0xFFFFFFFF:08x} "
+                    f"(WS_EX_TRANSPARENT bit={'on' if ex2 & _WS_EX_TRANSPARENT else 'off'})"
+                )
                 # SWP_FRAMECHANGED to ensure the change takes effect
                 SWP_NOMOVE = 0x0002
                 SWP_NOSIZE = 0x0001
                 SWP_NOZORDER = 0x0004
                 SWP_FRAMECHANGED = 0x0020
                 u32.SetWindowPos(
-                    hwnd, None, 0, 0, 0, 0,
+                    hwnd,
+                    None,
+                    0,
+                    0,
+                    0,
+                    0,
                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED,
                 )
+
         QTimer.singleShot(500, force_apply)
 
     spin_deg = float(os.environ.get("TOKENPAL_QUICK_SPIN", "1.5"))

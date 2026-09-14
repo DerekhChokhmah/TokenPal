@@ -23,9 +23,7 @@ def _backend(
     return HttpBackend(config)
 
 
-def _seed_estimator(
-    b: HttpBackend, *, decode_tps: float = 50.0, ttft_s: float = 1.0
-) -> None:
+def _seed_estimator(b: HttpBackend, *, decode_tps: float = 50.0, ttft_s: float = 1.0) -> None:
     """Directly populate the EWMAs. Use when the test cares about resolution,
     not about the EWMA accumulation path."""
     b._decode_tps_ewma = decode_tps
@@ -191,12 +189,14 @@ class _FakeMemoryStore:
 
 
 def _backend_with_store(store: _FakeMemoryStore) -> HttpBackend:
-    return HttpBackend({
-        "api_url": "http://localhost:11434/v1",
-        "model_name": "gemma4",
-        "max_tokens": 60,
-        "memory_store": store,
-    })
+    return HttpBackend(
+        {
+            "api_url": "http://localhost:11434/v1",
+            "model_name": "gemma4",
+            "max_tokens": 60,
+            "memory_store": store,
+        }
+    )
 
 
 def test_seed_from_store_populates_estimator() -> None:
@@ -263,6 +263,7 @@ def test_pin_underuse_logs_once(caplog: pytest.LogCaptureFixture) -> None:
     )
     _seed_estimator(b, decode_tps=100.0, ttft_s=0.5)
     import logging
+
     with caplog.at_level(logging.INFO, logger="tokenpal.llm.http_backend"):
         b._resolve_max_tokens(None, 5.0, 40)
         b._resolve_max_tokens(None, 5.0, 40)

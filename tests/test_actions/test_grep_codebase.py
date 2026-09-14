@@ -44,9 +44,7 @@ async def test_grep_missing_pattern() -> None:
 
 
 async def test_grep_no_rg(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(
-        "tokenpal.actions.grep_codebase.shutil.which", lambda _name: None
-    )
+    monkeypatch.setattr("tokenpal.actions.grep_codebase.shutil.which", lambda _name: None)
     result = await invoke_tool(GrepCodebaseAction({}), pattern="anything")
     assert result.success is False
     assert "ripgrep" in result.output.lower()
@@ -91,9 +89,7 @@ async def test_argv_carries_one_per_file_cap(
         captured.append(list(argv))
         return _Proc()
 
-    monkeypatch.setattr(
-        "tokenpal.util.proc.asyncio.create_subprocess_exec", fake_exec
-    )
+    monkeypatch.setattr("tokenpal.util.proc.asyncio.create_subprocess_exec", fake_exec)
 
     await invoke_tool(GrepCodebaseAction({}), pattern="MARKER")
 
@@ -136,9 +132,7 @@ async def test_grep_refuses_an_absolute_path_outside_the_repo(
     (outside / "secrets.txt").write_text("MARKER outside\n")
     monkeypatch.chdir(repo)
 
-    result = await invoke_tool(
-        GrepCodebaseAction({}), pattern="MARKER", path=str(outside)
-    )
+    result = await invoke_tool(GrepCodebaseAction({}), pattern="MARKER", path=str(outside))
 
     assert result.success is False
     assert "MARKER" not in result.output
@@ -155,9 +149,7 @@ async def test_grep_refuses_a_dotdot_escape(
     (tmp_path / "outside" / "a.txt").write_text("MARKER outside\n")
     monkeypatch.chdir(repo)
 
-    result = await invoke_tool(
-        GrepCodebaseAction({}), pattern="MARKER", path="../outside"
-    )
+    result = await invoke_tool(GrepCodebaseAction({}), pattern="MARKER", path="../outside")
 
     assert result.success is False
     assert "MARKER" not in result.output
@@ -208,12 +200,8 @@ async def test_grep_refuses_a_denied_raw_name(
     (tmp_path / "credentials" / "a.txt").write_text("MARKER\n")
     monkeypatch.chdir(tmp_path)
 
-    denied = await invoke_tool(
-        GrepCodebaseAction({}), pattern="MARKER", path="credentials"
-    )
-    sensitive = await invoke_tool(
-        GrepCodebaseAction({}), pattern="MARKER", path="1password"
-    )
+    denied = await invoke_tool(GrepCodebaseAction({}), pattern="MARKER", path="credentials")
+    sensitive = await invoke_tool(GrepCodebaseAction({}), pattern="MARKER", path="1password")
 
     assert denied.success is False
     assert sensitive.success is False
@@ -222,7 +210,7 @@ async def test_grep_refuses_a_denied_raw_name(
 async def test_grep_without_a_path_refuses_outside_a_repo(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, require_rg: str
 ) -> None:
-    """"Search the current repo" has no meaning outside one; the old cwd
+    """ "Search the current repo" has no meaning outside one; the old cwd
     fallback searched whatever folder the buddy happened to launch from."""
     monkeypatch.chdir(tmp_path)
 
@@ -320,9 +308,7 @@ async def test_a_single_file_target_keeps_its_hit_and_its_shape(
     monkeypatch.chdir(tmp_path)
 
     plain = await invoke_tool(GrepCodebaseAction({}), pattern="needle", path="ok.txt")
-    hidden = await invoke_tool(
-        GrepCodebaseAction({}), pattern="needle", path=".git/description"
-    )
+    hidden = await invoke_tool(GrepCodebaseAction({}), pattern="needle", path=".git/description")
 
     assert plain.output == "1:needle here"
     assert "needle" not in hidden.output

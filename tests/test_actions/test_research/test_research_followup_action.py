@@ -52,6 +52,7 @@ def grant_research_consent(tmp_path, monkeypatch: pytest.MonkeyPatch):
 def stub_cloud_key(monkeypatch: pytest.MonkeyPatch):
     """Return a fixed key from get_cloud_key so the action constructs a backend."""
     import tokenpal.actions.research.research_action as mod
+
     monkeypatch.setattr(mod, "get_cloud_key", lambda: "sk-ant-test")
 
 
@@ -74,7 +75,8 @@ async def test_rejects_empty_question() -> None:
 
 @pytest.mark.asyncio
 async def test_without_research_consent_errors(
-    tmp_path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from tokenpal.config import consent as consent_mod
 
@@ -128,7 +130,9 @@ async def test_followup_disabled_in_config_errors(grant_research_consent) -> Non
 
 @pytest.mark.asyncio
 async def test_happy_path_updates_session_and_returns_tool_result(
-    grant_research_consent, stub_cloud_key, monkeypatch: pytest.MonkeyPatch,
+    grant_research_consent,
+    stub_cloud_key,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     session = _make_session()
     action = _make_action_with_brain(session)
@@ -139,7 +143,12 @@ async def test_happy_path_updates_session_and_returns_tool_result(
     captured: dict[str, Any] = {}
 
     def fake_followup(
-        self, prior_messages, tools, new_user_turn, *, enable_cache=True,
+        self,
+        prior_messages,
+        tools,
+        new_user_turn,
+        *,
+        enable_cache=True,
         max_tokens=3000,
     ):
         captured["prior_messages"] = prior_messages
@@ -180,7 +189,9 @@ async def test_happy_path_updates_session_and_returns_tool_result(
 
 @pytest.mark.asyncio
 async def test_cloud_backend_error_returns_failure_result(
-    grant_research_consent, stub_cloud_key, monkeypatch: pytest.MonkeyPatch,
+    grant_research_consent,
+    stub_cloud_key,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     session = _make_session()
     action = _make_action_with_brain(session)
@@ -202,11 +213,13 @@ async def test_cloud_backend_error_returns_failure_result(
 
 @pytest.mark.asyncio
 async def test_no_cloud_key_errors(
-    grant_research_consent, monkeypatch: pytest.MonkeyPatch,
+    grant_research_consent,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     session = _make_session()
     action = _make_action_with_brain(session)
     import tokenpal.actions.research.research_action as mod
+
     monkeypatch.setattr(mod, "get_cloud_key", lambda: None)
 
     result = await action.execute(question="q")
@@ -216,7 +229,9 @@ async def test_no_cloud_key_errors(
 
 @pytest.mark.asyncio
 async def test_pins_backend_to_session_model_not_current_config(
-    grant_research_consent, stub_cloud_key, monkeypatch: pytest.MonkeyPatch,
+    grant_research_consent,
+    stub_cloud_key,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Session was opened with Haiku; user swapped to Sonnet mid-session. The
     follow-up must still target Haiku — the cache + tool schema belong to the
@@ -226,7 +241,8 @@ async def test_pins_backend_to_session_model_not_current_config(
     action = _make_action_with_brain(session)
     # Current cloud config now points at Sonnet
     action._cloud_config = CloudLLMConfig(
-        enabled=True, model="claude-sonnet-4-6",
+        enabled=True,
+        model="claude-sonnet-4-6",
     )
 
     from tokenpal.actions.research import research_action as mod
@@ -241,11 +257,17 @@ async def test_pins_backend_to_session_model_not_current_config(
 
     monkeypatch.setattr(CloudBackend, "__init__", spying_init)
     monkeypatch.setattr(
-        mod.CloudBackend, "followup",
+        mod.CloudBackend,
+        "followup",
         lambda self, *a, **kw: FollowupResult(
-            text="ok", messages=[], tokens_used=1,
-            cache_read_tokens=0, cache_creation_tokens=0,
-            iterations=0, latency_ms=1.0, finish_reason="stop",
+            text="ok",
+            messages=[],
+            tokens_used=1,
+            cache_read_tokens=0,
+            cache_creation_tokens=0,
+            iterations=0,
+            latency_ms=1.0,
+            finish_reason="stop",
         ),
     )
 

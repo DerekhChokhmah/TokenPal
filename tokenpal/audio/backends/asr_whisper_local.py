@@ -28,6 +28,7 @@ log = logging.getLogger(__name__)
 
 def _pick_device_and_compute() -> tuple[str, str]:
     import os
+
     device = os.environ.get("TOKENPAL_ASR_DEVICE", "cpu").lower()
     if device == "cuda":
         return "cuda", "float16"
@@ -68,7 +69,9 @@ class LocalWhisperBackend(ASRBackend):
         )
         log.debug(
             "faster-whisper: warmed up %s on %s/%s",
-            self._model_size, device, compute_type,
+            self._model_size,
+            device,
+            compute_type,
         )
 
     async def transcribe(self, audio: bytes, *, language: str = "en") -> str:

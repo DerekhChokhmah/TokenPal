@@ -15,7 +15,7 @@ A tool that takes a filesystem path **declares** the policy and writes no contai
 ### The declaration
 
 ```python
-path_params: ClassVar[tuple[str, ...]] = ("path",)      # default (), meaning no path work at all
+path_params: ClassVar[tuple[str, ...]] = ("path",)  # default (), meaning no path work at all
 path_roots: ClassVar[Literal["git_root", "allowed_dirs"]] = "git_root"
 path_screen: ClassVar[Literal["broad", "narrow"]] = "broad"
 ```

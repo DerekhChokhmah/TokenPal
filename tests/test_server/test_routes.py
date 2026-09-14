@@ -17,19 +17,28 @@ def app(tmp_path):
     def mock_transport(request: httpx.Request) -> httpx.Response:
         path = str(request.url)
         if "/v1/chat/completions" in path:
-            return httpx.Response(200, json={
-                "choices": [{"message": {"content": "Test response"}}],
-                "usage": {"total_tokens": 10},
-            })
+            return httpx.Response(
+                200,
+                json={
+                    "choices": [{"message": {"content": "Test response"}}],
+                    "usage": {"total_tokens": 10},
+                },
+            )
         if "/v1/models" in path:
-            return httpx.Response(200, json={
-                "data": [{"id": "gemma4"}, {"id": "tokenpal-bmo"}],
-            })
+            return httpx.Response(
+                200,
+                json={
+                    "data": [{"id": "gemma4"}, {"id": "tokenpal-bmo"}],
+                },
+            )
         if path.endswith("/props"):
-            return httpx.Response(200, json={
-                "default_generation_settings": {"n_ctx": 8192},
-                "model_path": "/models/qwen3.gguf",
-            })
+            return httpx.Response(
+                200,
+                json={
+                    "default_generation_settings": {"n_ctx": 8192},
+                    "model_path": "/models/qwen3.gguf",
+                },
+            )
         if path.endswith("/"):
             return httpx.Response(200, text="Ollama is running")
         return httpx.Response(404)
@@ -49,10 +58,13 @@ def client(app):
 
 
 def test_proxy_forwards_chat_completion(client):
-    resp = client.post("/v1/chat/completions", json={
-        "model": "gemma4",
-        "messages": [{"role": "user", "content": "hi"}],
-    })
+    resp = client.post(
+        "/v1/chat/completions",
+        json={
+            "model": "gemma4",
+            "messages": [{"role": "user", "content": "hi"}],
+        },
+    )
     assert resp.status_code == 200
     data = resp.json()
     assert data["choices"][0]["message"]["content"] == "Test response"
@@ -86,10 +98,13 @@ def test_proxy_returns_502_when_ollama_down(tmp_path):
     app.state.job_store = JsonFileJobStore(tmp_path / "jobs")
 
     client = TestClient(app)
-    resp = client.post("/v1/chat/completions", json={
-        "model": "gemma4",
-        "messages": [{"role": "user", "content": "hi"}],
-    })
+    resp = client.post(
+        "/v1/chat/completions",
+        json={
+            "model": "gemma4",
+            "messages": [{"role": "user", "content": "hi"}],
+        },
+    )
     assert resp.status_code == 502
     body = resp.json()
     assert "Ollama unreachable" in body["error"]
@@ -109,9 +124,12 @@ def test_server_info_endpoint(client):
 
 def test_server_info_shows_active_job(app, client, tmp_path):
     from tokenpal.server.models import TrainingJob, TrainingStatus
+
     job = TrainingJob(
-        job_id="bmo-001", status=TrainingStatus.TRAINING,
-        wiki="adventure-time", character="BMO",
+        job_id="bmo-001",
+        status=TrainingStatus.TRAINING,
+        wiki="adventure-time",
+        character="BMO",
         base_model="google/gemma-2-2b-it",
     )
     app.state.job_store.put(job)

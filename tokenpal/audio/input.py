@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
-_FRAME_SAMPLES = 1280   # 80ms @ 16kHz, openwakeword's recommended granularity
+_FRAME_SAMPLES = 1280  # 80ms @ 16kHz, openwakeword's recommended granularity
 _SAMPLE_RATE = 16000
 
 _LISTENING_TIMEOUT_S = 5.0
@@ -97,6 +97,7 @@ class InputPipeline:
         # sounddevice import is delayed so a voice-mode-OFF boot leaves
         # PortAudio untouched.
         import sounddevice as sd
+
         stream = sd.RawInputStream(
             samplerate=_SAMPLE_RATE,
             blocksize=_FRAME_SAMPLES,
@@ -108,7 +109,9 @@ class InputPipeline:
 
         self._cancel.clear()
         self._thread = threading.Thread(
-            target=self._run, name="tokenpal-voice-input", daemon=True,
+            target=self._run,
+            name="tokenpal-voice-input",
+            daemon=True,
         )
         self._thread.start()
 
@@ -159,14 +162,12 @@ class InputPipeline:
             if now - last_tick >= _TICK_INTERVAL_S:
                 pre_tick_state = self._fsm.state
                 self._handle(self._fsm.tick(now=now))
-                if (
-                    pre_tick_state == VoiceState.TRAILING
-                    and self._fsm.state == VoiceState.IDLE
-                ):
+                if pre_tick_state == VoiceState.TRAILING and self._fsm.state == VoiceState.IDLE:
                     log.info(
                         "voice: trailing window closed, no speech "
                         "(max VAD prob: %.2f, threshold: %.2f)",
-                        self._vad.max_prob_since_reset, self._vad.threshold,
+                        self._vad.max_prob_since_reset,
+                        self._vad.threshold,
                     )
                 last_tick = now
 
@@ -182,7 +183,9 @@ class InputPipeline:
             event = self._wake.detect(frame)
             if event is not None:
                 log.info(
-                    "voice: wake (%s @ %.2f)", event.model_name, event.score,
+                    "voice: wake (%s @ %.2f)",
+                    event.model_name,
+                    event.score,
                 )
                 self._utterance_buffer.clear()
                 self._listening_started_at = now
@@ -199,9 +202,9 @@ class InputPipeline:
                 and now - self._listening_started_at > _LISTENING_TIMEOUT_S
             ):
                 log.info(
-                    "voice: listening timeout, no speech "
-                    "(max VAD prob: %.2f, threshold: %.2f)",
-                    self._vad.max_prob_since_reset, self._vad.threshold,
+                    "voice: listening timeout, no speech (max VAD prob: %.2f, threshold: %.2f)",
+                    self._vad.max_prob_since_reset,
+                    self._vad.threshold,
                 )
                 self._handle(self._fsm.on_listening_timeout())
             return
@@ -250,7 +253,8 @@ class InputPipeline:
         # run_coroutine_threadsafe(...).result() is safe here because we're
         # in a daemon thread, not the loop thread itself.
         future = asyncio.run_coroutine_threadsafe(
-            self._asr.transcribe(audio), self._loop,
+            self._asr.transcribe(audio),
+            self._loop,
         )
         try:
             text = future.result(timeout=30.0)
@@ -263,7 +267,8 @@ class InputPipeline:
         if decision.action == Action.SUBMIT:
             if decision.text:
                 self._loop.call_soon_threadsafe(
-                    self._on_voice_text, decision.text,
+                    self._on_voice_text,
+                    decision.text,
                 )
         elif decision.action == Action.CLOSE_SESSION:
             self._utterance_buffer.clear()

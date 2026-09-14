@@ -32,6 +32,7 @@ class IdleSense(AbstractSense):
 
     async def setup(self) -> None:
         from pynput import mouse, keyboard
+
         self._last_input = time.monotonic()
         # Listeners run in their own threads (pynput handles this)
         self._mouse_listener = mouse.Listener(on_move=self._on_input)
@@ -317,10 +318,12 @@ class AbstractSense(abc.ABC):
     def record_failure(self) -> None:
         self._consecutive_failures += 1
         # Backoff: 2s, 4s, 8s, 16s, 32s... capped at 60s
-        backoff = min(60.0, 2.0 ** self._consecutive_failures)
+        backoff = min(60.0, 2.0**self._consecutive_failures)
         self._backoff_until = time.monotonic() + backoff
         if self._consecutive_failures >= self._max_failures:
-            log.warning("Sense '%s' failed %d times, disabling", self.sense_name, self._max_failures)
+            log.warning(
+                "Sense '%s' failed %d times, disabling", self.sense_name, self._max_failures
+            )
             self.disable()
 
     def record_success(self) -> None:
@@ -396,8 +399,14 @@ class MemoryStore:
             self._conn.execute(
                 "INSERT INTO observations (timestamp, sense_name, event_type, summary, data_json, session_id) "
                 "VALUES (?, ?, ?, ?, ?, ?)",
-                (time.time(), reading.sense_name, reading.data.get("event", "poll"),
-                 reading.summary, json.dumps(reading.data), self._session_id),
+                (
+                    time.time(),
+                    reading.sense_name,
+                    reading.data.get("event", "poll"),
+                    reading.summary,
+                    json.dumps(reading.data),
+                    self._session_id,
+                ),
             )
             self._conn.commit()
 
@@ -458,6 +467,7 @@ def test_interestingness_first_reading_is_max():
     ctx.ingest([SenseReading(sense_name="test", timestamp=1.0, data={}, summary="hello")])
     assert ctx.interestingness() == 1.0
 
+
 def test_interestingness_identical_readings_is_zero():
     ctx = ContextWindowBuilder()
     reading = SenseReading(sense_name="test", timestamp=1.0, data={}, summary="hello")
@@ -466,14 +476,17 @@ def test_interestingness_identical_readings_is_zero():
     ctx.ingest([reading])
     assert ctx.interestingness() == 0.0
 
+
 # tests/test_brain/test_personality.py
 def test_filter_strips_quotes():
     pe = PersonalityEngine("test")
     assert pe.filter_response('"Hello world"') == "Hello world"
 
+
 def test_filter_returns_none_for_silent():
     pe = PersonalityEngine("test")
     assert pe.filter_response("[SILENT]") is None
+
 
 # tests/test_ui/test_ascii_renderer.py
 def test_speech_bubble_wraps_text():
@@ -496,10 +509,14 @@ class FakeSense(AbstractSense):
         super().__init__({})
         self._readings = iter(readings)
 
-    async def setup(self) -> None: pass
+    async def setup(self) -> None:
+        pass
+
     async def poll(self) -> SenseReading | None:
         return next(self._readings, None)
-    async def teardown(self) -> None: pass
+
+    async def teardown(self) -> None:
+        pass
 ```
 
 This lets you test the brain orchestrator's polling/interestingness/cooldown logic without touching any real OS APIs.
@@ -510,6 +527,7 @@ This lets you test the brain orchestrator's polling/interestingness/cooldown log
 # tests/test_senses/test_hardware.py
 import pytest
 import psutil
+
 
 @pytest.mark.skipif(not hasattr(psutil, "cpu_percent"), reason="psutil not available")
 async def test_hardware_sense_returns_reading():
@@ -528,9 +546,11 @@ For macOS-only senses:
 import sys
 import pytest
 
+
 @pytest.mark.skipif(sys.platform != "darwin", reason="macOS only")
 async def test_macos_app_awareness():
     from tokenpal.senses.app_awareness.macos_apps import MacOSAppAwareness
+
     sense = MacOSAppAwareness({})
     await sense.setup()
     if sense.enabled:  # pyobjc might not be installed
@@ -545,6 +565,7 @@ async def test_macos_app_awareness():
 ```python
 # tests/test_senses/test_clipboard.py
 from unittest.mock import patch
+
 
 async def test_clipboard_detects_new_copy():
     sense = ClipboardSense({})
@@ -658,10 +679,11 @@ import os, psutil
 
 _PROCESS = psutil.Process(os.getpid())
 
+
 def snapshot() -> dict[str, float]:
     mem = _PROCESS.memory_info()
     return {
-        "rss_mb": mem.rss / (1024 ** 2),
+        "rss_mb": mem.rss / (1024**2),
         "cpu_percent": _PROCESS.cpu_percent(interval=None),
     }
 ```

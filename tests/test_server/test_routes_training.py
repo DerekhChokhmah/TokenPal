@@ -38,10 +38,13 @@ def test_submit_training_job(client):
             character="BMO",
             base_model="google/gemma-2-2b-it",
         )
-        resp = client.post("/api/v1/train", json={
-            "wiki": "adventure-time",
-            "character": "BMO",
-        })
+        resp = client.post(
+            "/api/v1/train",
+            json={
+                "wiki": "adventure-time",
+                "character": "BMO",
+            },
+        )
         assert resp.status_code == 202
         data = resp.json()
         assert data["job_id"] == "test-abc123"
@@ -52,27 +55,36 @@ def test_submit_training_conflict(client):
     target = "tokenpal.server.routes_training.submit_training_job"
     with patch(target, new_callable=AsyncMock) as mock:
         mock.side_effect = ValueError("Training already in progress: existing-job")
-        resp = client.post("/api/v1/train", json={
-            "wiki": "adventure-time",
-            "character": "BMO",
-        })
+        resp = client.post(
+            "/api/v1/train",
+            json={
+                "wiki": "adventure-time",
+                "character": "BMO",
+            },
+        )
         assert resp.status_code == 409
         assert "already in progress" in resp.json()["detail"]
 
 
 def test_submit_validates_wiki_name(client):
-    resp = client.post("/api/v1/train", json={
-        "wiki": "evil.com/malicious#",
-        "character": "BMO",
-    })
+    resp = client.post(
+        "/api/v1/train",
+        json={
+            "wiki": "evil.com/malicious#",
+            "character": "BMO",
+        },
+    )
     assert resp.status_code == 422
 
 
 def test_submit_validates_character_name(client):
-    resp = client.post("/api/v1/train", json={
-        "wiki": "adventure-time",
-        "character": "$(rm -rf /)",
-    })
+    resp = client.post(
+        "/api/v1/train",
+        json={
+            "wiki": "adventure-time",
+            "character": "$(rm -rf /)",
+        },
+    )
     assert resp.status_code == 422
 
 

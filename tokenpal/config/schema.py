@@ -42,16 +42,16 @@ class IdleToolsConfig:
     # weighted die across these contextual rules to produce tool-flavored
     # observations (word of the day, moon phase, trivia, etc).
     enabled: bool = True
-    global_cooldown_s: float = 180.0    # min gap between any two rolls
-    max_per_hour: int = 6               # hard rate cap
+    global_cooldown_s: float = 180.0  # min gap between any two rolls
+    max_per_hour: int = 6  # hard rate cap
     # Per-rule toggles. Unknown keys are ignored, missing keys default True
     # via rule metadata — keeps the schema forward-compatible as new rules
     # land without forcing a config migration.
     rules: dict[str, bool] = field(default_factory=dict)
     # M3 LLM-initiated tool calls during freeform ticks. Off until #33 ships.
     llm_initiated_enabled: bool = False
-    llm_initiated_cooldown_s: float = 1800.0   # 30min gap between M3 fires
-    llm_initiated_max_per_hour: int = 1        # paranoid rolling-hour cap
+    llm_initiated_cooldown_s: float = 1800.0  # 30min gap between M3 fires
+    llm_initiated_max_per_hour: int = 1  # paranoid rolling-hour cap
 
 
 @dataclass
@@ -304,7 +304,7 @@ class ResearchConfig:
     # Anthropic message history with a cache_control breakpoint, so the
     # cached prefix costs 10% of fresh tokens. See plans/shipped/smarter-buddy.md.
     followup_enabled: bool = True
-    followup_ttl_s: int = 900          # 15 min since last use
+    followup_ttl_s: int = 900  # 15 min since last use
     followup_max_per_session: int = 5  # hard cap per cloud /research call
     followup_cache_breakpoints: bool = True  # kill-switch if caching misbehaves
 
@@ -327,8 +327,8 @@ class AgentConfig:
 
 @dataclass
 class ConversationConfig:
-    max_turns: int = 10           # 10 turn pairs = 20 messages
-    timeout_s: float = 120.0      # 2 minutes of silence ends session
+    max_turns: int = 10  # 10 turn pairs = 20 messages
+    timeout_s: float = 120.0  # 2 minutes of silence ends session
     # Per-turn response token budget. 0 = auto-derive from server capability
     # (see HttpBackend.derived_max_tokens). >0 = user-pinned.
     max_response_tokens: int = 0
@@ -343,10 +343,8 @@ class GitNudgeConfig:
     # via config; requires [senses] git = true to have any signal.
     enabled: bool = True
     wip_stale_hours: float = 3.0
-    cooldown_s: float = 7200.0   # 2 hours between nudges
-    wip_markers: list[str] = field(
-        default_factory=lambda: ["wip", "tmp", "todo", "fixup!"]
-    )
+    cooldown_s: float = 7200.0  # 2 hours between nudges
+    wip_markers: list[str] = field(default_factory=lambda: ["wip", "tmp", "todo", "fixup!"])
 
 
 @dataclass
@@ -359,8 +357,13 @@ class RageDetectConfig:
     enabled: bool = False
     distraction_apps: list[str] = field(
         default_factory=lambda: [
-            "twitter", "x", "reddit", "youtube", "tiktok",
-            "instagram", "facebook",
+            "twitter",
+            "x",
+            "reddit",
+            "youtube",
+            "tiktok",
+            "instagram",
+            "facebook",
         ]
     )
     # Window (seconds) between the end of a rapid/furious typing burst and a
@@ -384,13 +387,18 @@ class IntentConfig:
     # plans/buddy-utility-wedges.md.
     distraction_apps: list[str] = field(
         default_factory=lambda: [
-            "twitter", "x", "reddit", "youtube",
-            "tiktok", "instagram", "facebook",
+            "twitter",
+            "x",
+            "reddit",
+            "youtube",
+            "tiktok",
+            "instagram",
+            "facebook",
         ]
     )
     drift_min_dwell_s: float = 300.0  # 5 minutes in a distraction app
-    drift_cooldown_s: float = 600.0   # 10 minutes between drift nudges
-    max_age_s: float = 28800.0        # 8 hours of silence auto-expires
+    drift_cooldown_s: float = 600.0  # 10 minutes between drift nudges
+    max_age_s: float = 28800.0  # 8 hours of silence auto-expires
 
 
 @dataclass

@@ -39,8 +39,13 @@ class LoRAConfig:
     lora_alpha: int = 32
     lora_dropout: float = 0.05
     target_modules: tuple[str, ...] = (
-        "q_proj", "k_proj", "v_proj", "o_proj",
-        "gate_proj", "up_proj", "down_proj",
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj",
+        "gate_proj",
+        "up_proj",
+        "down_proj",
     )
     epochs: int = 3
     batch_size: int = 4
@@ -55,8 +60,7 @@ def auto_tune(config: LoRAConfig, num_lines: int) -> LoRAConfig:
     """Adjust LoRA hyperparameters based on dataset size."""
     if num_lines < 200:
         log.warning(
-            "Only %d lines — fine-tuning may overfit. "
-            "Consider collecting more voice data.",
+            "Only %d lines — fine-tuning may overfit. Consider collecting more voice data.",
             num_lines,
         )
         config.lora_rank = 8
@@ -85,6 +89,7 @@ def _check_gpu() -> bool:
     """Verify CUDA is available."""
     try:
         import torch
+
         return bool(torch.cuda.is_available())
     except ImportError:
         return False
@@ -99,6 +104,7 @@ def _is_rocm() -> bool:
     """Detect if PyTorch is using ROCm (HIP) backend."""
     try:
         import torch
+
         return hasattr(torch.version, "hip") and torch.version.hip is not None
     except ImportError:
         return False
@@ -113,6 +119,7 @@ def _is_windows() -> bool:
     Python process — which is the case we need to dodge bitsandbytes on.
     """
     import platform
+
     return platform.system() == "Windows"
 
 
@@ -260,10 +267,7 @@ def train(
     )
 
     def _format(examples: dict[str, list[Any]]) -> dict[str, list[str]]:
-        texts = [
-            _sharegpt_to_chatml(convo)
-            for convo in examples["conversations"]
-        ]
+        texts = [_sharegpt_to_chatml(convo) for convo in examples["conversations"]]
         return {"text": texts}
 
     dataset = dataset.map(_format, batched=True, remove_columns=["conversations"])
@@ -335,23 +339,34 @@ def export_gguf(
     log.info("Converting to GGUF (quantization: %s)...", quantization)
     result = subprocess.run(
         [
-            sys.executable, "-m", "llama_cpp.convert",
+            sys.executable,
+            "-m",
+            "llama_cpp.convert",
             str(merged_dir),
-            "--outfile", str(output_path),
-            "--outtype", quantization,
+            "--outfile",
+            str(output_path),
+            "--outtype",
+            quantization,
         ],
-        capture_output=True, text=True, timeout=1800,
+        capture_output=True,
+        text=True,
+        timeout=1800,
     )
     if result.returncode != 0:
         # Fallback: try llama.cpp convert_hf_to_gguf.py if available
         result = subprocess.run(
             [
-                sys.executable, "convert_hf_to_gguf.py",
+                sys.executable,
+                "convert_hf_to_gguf.py",
                 str(merged_dir),
-                "--outfile", str(output_path),
-                "--outtype", quantization,
+                "--outfile",
+                str(output_path),
+                "--outtype",
+                quantization,
             ],
-            capture_output=True, text=True, timeout=1800,
+            capture_output=True,
+            text=True,
+            timeout=1800,
         )
     if result.returncode != 0:
         log.error("GGUF conversion failed: %s", result.stderr[-500:])
@@ -382,7 +397,9 @@ def merge_adapter(
     log.info("Merging LoRA adapter into base model...")
     tokenizer = AutoTokenizer.from_pretrained(base_model)
     model = AutoModelForCausalLM.from_pretrained(
-        base_model, torch_dtype="auto", device_map="cpu",
+        base_model,
+        torch_dtype="auto",
+        device_map="cpu",
     )
     model = PeftModel.from_pretrained(model, str(adapter_dir))
     model = model.merge_and_unload()
@@ -404,7 +421,7 @@ def generate_modelfile(
     model_path can be a GGUF file or a safetensors directory.
     """
     return (
-        f"FROM {model_path}\n"
+        f"FROM {model_path.as_posix()}\n"
         f"PARAMETER temperature {temperature}\n"
         f"PARAMETER num_ctx 2048\n"
         f'SYSTEM """{system_prompt}"""\n'
@@ -425,7 +442,9 @@ def register_ollama(
     modelfile_content = generate_modelfile(model_path, system_prompt)
 
     with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".Modelfile", delete=False,
+        mode="w",
+        suffix=".Modelfile",
+        delete=False,
     ) as f:
         f.write(modelfile_content)
         modelfile_path = f.name
@@ -498,8 +517,10 @@ def _cmd_train(args: argparse.Namespace) -> None:
     if args.epochs:
         config.epochs = args.epochs
 
-    print(f"Config: rank={config.lora_rank}, epochs={config.epochs}, "
-          f"lr={config.learning_rate}, batch={config.batch_size}")
+    print(
+        f"Config: rank={config.lora_rank}, epochs={config.epochs}, "
+        f"lr={config.learning_rate}, batch={config.batch_size}"
+    )
 
     model, tokenizer = setup_model(config)
     resume_from = None
@@ -514,7 +535,12 @@ def _cmd_train(args: argparse.Namespace) -> None:
             print("No checkpoints found, starting fresh.")
 
     adapter_dir = train(
-        model, tokenizer, train_path, val_path, config, output_dir,
+        model,
+        tokenizer,
+        train_path,
+        val_path,
+        config,
+        output_dir,
         resume_from_checkpoint=resume_from,
     )
     print(f"Adapter saved: {adapter_dir}")
@@ -535,7 +561,10 @@ def _cmd_export(args: argparse.Namespace) -> None:
     output_path = Path(args.output)
 
     gguf_path = export_gguf(
-        adapter_dir, output_path, args.base_model, args.quantization,
+        adapter_dir,
+        output_path,
+        args.base_model,
+        args.quantization,
     )
     print(f"GGUF exported: {gguf_path}")
 
@@ -569,8 +598,8 @@ def _cmd_all(args: argparse.Namespace) -> None:
         print("ERROR: No CUDA GPU detected. Training requires a CUDA GPU.")
         sys.exit(1)
 
-    output_dir = Path(args.output) if args.output else (
-        Path.home() / ".tokenpal" / "finetune" / slug
+    output_dir = (
+        Path(args.output) if args.output else (Path.home() / ".tokenpal" / "finetune" / slug)
     )
     model_name = f"tokenpal-{slug}"
 
@@ -597,6 +626,7 @@ def _cmd_all(args: argparse.Namespace) -> None:
 
     # Step 4: Register with Ollama
     from tokenpal.tools.dataset_prep import build_system_prompt
+
     system_prompt = build_system_prompt(profile)
     print(f"[4/4] Registering {model_name} with Ollama...")
     if register_ollama(merged_dir, model_name, system_prompt):
@@ -616,7 +646,8 @@ def main() -> None:
         description="LoRA fine-tune voice models for TokenPal",
     )
     parser.add_argument(
-        "-v", "--verbose",
+        "-v",
+        "--verbose",
         action="store_true",
         help="enable debug logging",
     )
@@ -648,7 +679,9 @@ def main() -> None:
     p_export.add_argument("--output", required=True, help="GGUF output path")
     p_export.add_argument("--base-model", default="google/gemma-2-9b")
     p_export.add_argument(
-        "--quantization", default="q4_k_m", help="GGUF quantization method",
+        "--quantization",
+        default="q4_k_m",
+        help="GGUF quantization method",
     )
 
     # register

@@ -238,8 +238,6 @@ def test_dropped_generated_text_falls_back_to_the_label() -> None:
     assert h.spoken == [("stand up", "ambient")]
 
 
-
-
 # ----------------------------------------------------------------------
 # Off-loop generation (p5)
 # ----------------------------------------------------------------------
@@ -472,13 +470,11 @@ async def test_a_raising_delivery_does_not_escape_the_brain_loop() -> None:
 
 
 async def test_nudge_prompt_is_built_in_the_buddys_voice() -> None:
-    """"Different text between fires" only proves non-constant; the identity
+    """ "Different text between fires" only proves non-constant; the identity
     block and the catchphrase priming are what make it the buddy's voice."""
     personality = PersonalityEngine(persona_prompt="test")
     h = _make_harness(audio=True)
-    prompts = _wire_llm(
-        h, _replies("Legs. Up. Now."), personality=personality
-    )
+    prompts = _wire_llm(h, _replies("Legs. Up. Now."), personality=personality)
     _arm_due(h.brain._proactive, "stretch your legs")
 
     h.brain._fire_due_nudges()
@@ -488,6 +484,7 @@ async def test_nudge_prompt_is_built_in_the_buddys_voice() -> None:
     assert personality._identity_block() in prompts[0]
     assert prompts[0].endswith(personality._voice_reminder() + "Your line:")
     assert "stretch your legs" in prompts[0]
+
 
 async def test_run_loop_actually_calls_fire_due_nudges() -> None:
     """Drive one real loop iteration.
@@ -523,7 +520,7 @@ async def test_a_gate_that_closes_during_generation_suppresses_the_nudge() -> No
     _wire_llm(h, _replies("Up you get."))
     _arm_due(h.brain._proactive, "stretch your legs")
 
-    h.brain._fire_due_nudges()          # gate open: the nudge fires
+    h.brain._fire_due_nudges()  # gate open: the nudge fires
     h.personality.sensitive_app = True  # ... and closes while generating
     await _settle()
 

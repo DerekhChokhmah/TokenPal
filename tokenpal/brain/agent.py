@@ -58,7 +58,11 @@ class LogFn(Protocol):
 
 
 def noop_log(
-    text: str, *, markup: bool = False, url: str | None = None, persist: bool = True,
+    text: str,
+    *,
+    markup: bool = False,
+    url: str | None = None,
+    persist: bool = True,
 ) -> None:
     """LogFn that discards. Typed so it satisfies the Protocol at a join."""
     return None
@@ -132,9 +136,7 @@ class AgentRunner:
         self._is_sensitive = is_sensitive
         self._status = status_callback
         self._tool_specs = (
-            tool_specs
-            if tool_specs is not None
-            else [a.to_tool_spec() for a in actions.values()]
+            tool_specs if tool_specs is not None else [a.to_tool_spec() for a in actions.values()]
         )
         self._max_steps = max_steps
         self._token_budget = token_budget
@@ -187,14 +189,19 @@ class AgentRunner:
                     self._token_budget,
                 )
                 session.final_text = await self._force_synthesis(
-                    session, messages, thinking=thinking,
+                    session,
+                    messages,
+                    thinking=thinking,
                 )
                 return session
 
             tools = self._tools_for(session)
             try:
                 response = await self._step(
-                    session, messages, thinking=thinking, tools=tools,
+                    session,
+                    messages,
+                    thinking=thinking,
+                    tools=tools,
                 )
                 if (
                     thinking
@@ -205,7 +212,10 @@ class AgentRunner:
                     thinking = False
                     self._trace("(step truncated while thinking; continuing without thinking)")
                     response = await self._step(
-                        session, messages, thinking=False, tools=tools,
+                        session,
+                        messages,
+                        thinking=False,
+                        tools=tools,
                     )
             except TimeoutError:
                 session.stopped_reason = AgentStopReason.TIMEOUT
@@ -224,14 +234,14 @@ class AgentRunner:
             for i, tc in enumerate(response.tool_calls):
                 normalized = _normalize_tool_call(tc, i)
                 if session.desktop_content and (
-                    _needs_consent(normalized.name)
-                    or self._writes_durable_sink(normalized.name)
+                    _needs_consent(normalized.name) or self._writes_durable_sink(normalized.name)
                 ):
-                    self._trace(
-                        f"\u2190 skipped {normalized.name}: {_DESKTOP_CONTEXT_REASON}"
-                    )
+                    self._trace(f"\u2190 skipped {normalized.name}: {_DESKTOP_CONTEXT_REASON}")
                     step_record = AgentStep(
-                        normalized.name, normalized.arguments, _SKIPPED_RESULT, 0.0,
+                        normalized.name,
+                        normalized.arguments,
+                        _SKIPPED_RESULT,
+                        0.0,
                     )
                 else:
                     if self._status is not None:
@@ -241,18 +251,22 @@ class AgentRunner:
                             log.exception("agent status_callback raised")
                     step_record = await self._execute_one(normalized)
                 session.steps.append(step_record)
-                messages.append({
-                    "role": "tool",
-                    "tool_call_id": normalized.id,
-                    "content": _truncate(step_record.result, _MESSAGE_RESULT_CAP),
-                })
+                messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": normalized.id,
+                        "content": _truncate(step_record.result, _MESSAGE_RESULT_CAP),
+                    }
+                )
                 if step_record.denied:
                     denied = True
 
             if denied:
                 session.stopped_reason = AgentStopReason.DENIED
                 session.final_text = await self._force_synthesis(
-                    session, messages, thinking=thinking,
+                    session,
+                    messages,
+                    thinking=thinking,
                 )
                 return session
             # "using <tool>..." intentionally persists through the follow-up
@@ -321,7 +335,8 @@ class AgentRunner:
             return None
         if self._gated_free_specs is None:
             self._gated_free_specs = [
-                spec for spec in self._tool_specs
+                spec
+                for spec in self._tool_specs
                 if not _needs_consent(spec["function"]["name"])
                 and not self._writes_durable_sink(spec["function"]["name"])
             ]
@@ -373,7 +388,10 @@ class AgentRunner:
             if cache_key is not None and result.success:
                 self._cache[cache_key] = stored
             return AgentStep(
-                tc.name, tc.arguments, stored, duration_ms,
+                tc.name,
+                tc.arguments,
+                stored,
+                duration_ms,
             )
         except TimeoutError:
             duration_ms = (time.monotonic() - start) * 1000
@@ -394,7 +412,11 @@ class AgentRunner:
             return AgentStep(tc.name, tc.arguments, msg, duration_ms)
 
     async def _force_synthesis(
-        self, session: AgentSession, messages: list[dict[str, Any]], *, thinking: bool,
+        self,
+        session: AgentSession,
+        messages: list[dict[str, Any]],
+        *,
+        thinking: bool,
     ) -> str:
         """Best-effort final text with tools disabled so a capped run still
         returns something useful instead of a bare trace."""

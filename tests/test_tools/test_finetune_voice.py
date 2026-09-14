@@ -59,7 +59,6 @@ def test_auto_tune_large_dataset():
 
 
 def test_auto_tune_alpha_follows_rank():
-    config = LoRAConfig()
     for n in [50, 300, 800, 5000]:
         c = auto_tune(LoRAConfig(), n)
         assert c.lora_alpha == c.lora_rank * 2
@@ -88,10 +87,15 @@ def test_generate_modelfile_custom_temperature():
 @patch("subprocess.run")
 def test_register_ollama_success(mock_run: MagicMock):
     mock_run.return_value = subprocess.CompletedProcess(
-        args=[], returncode=0, stdout="", stderr="",
+        args=[],
+        returncode=0,
+        stdout="",
+        stderr="",
     )
     result = register_ollama(
-        Path("/tmp/test.gguf"), "tokenpal-test", "System prompt.",
+        Path("/tmp/test.gguf"),
+        "tokenpal-test",
+        "System prompt.",
     )
     assert result is True
     mock_run.assert_called_once()
@@ -104,10 +108,15 @@ def test_register_ollama_success(mock_run: MagicMock):
 @patch("subprocess.run")
 def test_register_ollama_failure(mock_run: MagicMock):
     mock_run.return_value = subprocess.CompletedProcess(
-        args=[], returncode=1, stdout="", stderr="model not found",
+        args=[],
+        returncode=1,
+        stdout="",
+        stderr="model not found",
     )
     result = register_ollama(
-        Path("/tmp/test.gguf"), "tokenpal-test", "System prompt.",
+        Path("/tmp/test.gguf"),
+        "tokenpal-test",
+        "System prompt.",
     )
     assert result is False
 
@@ -115,7 +124,9 @@ def test_register_ollama_failure(mock_run: MagicMock):
 @patch("subprocess.run", side_effect=FileNotFoundError)
 def test_register_ollama_no_ollama(mock_run: MagicMock):
     result = register_ollama(
-        Path("/tmp/test.gguf"), "tokenpal-test", "System prompt.",
+        Path("/tmp/test.gguf"),
+        "tokenpal-test",
+        "System prompt.",
     )
     assert result is False
 

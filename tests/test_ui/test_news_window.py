@@ -26,8 +26,12 @@ def _item(
     description: str = "",
 ) -> NewsItem:
     return NewsItem(
-        source=source, title=title, url=url, meta=meta,
-        description=description, timestamp=0.0,
+        source=source,
+        title=title,
+        url=url,
+        meta=meta,
+        description=description,
+        timestamp=0.0,
     )
 
 
@@ -47,11 +51,13 @@ def test_appends_item_with_source_badge_and_link(qapp: QApplication) -> None:
 
 def test_each_source_renders_distinct_label(qapp: QApplication) -> None:
     win = NewsHistoryWindow()
-    win.append_items([
-        _item(source="world_awareness", title="HN one", url="https://h/1"),
-        _item(source="lobsters", title="Lob one", url="https://l/1"),
-        _item(source="github_trending", title="foo/bar", url="https://g/1"),
-    ])
+    win.append_items(
+        [
+            _item(source="world_awareness", title="HN one", url="https://h/1"),
+            _item(source="lobsters", title="Lob one", url="https://l/1"),
+            _item(source="github_trending", title="foo/bar", url="https://g/1"),
+        ]
+    )
     html = win._log.toHtml()
     assert "HN" in html
     assert "Lobsters" in html

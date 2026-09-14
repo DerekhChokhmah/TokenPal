@@ -10,9 +10,7 @@ SAFE_TITLE_SUFFIXES: tuple[str, ...] = (
 )
 
 
-def sanitize_browser_title(
-    app_identifier: str, title: str, browsers: set[str]
-) -> str:
+def sanitize_browser_title(app_identifier: str, title: str, browsers: set[str]) -> str:
     """Strip browser window titles unless they match a known safe pattern.
 
     ``browsers`` entries must be lowercase — the identifier is lower-cased

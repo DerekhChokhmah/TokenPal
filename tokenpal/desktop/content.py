@@ -73,10 +73,7 @@ class DesktopContent:
     kind: ContentKind
 
     def __repr__(self) -> str:
-        return (
-            f"DesktopContent(kind={self.kind}, "
-            f"app={self.source_app!r}, chars={len(self.text)})"
-        )
+        return f"DesktopContent(kind={self.kind}, app={self.source_app!r}, chars={len(self.text)})"
 
     __str__ = __repr__
 
@@ -85,10 +82,7 @@ class DesktopContent:
         app = _attr_value(self.source_app)
         kind = _attr_value(self.kind)
         body = neutralize_envelope_tags(scrub_content_body(self.text), _ENVELOPE_TAG)
-        return (
-            f'<{_ENVELOPE_TAG} kind="{kind}" app="{app}">\n'
-            f"{body}\n</{_ENVELOPE_TAG}>"
-        )
+        return f'<{_ENVELOPE_TAG} kind="{kind}" app="{app}">\n{body}\n</{_ENVELOPE_TAG}>'
 
 
 def refuse_if_sensitive(source_app: str, window_title: str = "") -> ActionResult | None:
@@ -107,9 +101,7 @@ def refuse_if_sensitive(source_app: str, window_title: str = "") -> ActionResult
     ``senses/process_heat``). For a marked tool the trace line is already
     unpersisted, so this is defence in depth.
     """
-    if not (
-        contains_sensitive_term(source_app) or contains_sensitive_content_term(window_title)
-    ):
+    if not (contains_sensitive_term(source_app) or contains_sensitive_content_term(window_title)):
         return None
     return ActionResult(
         output="Won't read from that app: it's on the sensitive-app list.",

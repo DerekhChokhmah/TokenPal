@@ -43,6 +43,7 @@ def geocode_zip(zipcode: str) -> GeoLocation | None:
 
 def write_weather_config(lat: float, lon: float, label: str) -> None:
     """Write weather location to config.toml, enabling the sense."""
+
     def mutate(data: dict[str, Any]) -> None:
         data.setdefault("senses", {})["weather"] = True
         data["weather"] = {

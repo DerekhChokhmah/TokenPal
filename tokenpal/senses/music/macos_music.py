@@ -92,7 +92,7 @@ class MacOSMusic(AbstractSense):
                     "track_info": track_info,
                     "state": "playing",
                 },
-                summary=f'Listening to {track_info} on {player}',
+                summary=f"Listening to {track_info} on {player}",
                 changed_from=changed_from,
             )
 

@@ -15,21 +15,30 @@ log = logging.getLogger(__name__)
 try:
     import win32gui
     import win32process
+
     _HAS_WIN32 = True
 except ImportError:
     _HAS_WIN32 = False
 
 try:
     import psutil
+
     _HAS_PSUTIL = True
 except ImportError:
     _HAS_PSUTIL = False
 
 # Browser apps identified by Windows process name.
 _BROWSERS: set[str] = {
-    "chrome.exe", "firefox.exe", "msedge.exe", "brave.exe",
-    "opera.exe", "vivaldi.exe", "chromium.exe", "arc.exe",
-    "iexplore.exe", "safari.exe",
+    "chrome.exe",
+    "firefox.exe",
+    "msedge.exe",
+    "brave.exe",
+    "opera.exe",
+    "vivaldi.exe",
+    "chromium.exe",
+    "arc.exe",
+    "iexplore.exe",
+    "safari.exe",
 }
 
 _FRIENDLY_NAMES: dict[str, str] = {

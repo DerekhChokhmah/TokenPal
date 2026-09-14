@@ -19,7 +19,10 @@ from tokenpal.ui.voice_modal import (
 
 
 def _summary(
-    *, slug: str = "finn", character: str = "Finn", lines: int = 5,
+    *,
+    slug: str = "finn",
+    character: str = "Finn",
+    lines: int = 5,
     source: str = "adventuretime.fandom.com",
     finetuned_model: str = "",
 ) -> ProfileSummary:
@@ -75,7 +78,9 @@ def test_format_status_custom_voice() -> None:
 def test_format_status_finetuned_voice() -> None:
     s = VoiceModalState(
         active_voice=_summary(
-            character="Jake", lines=10, finetuned_model="tokenpal-jake",
+            character="Jake",
+            lines=10,
+            finetuned_model="tokenpal-jake",
         ),
     )
     out = _format_status(s)
@@ -84,9 +89,7 @@ def test_format_status_finetuned_voice() -> None:
 
 
 def test_format_saved_row_plain() -> None:
-    assert _format_saved_row(_summary(character="Finn", lines=3)) == (
-        "Finn (3 lines)"
-    )
+    assert _format_saved_row(_summary(character="Finn", lines=3)) == ("Finn (3 lines)")
 
 
 def test_format_saved_row_finetuned_has_ft_marker() -> None:

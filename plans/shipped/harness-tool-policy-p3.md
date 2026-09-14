@@ -52,8 +52,10 @@ See the master `plans/harness-tool-policy.md`. The decisions binding this phase:
       root: Path
       rel: str
 
-  async def resolve_declared_path(raw: str, roots_policy: str, screen: str
-                                  ) -> tuple[ResolvedPath | None, str]:
+
+  async def resolve_declared_path(
+      raw: str, roots_policy: str, screen: str
+  ) -> tuple[ResolvedPath | None, str]:
       """Return (path, "") or (None, refusal). Order is fixed:
       raw-name screen → resolve_inside → resolved-name re-screen."""
   ```

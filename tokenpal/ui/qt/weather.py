@@ -356,9 +356,7 @@ class WeatherSim:
                     "unit": "F",
                 },
                 idle_event=snap.idle_event if snap is not None else None,
-                sensitive_suppressed=(
-                    snap.sensitive_suppressed if snap is not None else False
-                ),
+                sensitive_suppressed=(snap.sensitive_suppressed if snap is not None else False),
             )
             base = EnvState.from_inputs(
                 weather_data=forced_snap.weather_data,
@@ -417,6 +415,7 @@ class WeatherSim:
             h = self._now_hour()
         else:
             import datetime as _dt
+
             h = _dt.datetime.now().hour
         return 6 <= h < 19
 
@@ -442,9 +441,7 @@ class WeatherSim:
             self._snow_accum = 0.0
 
         if kind is Kind.STORM:
-            self._lightning_accum += (
-                dt_s * _LIGHTNING_PER_SEC * intensity * afk_scale
-            )
+            self._lightning_accum += dt_s * _LIGHTNING_PER_SEC * intensity * afk_scale
             if (
                 self._lightning_accum >= 1.0
                 and not self.lightning.active
@@ -476,9 +473,7 @@ class WeatherSim:
         drift = self.cloud_drift.offset_x(_OVERCAST_DRIFT_AMP, 0.0) * self.cell_px
         cx = sky.center().x() + drift
         x = cx + self.rng.uniform(-cloud_px_w / 2.0, cloud_px_w / 2.0)
-        y = sky.top() + self.line_px * (
-            1.0 + RAIN_CLOUD_SPRITE.height * _RAIN_CLOUD_SCALE
-        )
+        y = sky.top() + self.line_px * (1.0 + RAIN_CLOUD_SPRITE.height * _RAIN_CLOUD_SCALE)
         vy_cells = self.rng.uniform(
             _RAIN_VY_MIN + 4.0 * intensity,
             _RAIN_VY_BASE + _RAIN_VY_SPREAD * intensity,
@@ -486,20 +481,25 @@ class WeatherSim:
         vx_cells = self.rng.uniform(-_RAIN_VX_SPREAD, _RAIN_VX_SPREAD)
         # Add a wind-drag term tied to cloud drift derivative so drops
         # don't fall in parallel machine-lines (plan failure mode).
-        wind = -math.sin(
-            (self.cloud_drift.phase_s / max(self.cloud_drift.period_s, 1e-6))
-            * 2.0 * math.pi
-        ) * 0.8
-        self.particles.append(WeatherParticle(
-            kind="rain",
-            x=x, y=y,
-            vx=(vx_cells + wind) * self.cell_px,
-            vy=vy_cells * self.cell_px,
-            life=_RAIN_LIFE_S,
-            glyph=self.rng.choice(_RAIN_GLYPHS),
-            color=_COL_RAIN,
-            spawn_t=self._t,
-        ))
+        wind = (
+            -math.sin(
+                (self.cloud_drift.phase_s / max(self.cloud_drift.period_s, 1e-6)) * 2.0 * math.pi
+            )
+            * 0.8
+        )
+        self.particles.append(
+            WeatherParticle(
+                kind="rain",
+                x=x,
+                y=y,
+                vx=(vx_cells + wind) * self.cell_px,
+                vy=vy_cells * self.cell_px,
+                life=_RAIN_LIFE_S,
+                glyph=self.rng.choice(_RAIN_GLYPHS),
+                color=_COL_RAIN,
+                spawn_t=self._t,
+            )
+        )
 
     def _spawn_snow(self) -> None:
         sky = self.sky_rect_provider()
@@ -509,22 +509,23 @@ class WeatherSim:
         drift = self.cloud_drift.offset_x(_OVERCAST_DRIFT_AMP, 0.0) * self.cell_px
         cx = sky.center().x() + drift
         x = cx + self.rng.uniform(-cloud_px_w / 2.0, cloud_px_w / 2.0)
-        y = sky.top() + self.line_px * (
-            1.0 + RAIN_CLOUD_SPRITE.height * _RAIN_CLOUD_SCALE
-        )
+        y = sky.top() + self.line_px * (1.0 + RAIN_CLOUD_SPRITE.height * _RAIN_CLOUD_SCALE)
         vy = self.rng.uniform(_SNOW_VY_MIN, _SNOW_VY_MAX) * self.cell_px
         phase = self.rng.uniform(0.0, 2.0 * math.pi)
-        self.particles.append(WeatherParticle(
-            kind="snow",
-            x=x, y=y,
-            vx=0.0,
-            vy=vy,
-            life=_SNOW_LIFE_S,
-            glyph=self.rng.choice(_SNOW_GLYPHS),
-            color=_COL_SNOW,
-            spawn_t=self._t,
-            phase=phase,
-        ))
+        self.particles.append(
+            WeatherParticle(
+                kind="snow",
+                x=x,
+                y=y,
+                vx=0.0,
+                vy=vy,
+                life=_SNOW_LIFE_S,
+                glyph=self.rng.choice(_SNOW_GLYPHS),
+                color=_COL_SNOW,
+                spawn_t=self._t,
+                phase=phase,
+            )
+        )
 
     def _spawn_shooting_star(self) -> None:
         sky = self.sky_rect_provider()
@@ -548,10 +549,15 @@ class WeatherSim:
         t_back = 0.45 * _SHOOTING_STAR_DURATION_S
         sx = cx - vx * t_back
         sy = cy - vy * t_back
-        self.shooting_stars.append(ShootingStar(
-            x=sx, y=sy, vx=vx, vy=vy,
-            remaining_s=_SHOOTING_STAR_DURATION_S,
-        ))
+        self.shooting_stars.append(
+            ShootingStar(
+                x=sx,
+                y=sy,
+                vx=vx,
+                vy=vy,
+                remaining_s=_SHOOTING_STAR_DURATION_S,
+            )
+        )
 
     def _roll_shooting_star_gap(self) -> float:
         # Exponential distribution clamped into [min, max] so the UX is
@@ -570,9 +576,11 @@ class WeatherSim:
                 continue
             if p.kind == "snow":
                 # Gentle lateral sway (Textual uses spin phase → vx sine).
-                sway = math.sin(
-                    (self._t + p.phase) * _SNOW_SWAY_FREQ * 2.0 * math.pi
-                ) * _SNOW_VX_SWAY * self.cell_px
+                sway = (
+                    math.sin((self._t + p.phase) * _SNOW_SWAY_FREQ * 2.0 * math.pi)
+                    * _SNOW_VX_SWAY
+                    * self.cell_px
+                )
                 p.x += sway * dt_s
                 p.y += p.vy * dt_s
             elif p.kind in ("rain", "splash"):
@@ -614,23 +622,28 @@ class WeatherSim:
         for _ in range(3):
             angle = self.rng.uniform(-math.pi, 0.0)
             speed = self.rng.uniform(20.0, 60.0)
-            out.append(WeatherParticle(
-                kind="splash",
-                x=x, y=y,
-                vx=math.cos(angle) * speed,
-                vy=math.sin(angle) * speed,
-                life=_SPLASH_LIFE_S,
-                glyph=self.rng.choice(_SPLASH_GLYPHS),
-                color=_COL_SPLASH,
-                spawn_t=self._t,
-            ))
+            out.append(
+                WeatherParticle(
+                    kind="splash",
+                    x=x,
+                    y=y,
+                    vx=math.cos(angle) * speed,
+                    vy=math.sin(angle) * speed,
+                    life=_SPLASH_LIFE_S,
+                    glyph=self.rng.choice(_SPLASH_GLYPHS),
+                    color=_COL_SPLASH,
+                    spawn_t=self._t,
+                )
+            )
         return out
 
     def _make_snow_dust(self, x: float, y: float) -> WeatherParticle:
         return WeatherParticle(
             kind="snow_dust",
-            x=x, y=y,
-            vx=0.0, vy=0.0,
+            x=x,
+            y=y,
+            vx=0.0,
+            vy=0.0,
             life=_SNOW_DUST_LIFE_S,
             glyph="·",
             color=_COL_SNOW,
@@ -712,7 +725,8 @@ class SkyWindow(QWidget):
         self._line_h = QFontMetrics(self._font).height()
         self._sim.set_cell_px(float(self._cell_w), float(self._line_h))
         self._sprite_cache: dict[
-            tuple[tuple[str, ...], int, int, int], QPixmap,
+            tuple[tuple[str, ...], int, int, int],
+            QPixmap,
         ] = {}
 
         self.setWindowFlags(buddy_overlay_flags())
@@ -768,6 +782,7 @@ class SkyWindow(QWidget):
 
     def _measure_cell_w(self) -> int:
         from tokenpal.ui.buddy_core import measure_block_paint_width
+
         return max(measure_block_paint_width(self._font) - 1, 1)
 
     # --- Geometry ----------------------------------------------------
@@ -819,7 +834,8 @@ class SkyWindow(QWidget):
         if _paint_trace.enabled():
             pos = self.pos()
             _paint_trace.log_paint(
-                "sky", pos=(float(pos.x()), float(pos.y())),
+                "sky",
+                pos=(float(pos.x()), float(pos.y())),
             )
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.TextAntialiasing, True)
@@ -861,7 +877,10 @@ class SkyWindow(QWidget):
         nat_h = sprite.height * self._line_h
         x0 = self.width() - nat_w - self._cell_w
         self._draw_sprite_pix(
-            painter, sprite, target=QRect(x0, 0, nat_w, nat_h), color=color,
+            painter,
+            sprite,
+            target=QRect(x0, 0, nat_w, nat_h),
+            color=color,
         )
 
     def _paint_clouds(self, painter: QPainter, env: EnvState) -> None:
@@ -872,27 +891,39 @@ class SkyWindow(QWidget):
             nat_w = sprite.width * self._cell_w
             nat_h = sprite.height * self._line_h
             base_x = self.width() - nat_w - self._cell_w
-            drift_a = self._sim.cloud_drift.offset_x(
-                _OVERCAST_DRIFT_AMP, _OVERCAST_A_PHASE,
-            ) * self._cell_w
-            drift_b = self._sim.cloud_drift.offset_x(
-                _OVERCAST_DRIFT_AMP, _OVERCAST_B_PHASE,
-            ) * self._cell_w
+            drift_a = (
+                self._sim.cloud_drift.offset_x(
+                    _OVERCAST_DRIFT_AMP,
+                    _OVERCAST_A_PHASE,
+                )
+                * self._cell_w
+            )
+            drift_b = (
+                self._sim.cloud_drift.offset_x(
+                    _OVERCAST_DRIFT_AMP,
+                    _OVERCAST_B_PHASE,
+                )
+                * self._cell_w
+            )
             self._draw_sprite_pix(
-                painter, sprite,
+                painter,
+                sprite,
                 target=QRect(
                     int(base_x + drift_a),
                     _OVERCAST_A_DY * self._line_h,
-                    nat_w, nat_h,
+                    nat_w,
+                    nat_h,
                 ),
                 color=cloud_color,
             )
             self._draw_sprite_pix(
-                painter, sprite,
+                painter,
+                sprite,
                 target=QRect(
                     int(base_x + _OVERCAST_B_DX * self._cell_w + drift_b),
                     _OVERCAST_B_DY * self._line_h,
-                    nat_w, nat_h,
+                    nat_w,
+                    nat_h,
                 ),
                 color=cloud_color,
             )
@@ -903,13 +934,18 @@ class SkyWindow(QWidget):
             nat_h = RAIN_CLOUD_SPRITE.height * self._line_h
             scaled_w = int(round(nat_w * _RAIN_CLOUD_SCALE))
             scaled_h = int(round(nat_h * _RAIN_CLOUD_SCALE))
-            drift = self._sim.cloud_drift.offset_x(
-                _OVERCAST_DRIFT_AMP, 0.0,
-            ) * self._cell_w
+            drift = (
+                self._sim.cloud_drift.offset_x(
+                    _OVERCAST_DRIFT_AMP,
+                    0.0,
+                )
+                * self._cell_w
+            )
             cx = self.width() / 2
             x = int(cx - scaled_w / 2 + drift)
             self._draw_sprite_pix(
-                painter, RAIN_CLOUD_SPRITE,
+                painter,
+                RAIN_CLOUD_SPRITE,
                 target=QRect(x, 0, scaled_w, scaled_h),
                 color=cloud_color,
             )
@@ -920,16 +956,22 @@ class SkyWindow(QWidget):
         if cached is not None:
             return cached
         pix = render_sprite_pixmap(
-            sprite.lines, color,
+            sprite.lines,
+            color,
             cell_w=self._cell_w,
-            font=self._font, dpr=self.devicePixelRatioF(),
+            font=self._font,
+            dpr=self.devicePixelRatioF(),
         )
         self._sprite_cache[key] = pix
         return pix
 
     def _draw_sprite_pix(
-        self, painter: QPainter, sprite: PropSprite, *,
-        target: QRect, color: QColor,
+        self,
+        painter: QPainter,
+        sprite: PropSprite,
+        *,
+        target: QRect,
+        color: QColor,
     ) -> None:
         painter.drawPixmap(target, self._sprite_pixmap(sprite, color))
 
@@ -960,7 +1002,10 @@ class SkyWindow(QWidget):
                 painter.drawText(int(tx), int(ty), _STAR_GLYPH)
 
     def _paint_particles(
-        self, painter: QPainter, world: QRectF, sky_local_h: float,
+        self,
+        painter: QPainter,
+        world: QRectF,
+        sky_local_h: float,
     ) -> None:
         for p in self._sim.particles:
             if p.kind in ("splash", "snow_dust"):
@@ -1035,8 +1080,10 @@ class BuddyRainOverlay(QWidget):
         if self.isHidden():
             self.show()
         padded = rect.adjusted(
-            -_BUDDY_OVERLAY_PAD_PX, -_BUDDY_OVERLAY_PAD_PX,
-            _BUDDY_OVERLAY_PAD_PX, _BUDDY_OVERLAY_PAD_PX,
+            -_BUDDY_OVERLAY_PAD_PX,
+            -_BUDDY_OVERLAY_PAD_PX,
+            _BUDDY_OVERLAY_PAD_PX,
+            _BUDDY_OVERLAY_PAD_PX,
         )
         new_x = int(padded.left())
         new_y = int(padded.top())
@@ -1056,7 +1103,8 @@ class BuddyRainOverlay(QWidget):
         if _paint_trace.enabled():
             pos = self.pos()
             _paint_trace.log_paint(
-                "rain", pos=(float(pos.x()), float(pos.y())),
+                "rain",
+                pos=(float(pos.x()), float(pos.y())),
             )
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.TextAntialiasing, True)
@@ -1071,4 +1119,3 @@ class BuddyRainOverlay(QWidget):
                 int(p.y - world.top()),
                 p.glyph,
             )
-

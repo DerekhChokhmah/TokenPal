@@ -42,6 +42,7 @@ def test_shell_constructs_and_quits(qapp: QApplication) -> None:
 
 def test_buddy_window_has_frameless_flags(qapp: QApplication) -> None:
     from PySide6.QtCore import Qt
+
     shell = build_shell(app=qapp)
     flags = shell.buddy.windowFlags()
     assert flags & Qt.WindowType.FramelessWindowHint

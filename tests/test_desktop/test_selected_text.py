@@ -128,11 +128,13 @@ def test_whole_field_longer_than_the_cap_is_truncated_and_flagged() -> None:
 
 
 def test_secure_field_is_refused_before_any_value_read() -> None:
-    bridge = _bridge({
-        "AXSubrole": (_OK, "AXSecureTextField"),
-        "AXSelectedText": (_OK, FIXTURE),
-        "AXValue": (_OK, FIXTURE),
-    })
+    bridge = _bridge(
+        {
+            "AXSubrole": (_OK, "AXSecureTextField"),
+            "AXSelectedText": (_OK, FIXTURE),
+            "AXValue": (_OK, FIXTURE),
+        }
+    )
     assert _failure(_read(bridge)) == "Won't read a password field."
     assert not [name for _, name in bridge.reads if name in ("AXSelectedText", "AXValue")]
 

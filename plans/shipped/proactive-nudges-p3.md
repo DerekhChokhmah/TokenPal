@@ -18,16 +18,20 @@ See the master `plans/proactive-nudges.md`. Binding here:
   @register_action
   class ReminderAction(AbstractAction):
       action_name = "reminder"
-      description = ("Arm, cancel or list recurring nudges. Schedules are either "
-                     "every N minutes or a daily time like 22:30.")
+      description = (
+          "Arm, cancel or list recurring nudges. Schedules are either "
+          "every N minutes or a daily time like 22:30."
+      )
       parameters = {  # JSON Schema
-          "action": enum ["arm", "cancel", "list"] (required),
-          "label": str,            # what to say; required for arm
-          "every_min": int,        # arm, interval form
-          "at": str,               # arm, daily form, "HH:MM"
-          "id": str,               # cancel; also accepted on arm to replace
+          "action": enum["arm", "cancel", "list"](required),
+          "label": str,  # what to say; required for arm
+          "every_min": int,  # arm, interval form
+          "at": str,  # arm, daily form, "HH:MM"
+          "id": str,  # cancel; also accepted on arm to replace
       }
-      safe = False; requires_confirm = False; cacheable = False
+      safe = False
+      requires_confirm = False
+      cacheable = False
   ```
   `execute` order, each refusal a one-line `ActionResult(success=False)`: unknown/missing `action` → refuse naming the allowed values; `arm` with neither `every_min` nor `at`, or with both → refuse naming the two forms; `label` missing or blank on `arm` → refuse; `contains_sensitive_content_term(label)` → refuse **without echoing the label**; build the `Schedule` and turn its `ValueError` into the refusal text verbatim; assign an id, by two distinct rules — **no `id` supplied:** slug the label, and on collision suffix `-2`, `-3`, so arming "stretch" twice gives two reminders; **`id` supplied:** replace that reminder outright and say so in the reply. Conflating them would make `arm label="stretch"` silently destroy an existing reminder, since `upsert_reminder` is `INSERT OR REPLACE`; register with the scheduler and persist. `cancel` with an unknown id → say so rather than failing silently. `list` with nothing armed → a plain "nothing armed" line; otherwise one line per reminder, formatted **in this module** (not on `Schedule`, which stays a value type), shaped `<id>  <label>  <schedule in words>  next <YYYY-MM-DD HH:MM>` — e.g. `stretch  Stretch break -- stand up.  every 60 min  next 2026-09-04 18:30`.
   **The enum in the schema and the parser must agree** — today's actions advertise `["on", "off"]` but accept `"stop"` and `"cancel"` at runtime (`reminders.py:70,107`). Follow the rule, not a file: derive the schema's `enum` from the same module constant `execute` re-validates against. There is no clean precedent to copy — `memory_query.py:105` writes `list(_ALLOWED_METRICS)` while `execute` checks `_DISPATCH` (`:115`), two constants kept in sync by hand.

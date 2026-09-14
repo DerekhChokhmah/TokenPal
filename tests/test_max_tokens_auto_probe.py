@@ -114,13 +114,15 @@ async def test_probe_parses_ollama_api_show_response() -> None:
     """_probe_context_length parses model_info[*.context_length]."""
     b = _backend()
 
-    resp = JsonResponse({
-        "model_info": {
-            "general.architecture": "gemma",
-            "gemma.context_length": 8192,
-            "gemma.embedding_length": 2048,
+    resp = JsonResponse(
+        {
+            "model_info": {
+                "general.architecture": "gemma",
+                "gemma.context_length": 8192,
+                "gemma.embedding_length": 2048,
+            }
         }
-    })
+    )
 
     client = AsyncMock()
     client.post = AsyncMock(return_value=resp)
@@ -167,13 +169,15 @@ async def test_props_probe_parses_llamacpp_response() -> None:
     """_probe_llamacpp_props reads default_generation_settings.n_ctx."""
     b = _backend(inference_engine="llamacpp")
 
-    resp = JsonResponse({
-        "default_generation_settings": {
-            "n_ctx": 8192,
-            "params": {"n_predict": -1},
-        },
-        "model_path": "/models/qwen3.gguf",
-    })
+    resp = JsonResponse(
+        {
+            "default_generation_settings": {
+                "n_ctx": 8192,
+                "params": {"n_predict": -1},
+            },
+            "model_path": "/models/qwen3.gguf",
+        }
+    )
 
     client = AsyncMock()
     client.get = AsyncMock(return_value=resp)

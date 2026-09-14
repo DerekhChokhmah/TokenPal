@@ -72,8 +72,7 @@ def test_v0_db_upgrades_cleanly(tmp_path: Path) -> None:
     # Migrated tables exist
     assert store._conn is not None
     rows = store._conn.execute(
-        "SELECT name FROM sqlite_master WHERE type='table' "
-        "AND name='session_summaries'"
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='session_summaries'"
     ).fetchall()
     assert rows, "session_summaries should exist after migration"
     # Legacy row preserved
@@ -127,8 +126,7 @@ def _make_v4_db(db_path: Path) -> None:
         for migration in _MIGRATIONS[:4]:
             migration(conn)
         conn.execute(
-            "INSERT INTO chat_log (timestamp, speaker, text) "
-            "VALUES (?, 'You', 'pre-existing')",
+            "INSERT INTO chat_log (timestamp, speaker, text) VALUES (?, 'You', 'pre-existing')",
             (time.time(),),
         )
         conn.execute("PRAGMA user_version = 4")
@@ -149,9 +147,7 @@ def test_v4_db_upgrades_and_gains_reminders(tmp_path: Path) -> None:
             "SELECT name FROM sqlite_master WHERE type='table' AND name='reminders'"
         ).fetchone()
         assert row is not None, "reminders should exist after migration 5"
-        prior = store._conn.execute(
-            "SELECT text FROM chat_log WHERE speaker='You'"
-        ).fetchone()
+        prior = store._conn.execute("SELECT text FROM chat_log WHERE speaker='You'").fetchone()
         assert prior is not None and prior[0] == "pre-existing"
     finally:
         store.teardown()

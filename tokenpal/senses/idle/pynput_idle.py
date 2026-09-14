@@ -15,9 +15,9 @@ from tokenpal.senses.registry import register_sense
 log = logging.getLogger(__name__)
 
 # Idle tier thresholds (seconds)
-_SHORT_IDLE = 120    # 2 min — no comment, normal pause
-_MEDIUM_IDLE = 300   # 5 min — dry acknowledgment on return
-_LONG_IDLE = 1800    # 30 min — dramatic return
+_SHORT_IDLE = 120  # 2 min — no comment, normal pause
+_MEDIUM_IDLE = 300  # 5 min — dry acknowledgment on return
+_LONG_IDLE = 1800  # 30 min — dramatic return
 
 # Cadence for sustained-idle re-emission while the user stays AFK.
 _SUSTAINED_EMIT_INTERVAL_S = 60.0
@@ -124,16 +124,15 @@ class PynputIdle(AbstractSense):
             self._discarded_input_at = first_input_at
             self._pending_return = None
             log.debug(
-                "idle: phantom return discarded "
-                "(source=%s, %.1fs since with %d follow-ups)",
-                self._last_input_source or "?", elapsed, new_events,
+                "idle: phantom return discarded (source=%s, %.1fs since with %d follow-ups)",
+                self._last_input_source or "?",
+                elapsed,
+                new_events,
             )
 
         # Treat a discarded phantom as if it never advanced last_input.
         effective_last_input = (
-            self._idle_start
-            if last_input == self._discarded_input_at
-            else last_input
+            self._idle_start if last_input == self._discarded_input_at else last_input
         )
         idle_seconds = now - effective_last_input
         is_idle = idle_seconds >= _SHORT_IDLE

@@ -18,6 +18,7 @@ def set_sense_enabled(name: str, enabled: bool) -> Path:
 
     Creates the file and the section if missing. Returns the path written.
     """
+
     def mutate(data: dict[str, Any]) -> None:
         data.setdefault("senses", {})[name] = enabled
 
@@ -39,6 +40,7 @@ def set_ssid_label(ssid_hash: str, label: str) -> Path:
 
 def add_watch_root(path: str) -> Path:
     """Append *path* to [filesystem_pulse] roots (no-op if already present)."""
+
     def mutate(data: dict[str, Any]) -> None:
         section = data.setdefault("filesystem_pulse", {})
         roots = section.setdefault("roots", [])
@@ -50,6 +52,7 @@ def add_watch_root(path: str) -> Path:
 
 def remove_watch_root(path: str) -> Path:
     """Remove *path* from [filesystem_pulse] roots (no-op if absent)."""
+
     def mutate(data: dict[str, Any]) -> None:
         section = data.setdefault("filesystem_pulse", {})
         roots = section.setdefault("roots", [])

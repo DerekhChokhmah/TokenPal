@@ -66,7 +66,8 @@ async def test_stage_mounts_and_binds_motion(app: TokenPalApp) -> None:
 
 
 async def test_click_posts_buddy_poked_message(
-    app: TokenPalApp, overlay: TextualOverlay,
+    app: TokenPalApp,
+    overlay: TextualOverlay,
 ) -> None:
     cb = MagicMock()
     overlay.set_buddy_reaction_callback(cb)
@@ -79,7 +80,8 @@ async def test_click_posts_buddy_poked_message(
 
 
 async def test_drag_does_not_fire_poke(
-    app: TokenPalApp, overlay: TextualOverlay,
+    app: TokenPalApp,
+    overlay: TextualOverlay,
 ) -> None:
     cb = MagicMock()
     overlay.set_buddy_reaction_callback(cb)
@@ -133,7 +135,8 @@ async def test_modal_push_force_releases_stage(app: TokenPalApp) -> None:
 
 
 async def test_shake_posts_buddy_shaken(
-    app: TokenPalApp, overlay: TextualOverlay,
+    app: TokenPalApp,
+    overlay: TextualOverlay,
 ) -> None:
     cb = MagicMock()
     overlay.set_buddy_reaction_callback(cb)
@@ -176,11 +179,20 @@ async def test_buddy_widget_renders_particles_in_its_region(
         # column 0 (which falls in the padding spaces of the ASCII art).
         field = app.env_controller.field
         from tokenpal.ui.buddy_environment import Particle
-        field.particles.append(Particle(
-            x=float(buddy_x_offset) + 0.0, y=float(buddy_y_offset) + 0.0,
-            vx=0.0, vy=0.0, ax=0.0, ay=0.0,
-            life=99.0, glyph="§", color="#ff00ff",
-        ))
+
+        field.particles.append(
+            Particle(
+                x=float(buddy_x_offset) + 0.0,
+                y=float(buddy_y_offset) + 0.0,
+                vx=0.0,
+                vy=0.0,
+                ax=0.0,
+                ay=0.0,
+                life=99.0,
+                glyph="§",
+                color="#ff00ff",
+            )
+        )
         # Force a re-render and inspect row 0 of the buddy widget.
         buddy.refresh()
         await pilot.pause()

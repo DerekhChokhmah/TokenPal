@@ -130,9 +130,7 @@ def running_instances() -> list[Any]:
     except ImportError:
         return []
     try:
-        return list(
-            NSRunningApplication.runningApplicationsWithBundleIdentifier_(BUNDLE_ID)
-        )
+        return list(NSRunningApplication.runningApplicationsWithBundleIdentifier_(BUNDLE_ID))
     except Exception:
         log.debug("NSRunningApplication lookup raised", exc_info=True)
         return []
@@ -213,10 +211,7 @@ def bundle_unavailable_reason() -> str | None:
     quits one, so a relaunch would strand a buddy no terminal can reach.
     """
     if framework_stub() is None:
-        return (
-            f"no Python.app stub under {sys.base_prefix} "
-            "(non-framework interpreter)"
-        )
+        return f"no Python.app stub under {sys.base_prefix} (non-framework interpreter)"
     if not pyobjc_available():
         return "pyobjc not installed (tokenpal[macos] extra)"
     return None
@@ -232,9 +227,12 @@ def would_use_bundle(ui_config: dict[str, Any]) -> bool:
     """
     if sys.platform != "darwin" or running_in_bundle():
         return False
+
     if bundle_unavailable_reason() is not None:
         return False
-    from tokenpal.ui.registry import resolve_overlay_name  # noqa: PLC0415
+
+    from tokenpal.ui.registry import resolve_overlay_name
+    # noqa: PLC0415
 
     return resolve_overlay_name(ui_config) == "qt"
 
@@ -365,7 +363,8 @@ def _quit_running_instances() -> None:
     for app, pid in survivors:
         log.warning(
             "TokenPal (pid %s) did not exit within %ss — force quitting",
-            pid, _QUIT_TIMEOUT_S,
+            pid,
+            _QUIT_TIMEOUT_S,
         )
         app.forceTerminate()
 
@@ -396,13 +395,22 @@ def relaunch_in_bundle(argv: list[str], data_dir: Path) -> int:
         print(f"TokenPal output is not a terminal — writing it to {log_path}")
 
     cmd = [
-        "open", "-W",
-        "--env", f"{IN_BUNDLE_ENV}=1",
-        "--env", f"{LAUNCH_CWD_ENV}={os.getcwd()}",
-        "--stdout", stdout_target,
-        "--stderr", stderr_target,
+        "open",
+        "-W",
+        "--env",
+        f"{IN_BUNDLE_ENV}=1",
+        "--env",
+        f"{LAUNCH_CWD_ENV}={os.getcwd()}",
+        "--stdout",
+        stdout_target,
+        "--stderr",
+        stderr_target,
         str(bundle),
-        "--args", "-m", "tokenpal", *argv, "--skip-welcome",
+        "--args",
+        "-m",
+        "tokenpal",
+        *argv,
+        "--skip-welcome",
     ]
     log.info("Launching %s via open", bundle)
     proc = subprocess.Popen(cmd)
@@ -411,10 +419,10 @@ def relaunch_in_bundle(argv: list[str], data_dir: Path) -> int:
     # thing tying it to this terminal. Without these the window closing
     # (SIGHUP) or a `kill` (SIGTERM) would orphan a buddy the terminal can no
     # longer reach, still writing to a tty it no longer owns.
-    previous = {
-        sig: signal.signal(sig, _raise_interrupt)
-        for sig in (signal.SIGHUP, signal.SIGTERM)
-    }
+    signals = [signal.SIGTERM]
+    if hasattr(signal, "SIGHUP"):
+        signals.append(signal.SIGHUP)
+    previous = {sig: signal.signal(sig, _raise_interrupt) for sig in signals}
     # subprocess.run() would SIGKILL open inside its own KeyboardInterrupt
     # handling, before we get a chance to hand the signal to the child.
     try:

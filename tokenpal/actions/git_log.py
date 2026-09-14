@@ -23,9 +23,7 @@ async def _run_git(args: list[str]) -> tuple[int, bytes, bytes]:
 
 
 def _filter_sensitive(text: str) -> str:
-    return "\n".join(
-        line for line in text.splitlines() if not contains_sensitive_term(line)
-    )
+    return "\n".join(line for line in text.splitlines() if not contains_sensitive_term(line))
 
 
 @register_action

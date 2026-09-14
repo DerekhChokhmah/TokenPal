@@ -64,8 +64,11 @@ class _KokoroWorker:
     def __init__(self, model_path: Path, voices_path: Path) -> None:
         self._proc = subprocess.Popen(  # noqa: S603 — sys.executable is trusted
             [
-                sys.executable, "-m", _WORKER_MODULE,
-                str(model_path), str(voices_path),
+                sys.executable,
+                "-m",
+                _WORKER_MODULE,
+                str(model_path),
+                str(voices_path),
             ],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
@@ -101,9 +104,15 @@ class _KokoroWorker:
     def synth(self, text: str, voice: str, speed: float) -> bytes:
         assert self._proc.stdin is not None
         cmd = (
-            json.dumps({
-                "op": "synth", "text": text, "voice": voice, "speed": speed,
-            }) + "\n"
+            json.dumps(
+                {
+                    "op": "synth",
+                    "text": text,
+                    "voice": voice,
+                    "speed": speed,
+                }
+            )
+            + "\n"
         ).encode("utf-8")
         self._proc.stdin.write(cmd)
         self._proc.stdin.flush()
@@ -154,15 +163,13 @@ class KokoroBackend(TTSBackend):
             return []
         try:
             import numpy as np
+
             voices = np.load(self.voices_path)
             names = sorted(voices.keys())
         except Exception as e:
             log.warning("kokoro: failed to read voices file: %s", e)
             return []
-        return [
-            VoiceInfo(id=f"kokoro:{n}", raw=n, backend="kokoro", label=n)
-            for n in names
-        ]
+        return [VoiceInfo(id=f"kokoro:{n}", raw=n, backend="kokoro", label=n) for n in names]
 
     async def warmup(self) -> None:
         if self._worker is not None:
@@ -174,12 +181,19 @@ class KokoroBackend(TTSBackend):
             )
         loop = asyncio.get_running_loop()
         self._worker = await loop.run_in_executor(
-            None, _KokoroWorker, self.model_path, self.voices_path,
+            None,
+            _KokoroWorker,
+            self.model_path,
+            self.voices_path,
         )
         log.debug("kokoro: worker ready (%s)", self._quantization)
 
     async def synthesize(
-        self, text: str, voice_id: str, *, speed: float = 1.0,
+        self,
+        text: str,
+        voice_id: str,
+        *,
+        speed: float = 1.0,
     ) -> AsyncIterator[bytes]:
         if self._worker is None:
             await self.warmup()
@@ -187,7 +201,11 @@ class KokoroBackend(TTSBackend):
         raw = voice_id.removeprefix("kokoro:")
         loop = asyncio.get_running_loop()
         pcm = await loop.run_in_executor(
-            None, self._worker.synth, text, raw, speed,
+            None,
+            self._worker.synth,
+            text,
+            raw,
+            speed,
         )
         if pcm:
             yield pcm

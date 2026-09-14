@@ -78,11 +78,7 @@ def _format_prompt(digest: DayDigest) -> str:
         apps = ", ".join(f"{name} ({count})" for name, count in digest.top_apps)
     else:
         apps = "nothing interesting"
-    summary_line = (
-        f"- Earlier handoff note: {digest.last_summary}"
-        if digest.last_summary
-        else ""
-    )
+    summary_line = f"- Earlier handoff note: {digest.last_summary}" if digest.last_summary else ""
     return _EOD_TEMPLATE.format(
         date=digest.date,
         apps=apps,

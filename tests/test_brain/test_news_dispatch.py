@@ -23,7 +23,10 @@ class _MockLLM(AbstractLLMBackend):
         pass
 
     async def generate(
-        self, prompt: str, max_tokens: int = 256, **_: Any,
+        self,
+        prompt: str,
+        max_tokens: int = 256,
+        **_: Any,
     ) -> LLMResponse:
         return LLMResponse(text="", tokens_used=0, model_name="mock", latency_ms=0.0)
 
@@ -54,10 +57,12 @@ def _hn_reading() -> SenseReading:
     return SenseReading(
         sense_name="world_awareness",
         timestamp=0.0,
-        data={"stories": [
-            {"title": "thing one", "points": 10, "url": "https://e/1"},
-            {"title": "thing two", "points": 9, "url": "https://e/2"},
-        ]},
+        data={
+            "stories": [
+                {"title": "thing one", "points": 10, "url": "https://e/1"},
+                {"title": "thing two", "points": 9, "url": "https://e/2"},
+            ]
+        },
         summary="…",
     )
 

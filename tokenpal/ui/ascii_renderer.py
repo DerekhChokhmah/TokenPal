@@ -172,15 +172,21 @@ class BuddyFrame:
         frames: dict[str, BuddyFrame] = {}
         if idle:
             frames["idle"] = BuddyFrame(
-                lines=_fix_markup(idle), name="idle", markup=True,
+                lines=_fix_markup(idle),
+                name="idle",
+                markup=True,
             )
         if idle_alt:
             frames["idle_alt"] = BuddyFrame(
-                lines=_fix_markup(idle_alt), name="idle_alt", markup=True,
+                lines=_fix_markup(idle_alt),
+                name="idle_alt",
+                markup=True,
             )
         if talking:
             frames["talking"] = BuddyFrame(
-                lines=_fix_markup(talking), name="talking", markup=True,
+                lines=_fix_markup(talking),
+                name="talking",
+                markup=True,
             )
         return frames
 
@@ -204,7 +210,9 @@ class BuddyFrame:
                 lines = triple.get(frame_name)
                 if lines:
                     frames[frame_name] = BuddyFrame(
-                        lines=_fix_markup(lines), name=frame_name, markup=True,
+                        lines=_fix_markup(lines),
+                        name=frame_name,
+                        markup=True,
                     )
             if frames:
                 result[mood] = frames
@@ -250,9 +258,7 @@ class SpeechBubble:
         return lines
 
 
-def render_buddy_with_bubble(
-    frame: BuddyFrame, bubble: SpeechBubble | None = None
-) -> str:
+def render_buddy_with_bubble(frame: BuddyFrame, bubble: SpeechBubble | None = None) -> str:
     """Combine bubble (above) and buddy (below) into a single text block."""
     parts: list[str] = []
     if bubble:

@@ -21,10 +21,19 @@ log = logging.getLogger(__name__)
 
 _TRIGGER_CPU_PCT = 80.0
 _SUSTAINED_S = 20.0
-_KERNEL_NAMES: frozenset[str] = frozenset({
-    "kernel_task", "system", "systemd", "launchd",
-    "idle", "swapper", "mds", "mds_stores", "windowserver",
-})
+_KERNEL_NAMES: frozenset[str] = frozenset(
+    {
+        "kernel_task",
+        "system",
+        "systemd",
+        "launchd",
+        "idle",
+        "swapper",
+        "mds",
+        "mds_stores",
+        "windowserver",
+    }
+)
 _ELECTRON_HINT = re.compile(r"helper|renderer|gpu process", re.IGNORECASE)
 
 
@@ -83,10 +92,7 @@ class ProcessHeatSense(AbstractSense):
                 summary = f"CPU pinned at {cpu:.0f}% — something's working hard"
                 name = None
             else:
-                summary = (
-                    f"CPU pinned at {cpu:.0f}% — {name} eating "
-                    f"{proc_cpu:.0f}% on its own"
-                )
+                summary = f"CPU pinned at {cpu:.0f}% — {name} eating {proc_cpu:.0f}% on its own"
 
             data: dict[str, Any] = {
                 "cpu_percent": cpu,

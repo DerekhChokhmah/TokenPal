@@ -16,12 +16,14 @@ class _FakeProc:
 
 
 def _mk(name: str, pid: int, cpu: float, rss_mb: float) -> _FakeProc:
-    return _FakeProc({
-        "name": name,
-        "pid": pid,
-        "cpu_percent": cpu,
-        "memory_info": SimpleNamespace(rss=int(rss_mb * 1024 * 1024)),
-    })
+    return _FakeProc(
+        {
+            "name": name,
+            "pid": pid,
+            "cpu_percent": cpu,
+            "memory_info": SimpleNamespace(rss=int(rss_mb * 1024 * 1024)),
+        }
+    )
 
 
 async def test_list_processes_happy(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -73,7 +73,10 @@ def _groups() -> list[SelectionGroup]:
             title="locked",
             items=(
                 SelectionItem(
-                    value="fixed", label="required", initial=True, locked=True,
+                    value="fixed",
+                    label="required",
+                    initial=True,
+                    locked=True,
                 ),
             ),
         ),
@@ -116,7 +119,9 @@ def test_qt_overlay_reports_modals_are_supported(qapp: QApplication) -> None:
         handled = overlay.open_confirm_modal("Ship it?", "sure?", lambda _: None)
         assert handled is True
         handled = overlay.open_selection_modal(
-            "senses", _groups(), lambda _r: None,
+            "senses",
+            _groups(),
+            lambda _r: None,
         )
         assert handled is True
         _pump(qapp, ms=50)

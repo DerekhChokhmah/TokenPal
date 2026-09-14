@@ -60,7 +60,10 @@ class GitSense(AbstractSense):
 
         if head != self._last_head and self._last_head:
             new_commits = await self._git(
-                "log", f"{self._last_head}..{head}", "--oneline", "--no-color",
+                "log",
+                f"{self._last_head}..{head}",
+                "--oneline",
+                "--no-color",
             )
             changed_from = f"HEAD was {self._last_head}"
         if branch != self._last_branch and self._last_branch:

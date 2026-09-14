@@ -30,6 +30,7 @@ Composition is necessary because ``QQuickItem.TransformOrigin`` exposes
 only nine discrete pivot points; the COM is head-heavy
 (``COM_Y_FRACTION = 0.30``) and does not coincide with any of them.
 """
+
 from __future__ import annotations
 
 import math
@@ -101,7 +102,8 @@ class BuddyQuickWindow(QObject):
         self._buddy_item.setParentItem(self._pivot)
 
         self._bubble_item = BubbleQuickItem(
-            font_family=font_family, font_size=font_size,
+            font_family=font_family,
+            font_size=font_size,
         )
         self._bubble_item.setParentItem(self._pivot)
 
@@ -119,7 +121,9 @@ class BuddyQuickWindow(QObject):
             self._windows.append(w)
             self._screen_to_window[screen] = w
             self._click_through[w] = ClickThroughToggle(
-                w, self._make_probe(w), parent=w,
+                w,
+                self._make_probe(w),
+                parent=w,
             )
 
         # Pushing the same art-geometry to the scene graph 240x/sec
@@ -127,9 +131,7 @@ class BuddyQuickWindow(QObject):
         self._last_art_geom: tuple[int, int, float, float] | None = None
 
         ax, ay = self._core.sim.position
-        self._active: _ScreenWindow = (
-            self._pick_screen(ax, ay) or self._windows[0]
-        )
+        self._active: _ScreenWindow = self._pick_screen(ax, ay) or self._windows[0]
         self._pivot.setParentItem(self._active.contentItem())
         self._active.frameSwapped.connect(self._on_sync_tick)
 
@@ -216,7 +218,8 @@ class BuddyQuickWindow(QObject):
         return self._screen_to_window.get(screen) if screen else None
 
     def _make_probe(
-        self, w: _ScreenWindow,
+        self,
+        w: _ScreenWindow,
     ) -> Callable[[QPointF], bool]:
         def probe(client_point: QPointF) -> bool:
             if self._active is not w:
@@ -234,6 +237,7 @@ class BuddyQuickWindow(QObject):
             ):
                 return True
             return False
+
         return probe
 
     def _switch_active(self, target: _ScreenWindow) -> None:
@@ -295,6 +299,7 @@ class BuddyQuickWindow(QObject):
 
     def _dump_trace(self) -> None:
         from tokenpal.ui.buddy_core import FIXED_DT_S
+
         c = self._core
         t = (time.perf_counter() - self._trace_t0) * 1000.0
         sx, sy = c.sim.position
@@ -302,7 +307,8 @@ class BuddyQuickWindow(QObject):
         last_ts_ms = (c.last_step_ts - self._trace_t0_mono()) * 1000.0
         paint_ts_ms = (
             (c.paint_target_ts - self._trace_t0_mono()) * 1000.0
-            if c.paint_target_ts is not None else float("nan")
+            if c.paint_target_ts is not None
+            else float("nan")
         )
         theta_l, cx_l, cy_l = c.lerped_state_clamped()
         sample_ts = c.paint_target_ts or time.monotonic()
@@ -320,9 +326,7 @@ class BuddyQuickWindow(QObject):
 
     def _trace_t0_mono(self) -> float:
         if not hasattr(self, "_t0_mono"):
-            self._t0_mono = time.monotonic() - (
-                time.perf_counter() - self._trace_t0
-            )
+            self._t0_mono = time.monotonic() - (time.perf_counter() - self._trace_t0)
         return self._t0_mono
 
     def _sync_geometry(self) -> None:
@@ -348,11 +352,14 @@ class BuddyQuickWindow(QObject):
 
         head_x = c.art_w / 2.0 - com_x_art
         self._bubble_item.set_anchor_in_parent(
-            head_x, -com_y_art - float(BUBBLE_HOVER_OFFSET_Y),
+            head_x,
+            -com_y_art - float(BUBBLE_HOVER_OFFSET_Y),
         )
         self._dock_mock_item.set_anchor_in_parent(
-            head_x, float(c.art_h) - com_y_art + float(DOCK_OFFSET_Y),
+            head_x,
+            float(c.art_h) - com_y_art + float(DOCK_OFFSET_Y),
         )
         self._grip_item.set_anchor_in_parent(
-            float(c.art_w) - com_x_art, float(c.art_h) - com_y_art,
+            float(c.art_w) - com_x_art,
+            float(c.art_h) - com_y_art,
         )

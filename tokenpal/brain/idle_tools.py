@@ -45,13 +45,15 @@ log = logging.getLogger(__name__)
 
 # Tools cheap enough (and stable enough across a day) to pre-warm on
 # session start, avoiding a blocking HTTP call on the idle hot path.
-_DAILY_EVERGREEN_TOOLS: frozenset[str] = frozenset({
-    "word_of_the_day",
-    "joke_of_the_day",
-    "on_this_day",
-    "moon_phase",
-    "sunrise_sunset",
-})
+_DAILY_EVERGREEN_TOOLS: frozenset[str] = frozenset(
+    {
+        "word_of_the_day",
+        "joke_of_the_day",
+        "on_this_day",
+        "moon_phase",
+        "sunrise_sunset",
+    }
+)
 
 # Memory-recall probes — the offline floor picks one at random per fire.
 _MEMORY_RECALL_METRICS: tuple[str, ...] = (
@@ -86,7 +88,7 @@ class IdleFireResult:
 class _CacheEntry:
     output: str
     success: bool
-    fetched_at: float               # wall clock (time.time())
+    fetched_at: float  # wall clock (time.time())
 
 
 @dataclass
@@ -187,13 +189,12 @@ class IdleToolRoller:
         tr = self._tracker
 
         # Global cooldown.
-        if (
-            tr.last_any is not None
-            and now - tr.last_any < self._config.global_cooldown_s
-        ):
+        if tr.last_any is not None and now - tr.last_any < self._config.global_cooldown_s:
             remaining = self._config.global_cooldown_s - (now - tr.last_any)
             self._log_skip(
-                "cooldown", "idle-roll skip: global cooldown, %.0fs remaining", remaining,
+                "cooldown",
+                "idle-roll skip: global cooldown, %.0fs remaining",
+                remaining,
             )
             return None
 
@@ -205,27 +206,32 @@ class IdleToolRoller:
             self._log_skip(
                 "ratecap",
                 "idle-roll skip: rate cap (%d fires in the last hour, max=%d)",
-                len(tr.recent_fires), self._config.max_per_hour,
+                len(tr.recent_fires),
+                self._config.max_per_hour,
             )
             return None
 
         candidates = list(self._candidates(now, ctx))
         if not candidates:
             self._log_skip(
-                "no_candidate", "idle-roll skip: no candidate rule passed predicates",
+                "no_candidate",
+                "idle-roll skip: no candidate rule passed predicates",
             )
             return None
 
         rule = self._weighted_pick(candidates)
         log.debug(
             "idle-roll pick: %r (candidates=%d, tool=%s)",
-            rule.name, len(candidates), rule.tool_name,
+            rule.name,
+            len(candidates),
+            rule.tool_name,
         )
         result = await self._invoke(rule, ctx)
         if result is None:
             self._log_skip(
                 f"invoke_empty:{rule.name}",
-                "idle-roll skip: invoke of %r returned no output", rule.name,
+                "idle-roll skip: invoke of %r returned no output",
+                rule.name,
             )
             return None
 
@@ -245,7 +251,9 @@ class IdleToolRoller:
         log.debug(msg, *args)
 
     async def force_fire(
-        self, rule_name: str, ctx: IdleToolContext,
+        self,
+        rule_name: str,
+        ctx: IdleToolContext,
     ) -> IdleFireResult | None:
         """Bypass predicates + cooldowns. Used by `/idle_tools roll`.
 
@@ -271,7 +279,8 @@ class IdleToolRoller:
     # ------------------------------------------------------------------
 
     def rule_status(
-        self, ctx: IdleToolContext,
+        self,
+        ctx: IdleToolContext,
     ) -> list[tuple[IdleToolRule, bool, str]]:
         """Return (rule, enabled_by_config, reason_if_not_eligible) per rule.
 
@@ -292,7 +301,9 @@ class IdleToolRoller:
     # ------------------------------------------------------------------
 
     def _candidates(
-        self, now: float, ctx: IdleToolContext,
+        self,
+        now: float,
+        ctx: IdleToolContext,
     ) -> list[IdleToolRule]:
         out: list[IdleToolRule] = []
         for rule in self._rules:
@@ -320,7 +331,9 @@ class IdleToolRoller:
         return self._rng.choices(rules, weights=weights, k=1)[0]
 
     async def _invoke(
-        self, rule: IdleToolRule, ctx: IdleToolContext,
+        self,
+        rule: IdleToolRule,
+        ctx: IdleToolContext,
     ) -> IdleFireResult | None:
         primary = await self._invoke_single(rule.tool_name, rule, ctx)
         if primary is None:
@@ -335,7 +348,8 @@ class IdleToolRoller:
                 # poison the whole monologue. The riff just has less to chew on.
                 log.debug(
                     "Chain tool %r for rule %r failed; continuing without it",
-                    extra_name, rule.name,
+                    extra_name,
+                    rule.name,
                 )
                 continue
             extras[extra_name] = pair[0]
@@ -354,7 +368,10 @@ class IdleToolRoller:
         )
 
     async def _invoke_single(
-        self, tool_name: str, rule: IdleToolRule, ctx: IdleToolContext,
+        self,
+        tool_name: str,
+        rule: IdleToolRule,
+        ctx: IdleToolContext,
     ) -> tuple[str, float] | None:
         """Invoke one tool (primary or chain). Returns (output, latency_ms)."""
         action = self._actions.get(tool_name)
@@ -389,7 +406,10 @@ class IdleToolRoller:
         return result.output, latency_ms
 
     def _build_arguments_for_tool(
-        self, tool_name: str, rule: IdleToolRule, ctx: IdleToolContext,
+        self,
+        tool_name: str,
+        rule: IdleToolRule,
+        ctx: IdleToolContext,
     ) -> dict[str, Any]:
         """Derive tool arguments from rule + tool_name + context. Keep small."""
         if tool_name == "memory_query":
@@ -397,7 +417,9 @@ class IdleToolRoller:
         return {}
 
     async def _refresh_cache(
-        self, tool_name: str, action: AbstractAction,
+        self,
+        tool_name: str,
+        action: AbstractAction,
     ) -> None:
         try:
             result = await self._invoker.invoke(action, {})
@@ -414,8 +436,11 @@ class IdleToolRoller:
         )
 
     def _ineligibility_reason(
-        self, rule: IdleToolRule, ctx: IdleToolContext,
-        now: float, enabled: bool,
+        self,
+        rule: IdleToolRule,
+        ctx: IdleToolContext,
+        now: float,
+        enabled: bool,
     ) -> str:
         if not enabled:
             return "disabled in config"

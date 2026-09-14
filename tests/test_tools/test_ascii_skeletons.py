@@ -53,20 +53,22 @@ class TestSkeletonRender:
 
 
 def _good_json_payload() -> str:
-    return json.dumps({
-        "skeleton": "humanoid_tall",
-        "palette": {
-            "hair": "#ffcc44",
-            "skin": "#f4d4a8",
-            "outfit": "#3da8e8",
-            "accent": "#ffd700",
-            "shadow": "#2a6fa5",
-            "highlight": "#66ccff",
-        },
-        "eye": "●",
-        "mouth": "▽",
-        "zones": {"headwear": "none"},
-    })
+    return json.dumps(
+        {
+            "skeleton": "humanoid_tall",
+            "palette": {
+                "hair": "#ffcc44",
+                "skin": "#f4d4a8",
+                "outfit": "#3da8e8",
+                "accent": "#ffd700",
+                "shadow": "#2a6fa5",
+                "highlight": "#66ccff",
+            },
+            "eye": "●",
+            "mouth": "▽",
+            "zones": {"headwear": "none"},
+        }
+    )
 
 
 class TestParseClassificationJSON:
@@ -153,26 +155,41 @@ class TestRenderSkeletonFrames:
 
 class TestGenerateAsciiArt:
     def test_happy_path_returns_14_line_frames(self) -> None:
-        with patch.object(
-            train_voice, "_classify_via_cloud", return_value=None,
-        ), patch.object(
-            train_voice, "_classify_character_for_skeleton",
-            return_value=_DEFAULT_CLASSIFICATION,
+        with (
+            patch.object(
+                train_voice,
+                "_classify_via_cloud",
+                return_value=None,
+            ),
+            patch.object(
+                train_voice,
+                "_classify_character_for_skeleton",
+                return_value=_DEFAULT_CLASSIFICATION,
+            ),
         ):
             idle, idle_alt, talking, _cls = _generate_ascii_art(
-                "Finn", "persona text",
+                "Finn",
+                "persona text",
             )
         assert len(idle) == 14 and len(idle_alt) == 14 and len(talking) == 14
 
     def test_falls_back_to_default_when_classification_fails(self) -> None:
         # Simulate persistent LLM failure (returned None both retries).
-        with patch.object(
-            train_voice, "_classify_via_cloud", return_value=None,
-        ), patch.object(
-            train_voice, "_classify_character_for_skeleton", return_value=None,
+        with (
+            patch.object(
+                train_voice,
+                "_classify_via_cloud",
+                return_value=None,
+            ),
+            patch.object(
+                train_voice,
+                "_classify_character_for_skeleton",
+                return_value=None,
+            ),
         ):
             idle, idle_alt, talking, _cls = _generate_ascii_art(
-                "Cthulhu", "unknowable",
+                "Cthulhu",
+                "unknowable",
             )
         # Frames still render — they use the default classification.
         assert len(idle) == 14

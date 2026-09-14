@@ -13,7 +13,7 @@ from tokenpal.tools.voice_profile import VoiceProfile
 
 
 def _engine(catchphrases_line: str) -> PersonalityEngine:
-    persona = f'VOICE: Short.\n\nCATCHPHRASES: {catchphrases_line}\n\n'
+    persona = f"VOICE: Short.\n\nCATCHPHRASES: {catchphrases_line}\n\n"
     voice = VoiceProfile(
         character="testvoice",
         source="test",
@@ -26,9 +26,7 @@ def _engine(catchphrases_line: str) -> PersonalityEngine:
 
 def test_locked_catchphrase_dropped_from_sample() -> None:
     """If 2+ recent comments share a lead, that catchphrase is filtered."""
-    eng = _engine(
-        '"What the what?", "Oh, no, man!", "Jake, good cop...", "What happened next?!"'
-    )
+    eng = _engine('"What the what?", "Oh, no, man!", "Jake, good cop...", "What happened next?!"')
     # Seed two recent comments that both lead with "Jake, good cop..."
     eng.record_comment("Jake, good cop... this keyboard got more dirt than a dungeon!")
     eng.record_comment("Jake, good cop... midnight's creepin' in, bro!")
@@ -43,9 +41,7 @@ def test_locked_catchphrase_dropped_from_sample() -> None:
 
 def test_only_one_echo_does_not_lock() -> None:
     """Single echo of a catchphrase doesn't trip the filter."""
-    eng = _engine(
-        '"What the what?", "Oh, no, man!", "Jake, good cop...", "What happened next?!"'
-    )
+    eng = _engine('"What the what?", "Oh, no, man!", "Jake, good cop...", "What happened next?!"')
     eng.record_comment("Jake, good cop... this keyboard got more dirt!")
     # 50 samples pick 3 of 4 catchphrases → expected Jake appearances ~= 37.
     jake_seen = sum(1 for _ in range(50) if "Jake, good cop" in eng._voice_reminder())

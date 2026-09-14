@@ -22,7 +22,8 @@ def _config(audio: AudioConfig, data_dir: Path) -> TokenPalConfig:
 
 
 def test_check_audio_skips_when_both_toggles_off(
-    tmp_path: Path, capsys,
+    tmp_path: Path,
+    capsys,
 ) -> None:
     cfg = _config(AudioConfig(), tmp_path)
     assert _check_audio(cfg, as_bundle=False) == 0
@@ -31,7 +32,8 @@ def test_check_audio_skips_when_both_toggles_off(
 
 
 def test_check_audio_warns_on_missing_deps_and_models(
-    tmp_path: Path, capsys,
+    tmp_path: Path,
+    capsys,
 ) -> None:
     cfg = _config(AudioConfig(speak_ambient_enabled=True), tmp_path)
     # Force the deps check to report missing wheels regardless of host venv.
@@ -48,7 +50,8 @@ def test_check_audio_warns_on_missing_deps_and_models(
 
 
 def test_check_audio_passes_when_everything_present(
-    tmp_path: Path, capsys,
+    tmp_path: Path,
+    capsys,
 ) -> None:
     audio_dir = tmp_path / "audio"
     audio_dir.mkdir()
@@ -67,7 +70,9 @@ def test_check_audio_passes_when_everything_present(
 
 
 def test_mic_warning_names_the_bundle_on_the_qt_path(
-    tmp_path: Path, monkeypatch, capsys,
+    tmp_path: Path,
+    monkeypatch,
+    capsys,
 ) -> None:
     """On the Qt path macOS attributes the mic grant to TokenPal.app, so
     naming the terminal sends the user to the wrong Settings row."""

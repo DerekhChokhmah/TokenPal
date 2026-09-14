@@ -126,7 +126,8 @@ async def test_start_warms_backends_and_spawns_thread(tmp_path: Path) -> None:
     fake_sd.RawInputStream = mock.MagicMock(return_value=fake_stream)
 
     with mock.patch.dict(
-        __import__("sys").modules, {"sounddevice": fake_sd},
+        __import__("sys").modules,
+        {"sounddevice": fake_sd},
     ):
         await p.start()
 
@@ -151,7 +152,8 @@ async def test_start_is_idempotent(tmp_path: Path) -> None:
     fake_sd.RawInputStream = mock.MagicMock(return_value=fake_stream)
 
     with mock.patch.dict(
-        __import__("sys").modules, {"sounddevice": fake_sd},
+        __import__("sys").modules,
+        {"sounddevice": fake_sd},
     ):
         await p.start()
         thread = p._thread

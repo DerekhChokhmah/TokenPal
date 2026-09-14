@@ -36,7 +36,8 @@ def test_dispatch_routes_the_task_name_and_args() -> None:
     dispatcher = CommandDispatcher()
     for task in ("proofread", "explain"):
         dispatcher.register(
-            task, make_desktop_task_command(cast(Brain, brain), cast(DesktopTask, task)),
+            task,
+            make_desktop_task_command(cast(Brain, brain), cast(DesktopTask, task)),
         )
 
     dispatcher.dispatch("/explain foo")

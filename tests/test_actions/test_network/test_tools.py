@@ -44,6 +44,7 @@ def _err(msg: str = "network down") -> Any:
 
 # ---------- currency ----------
 
+
 async def test_currency_happy(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         currency,
@@ -95,6 +96,7 @@ async def test_currency_sensitive_filter(monkeypatch: pytest.MonkeyPatch) -> Non
 
 # ---------- weather_forecast_week ----------
 
+
 async def test_weather_forecast_happy(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(weather_forecast_week, "get_lat_lon", lambda: (40.0, -74.0))
     monkeypatch.setattr(
@@ -137,6 +139,7 @@ async def test_weather_forecast_consent_denied(deny_consent) -> None:  # type: i
 
 
 # ---------- air quality + pollen ----------
+
 
 async def test_air_quality_happy(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(air_quality, "get_lat_lon", lambda: (1.0, 2.0))
@@ -197,6 +200,7 @@ async def test_pollen_consent_denied(deny_consent) -> None:  # type: ignore[no-u
 
 # ---------- random_fact ----------
 
+
 async def test_random_fact_happy(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(random_fact, "fetch_json", _ok({"text": "Octopuses have three hearts."}))
     result = await random_fact.RandomFactAction({}).execute()
@@ -216,6 +220,7 @@ async def test_random_fact_consent_denied(deny_consent) -> None:  # type: ignore
 
 
 # ---------- joke_of_the_day ----------
+
 
 async def test_joke_happy(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(joke_of_the_day, "fetch_json", _ok({"joke": "Why did the chicken..."}))
@@ -283,6 +288,7 @@ async def test_wotd_consent_denied(deny_consent) -> None:  # type: ignore[no-unt
 
 # ---------- on_this_day ----------
 
+
 async def test_otd_happy(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         on_this_day,
@@ -306,6 +312,7 @@ async def test_otd_consent_denied(deny_consent) -> None:  # type: ignore[no-unty
 
 
 # ---------- random_recipe ----------
+
 
 async def test_recipe_random_happy(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
@@ -373,6 +380,7 @@ async def test_recipe_consent_denied(deny_consent) -> None:  # type: ignore[no-u
 
 # ---------- trivia_question ----------
 
+
 async def test_trivia_happy(monkeypatch: pytest.MonkeyPatch) -> None:
     # bypass real rate-limit
     monkeypatch.setattr(trivia_question, "_MIN_SPACING_S", 0.0)
@@ -414,6 +422,7 @@ async def test_trivia_consent_denied(deny_consent) -> None:  # type: ignore[no-u
 
 
 # ---------- sports_score ----------
+
 
 async def test_sports_happy(monkeypatch: pytest.MonkeyPatch) -> None:
     calls = iter(
@@ -458,6 +467,7 @@ async def test_sports_consent_denied(deny_consent) -> None:  # type: ignore[no-u
 
 # ---------- crypto_price ----------
 
+
 async def test_crypto_happy(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(crypto_price, "fetch_json", _ok({"bitcoin": {"usd": 67000}}))
     crypto_price._timestamps.clear()
@@ -479,6 +489,7 @@ async def test_crypto_consent_denied(deny_consent) -> None:  # type: ignore[no-u
 
 
 # ---------- book_suggestion ----------
+
 
 async def test_book_happy(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(

@@ -24,12 +24,14 @@ def on_screen_windows() -> list[Window]:
         owner = window.get("kCGWindowOwnerName", "")
         if not owner or owner in ("Window Server", "Dock"):
             continue
-        found.append((
-            int(window.get("kCGWindowOwnerPID", 0)),
-            str(owner),
-            str(window.get("kCGWindowName", "") or ""),
-            int(window.get("kCGWindowLayer", 999)),
-        ))
+        found.append(
+            (
+                int(window.get("kCGWindowOwnerPID", 0)),
+                str(owner),
+                str(window.get("kCGWindowName", "") or ""),
+                int(window.get("kCGWindowLayer", 999)),
+            )
+        )
     return found
 
 

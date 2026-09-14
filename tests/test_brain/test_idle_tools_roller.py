@@ -44,7 +44,7 @@ def _make_action(name: str, output: str = "OUT") -> _StubAction:
 
 def _ctx(**overrides: Any) -> Any:
     defaults: dict[str, Any] = dict(
-        now=datetime(2026, 4, 17, 22, 30),   # evening
+        now=datetime(2026, 4, 17, 22, 30),  # evening
         session_minutes=30,
         first_session_of_day=False,
         active_readings={},
@@ -245,11 +245,13 @@ async def test_memory_recall_passes_metric_arg() -> None:
         rng=random.Random(0),
     )
     # Predicate requires settled session.
-    result = await roller.maybe_fire(_ctx(
-        session_minutes=20,
-        time_since_last_comment_s=700.0,
-        consent_web_fetches=False,
-    ))
+    result = await roller.maybe_fire(
+        _ctx(
+            session_minutes=20,
+            time_since_last_comment_s=700.0,
+            consent_web_fetches=False,
+        )
+    )
     assert result is not None
     assert result.rule_name == "memory_recall"
     assert len(action.calls) == 1

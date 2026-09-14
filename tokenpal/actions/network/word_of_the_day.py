@@ -18,9 +18,7 @@ from tokenpal.actions.registry import register_action
 _URL = "https://wordnik.com/word-of-the-day"
 # Site rejects empty / non-browser User-Agent on the WOTD page.
 _HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (compatible; TokenPal/1.0; +https://github.com/smabe/TokenPal)"
-    ),
+    "User-Agent": ("Mozilla/5.0 (compatible; TokenPal/1.0; +https://github.com/smabe/TokenPal)"),
 }
 _HEADWORD_RE = re.compile(
     r'<h1>\s*<a\s+href="/words/[^"]+">([^<]+)</a>\s*</h1>',

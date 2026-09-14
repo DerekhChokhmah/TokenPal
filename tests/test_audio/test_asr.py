@@ -99,8 +99,10 @@ async def test_facade_falls_back_to_local_on_unreachable(
         fallback_called["n"] += 1
         return "from local"
 
-    with mock.patch.object(backend._primary, "transcribe", boom), \
-         mock.patch.object(backend._fallback, "transcribe", fake_local):
+    with (
+        mock.patch.object(backend._primary, "transcribe", boom),
+        mock.patch.object(backend._fallback, "transcribe", fake_local),
+    ):
         text = await backend.transcribe(b"\x00" * 1024)
     assert text == "from local"
     assert fallback_called["n"] == 1

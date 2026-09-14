@@ -12,9 +12,7 @@ from tokenpal.actions.registry import register_action
 
 _URL = "https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/events/{mm}/{dd}"
 _HEADERS = {
-    "User-Agent": (
-        "TokenPal/1.0 (https://github.com/smabe/TokenPal; abraham.awadallah@gmail.com)"
-    ),
+    "User-Agent": ("TokenPal/1.0 (https://github.com/smabe/TokenPal; abraham.awadallah@gmail.com)"),
 }
 _MAX_EVENTS = 5
 

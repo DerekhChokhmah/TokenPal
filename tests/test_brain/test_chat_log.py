@@ -17,8 +17,7 @@ def test_chat_log_table_exists_after_setup(tmp_path: Path) -> None:
         conn = sqlite3.connect(str(tmp_path / "m.db"))
         try:
             row = conn.execute(
-                "SELECT name FROM sqlite_master "
-                "WHERE type='table' AND name='chat_log'"
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='chat_log'"
             ).fetchone()
         finally:
             conn.close()

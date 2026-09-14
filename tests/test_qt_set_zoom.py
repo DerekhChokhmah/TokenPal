@@ -28,7 +28,9 @@ def test_buddy_set_zoom_rescales_font_cells_and_inertia(
     qapp: QApplication,
 ) -> None:
     buddy = BuddyWindow(
-        frame_lines=BUDDY_IDLE, initial_anchor=(300.0, 300.0), font_size=14,
+        frame_lines=BUDDY_IDLE,
+        initial_anchor=(300.0, 300.0),
+        font_size=14,
     )
     try:
         base_size = buddy.core._font.pointSize()
@@ -56,7 +58,8 @@ def test_buddy_set_zoom_noop_for_same_factor_and_rejects_zero(
     qapp: QApplication,
 ) -> None:
     buddy = BuddyWindow(
-        frame_lines=BUDDY_IDLE, initial_anchor=(300.0, 300.0),
+        frame_lines=BUDDY_IDLE,
+        initial_anchor=(300.0, 300.0),
     )
     try:
         before = (buddy.core._font.pointSize(), buddy.core.sim.config.inertia)
@@ -78,7 +81,9 @@ def test_buddy_set_zoom_scales_force_magnitude_physics(
     so scaling g would leave it off-base every time the buddy is
     visually back to normal size)."""
     buddy = BuddyWindow(
-        frame_lines=BUDDY_IDLE, initial_anchor=(300.0, 300.0), font_size=14,
+        frame_lines=BUDDY_IDLE,
+        initial_anchor=(300.0, 300.0),
+        font_size=14,
     )
     try:
         cfg_1x = buddy.core.sim.config
@@ -106,7 +111,9 @@ def test_buddy_set_zoom_chains_from_base_not_current(
     font size, not the previously-zoomed size — otherwise zoom drifts
     multiplicatively across drag updates."""
     buddy = BuddyWindow(
-        frame_lines=BUDDY_IDLE, initial_anchor=(300.0, 300.0), font_size=14,
+        frame_lines=BUDDY_IDLE,
+        initial_anchor=(300.0, 300.0),
+        font_size=14,
     )
     try:
         buddy.set_zoom(2.0)
@@ -225,9 +232,7 @@ def test_overlay_set_zoom_noop_short_circuits_persist(
         overlay.set_zoom(1.5)
         overlay.set_zoom(1.50001)  # snaps to 1.5 at 4dp
         overlay.flush_pending_persist()
-        assert len(saved) == baseline, (
-            "no-op zoom changes must not enqueue a persist"
-        )
+        assert len(saved) == baseline, "no-op zoom changes must not enqueue a persist"
     finally:
         overlay.teardown()
 
@@ -260,9 +265,7 @@ def test_overlay_persist_includes_zoom_on_visibility_toggle(
         overlay.set_zoom(1.5)
         overlay._do_toggle_window("news")
         overlay.flush_pending_persist()
-        assert saved[-1]["zoom"] == 1.5, (
-            "visibility toggle must preserve zoom across persist"
-        )
+        assert saved[-1]["zoom"] == 1.5, "visibility toggle must preserve zoom across persist"
     finally:
         overlay.teardown()
 

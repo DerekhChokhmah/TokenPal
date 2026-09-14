@@ -45,7 +45,7 @@ def parse_markup(line: str) -> list[Segment]:
     pos = 0
     for m in _TAG_RE.finditer(line):
         if m.start() > pos:
-            segments.append(Segment(line[pos:m.start()], stack[-1]))
+            segments.append(Segment(line[pos : m.start()], stack[-1]))
         tag = m.group(1)
         if tag == "/":
             if len(stack) > 1:

@@ -47,7 +47,7 @@ def _bare_brain_with_action(action: _ScriptedAction) -> Brain:
 @pytest.mark.asyncio
 async def test_followup_handler_unwraps_answer_xml() -> None:
     tool_result_xml = (
-        "<tool_result tool=\"research_followup\" status=\"complete\">\n"
+        '<tool_result tool="research_followup" status="complete">\n'
         "<answer>\nfollow-up answer body\n</answer>\n"
         "<sources>\n[1] https://x.com - title\n</sources>\n"
         "<telemetry>\nfollowup=1/5 cache_read=2500 output_tokens=42\n</telemetry>\n"
@@ -65,10 +65,12 @@ async def test_followup_handler_unwraps_answer_xml() -> None:
 
 @pytest.mark.asyncio
 async def test_followup_handler_shows_error_verbatim_on_failure() -> None:
-    action = _ScriptedAction(ActionResult(
-        output="research_followup: no recent cloud research in session.",
-        success=False,
-    ))
+    action = _ScriptedAction(
+        ActionResult(
+            output="research_followup: no recent cloud research in session.",
+            success=False,
+        )
+    )
     brain = _bare_brain_with_action(action)
     await brain._handle_followup("whatever")
     # Error path: show the failure output as-is (not XML-unwrapped)
@@ -93,9 +95,12 @@ async def test_followup_handler_when_action_not_registered() -> None:
 
 @pytest.mark.asyncio
 async def test_followup_handler_restores_idle_mode_on_success() -> None:
-    action = _ScriptedAction(ActionResult(
-        output="<tool_result><answer>ok</answer></tool_result>", success=True,
-    ))
+    action = _ScriptedAction(
+        ActionResult(
+            output="<tool_result><answer>ok</answer></tool_result>",
+            success=True,
+        )
+    )
     brain = _bare_brain_with_action(action)
     await brain._handle_followup("q")
     assert brain._mode is BrainMode.IDLE

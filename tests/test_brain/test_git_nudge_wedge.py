@@ -82,7 +82,9 @@ def test_on_emitted_starts_cooldown(config: GitNudgeConfig) -> None:
 def test_build_prompt_delegates_to_personality(config: GitNudgeConfig) -> None:
     w = GitNudgeWedge(config=config)
     sig = GitNudgeSignal(
-        branch="feature/x", last_commit_msg="wip: tests", stale_hours=2.5,
+        branch="feature/x",
+        last_commit_msg="wip: tests",
+        stale_hours=2.5,
     )
     cand = EmissionCandidate(wedge_name="git_nudge", payload=sig)
     personality = Mock()
@@ -91,7 +93,9 @@ def test_build_prompt_delegates_to_personality(config: GitNudgeConfig) -> None:
     prompt = w.build_prompt(cand, ctx)
     assert prompt == "wrap it up"
     personality.build_git_nudge_prompt.assert_called_once_with(
-        branch="feature/x", commit_msg="wip: tests", stale_hours=2.5,
+        branch="feature/x",
+        commit_msg="wip: tests",
+        stale_hours=2.5,
     )
 
 

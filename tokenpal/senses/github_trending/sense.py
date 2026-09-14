@@ -44,7 +44,8 @@ class GitHubTrendingSense(AbstractSense):
             return None
 
         repos = [
-            r for r in fetch_top_repos(limit=_REPO_LIMIT)
+            r
+            for r in fetch_top_repos(limit=_REPO_LIMIT)
             if is_latin_script(f"{r.full_name} {r.description}")
             and not contains_sensitive_content_term(f"{r.full_name} {r.description}")
         ]

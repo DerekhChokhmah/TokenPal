@@ -48,15 +48,41 @@ _KIND_EXTS: dict[str, frozenset[str]] = {
     # ".key" (Keynote) is omitted: paths.REJECT_PATH denies it either way.
     "document": frozenset(
         {
-            ".pdf", ".doc", ".docx", ".txt", ".md", ".rtf", ".odt", ".pages",
-            ".ppt", ".pptx", ".xls", ".xlsx", ".numbers", ".csv",
+            ".pdf",
+            ".doc",
+            ".docx",
+            ".txt",
+            ".md",
+            ".rtf",
+            ".odt",
+            ".pages",
+            ".ppt",
+            ".pptx",
+            ".xls",
+            ".xlsx",
+            ".numbers",
+            ".csv",
         }
     ),
     "image": frozenset({".png", ".jpg", ".jpeg", ".gif", ".heic", ".webp", ".tiff", ".svg"}),
     "code": frozenset(
         {
-            ".py", ".js", ".ts", ".swift", ".rs", ".go", ".c", ".h", ".cpp",
-            ".java", ".rb", ".sh", ".toml", ".yaml", ".yml", ".json",
+            ".py",
+            ".js",
+            ".ts",
+            ".swift",
+            ".rs",
+            ".go",
+            ".c",
+            ".h",
+            ".cpp",
+            ".java",
+            ".rb",
+            ".sh",
+            ".toml",
+            ".yaml",
+            ".yml",
+            ".json",
         }
     ),
     "pdf": frozenset({".pdf"}),
@@ -97,9 +123,7 @@ def _escape(query: str) -> str:
 
 def _spotlight_predicate(query: str, kind: str, since_s: int | None) -> str:
     escaped = _escape(query)
-    parts = [
-        f'(kMDItemFSName == "*{escaped}*"cd || kMDItemTextContent == "{escaped}*"cd)'
-    ]
+    parts = [f'(kMDItemFSName == "*{escaped}*"cd || kMDItemTextContent == "{escaped}*"cd)']
     trees = _KIND_TREES.get(kind)
     if trees:
         joined = " || ".join(f'kMDItemContentTypeTree == "{tree}"' for tree in trees)
@@ -109,9 +133,7 @@ def _spotlight_predicate(query: str, kind: str, since_s: int | None) -> str:
     return " && ".join(parts)
 
 
-async def _spotlight(
-    roots: list[Path], query: str, kind: str, since_s: int | None
-) -> list[Path]:
+async def _spotlight(roots: list[Path], query: str, kind: str, since_s: int | None) -> list[Path]:
     """Query the Spotlight index. Raises OSError when mdfind is absent or fails."""
     argv = ["mdfind", "-0"]
     for root in roots:
@@ -155,9 +177,7 @@ def _walk(
                 # Also the traversal budget: without pruning, the entry cap and
                 # the deadline drain into node_modules/.git and the walk starves
                 # before reaching real matches. _post_filter re-checks anyway.
-                dirnames[:] = [
-                    d for d in dirnames if not is_hidden_or_protected(here / d, root)
-                ]
+                dirnames[:] = [d for d in dirnames if not is_hidden_or_protected(here / d, root)]
             entries += len(dirnames) + len(filenames)
 
             for name in filenames:
@@ -329,9 +349,7 @@ class FindFilesAction(AbstractAction):
             return _refuse("[paths] allowed_dirs", "names no folder that exists.")
 
         try:
-            candidates = await _run_backend(
-                current_platform(), roots, query, kind, since_s, limit
-            )
+            candidates = await _run_backend(current_platform(), roots, query, kind, since_s, limit)
         except TimeoutError:
             return ActionResult(
                 output=f"File search timed out after {_SPOTLIGHT_TIMEOUT_S:.0f}s.",

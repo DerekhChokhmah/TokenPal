@@ -28,6 +28,7 @@ def test_register_and_lookup() -> None:
 
 def test_unknown_backend_raises() -> None:
     import pytest
+
     with pytest.raises(KeyError):
         registry.get_tts_backend("does-not-exist")
 

@@ -105,7 +105,8 @@ class TranslucentLogWindow(QWidget):
         row.addStretch(1)
         self._size_grip = GlassSizeGrip(self)
         row.addWidget(
-            self._size_grip, 0,
+            self._size_grip,
+            0,
             Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignBottom,
         )
         layout.addLayout(row)
@@ -122,7 +123,8 @@ class TranslucentLogWindow(QWidget):
 
     def set_background_color(self, hex_color: str) -> None:
         normalized = normalize_hex_color(
-            hex_color, fallback=DEFAULT_BACKGROUND_COLOR,
+            hex_color,
+            fallback=DEFAULT_BACKGROUND_COLOR,
         )
         if QColor(normalized) == self._background_color:
             return
@@ -131,7 +133,8 @@ class TranslucentLogWindow(QWidget):
 
     def set_font_color(self, hex_color: str) -> None:
         normalized = normalize_hex_color(
-            hex_color, fallback=DEFAULT_FONT_COLOR,
+            hex_color,
+            fallback=DEFAULT_FONT_COLOR,
         )
         if normalized == self._font_color:
             return
@@ -150,8 +153,7 @@ class TranslucentLogWindow(QWidget):
     def _apply_log_stylesheet(self) -> None:
         self._log.setStyleSheet(
             f"QTextBrowser {{ background: transparent; "
-            f"color: {self._font_color}; padding: 8px; }}"
-            + glass_scrollbar_stylesheet()
+            f"color: {self._font_color}; padding: 8px; }}" + glass_scrollbar_stylesheet()
         )
 
     def paintEvent(self, event: QPaintEvent) -> None:

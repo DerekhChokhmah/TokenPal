@@ -26,12 +26,12 @@ log = logging.getLogger(__name__)
 
 Bucket = Literal["idle", "slow", "normal", "rapid", "furious"]
 
-_WINDOW_S = 30.0            # rolling window for WPM computation (wider = less flapping)
+_WINDOW_S = 30.0  # rolling window for WPM computation (wider = less flapping)
 _SUSTAINED_BURST_S = 600.0  # 10 min of continuous rapid/furious → one-off reading
-_POST_BURST_SILENCE_S = 8.0 # stop detection: idle this long after a burst
-_FAST_WPM = 50.0            # threshold that defines a "fast" bucket
-_LOW_CONF_WPM = 50.0        # below here, bucket-change readings are low-confidence
-_HYSTERESIS_POLLS = 2       # require N consecutive polls in a new bucket before committing
+_POST_BURST_SILENCE_S = 8.0  # stop detection: idle this long after a burst
+_FAST_WPM = 50.0  # threshold that defines a "fast" bucket
+_LOW_CONF_WPM = 50.0  # below here, bucket-change readings are low-confidence
+_HYSTERESIS_POLLS = 2  # require N consecutive polls in a new bucket before committing
 
 # WPM bucket thresholds. Standard: 1 word ≈ 5 keypresses.
 _BUCKETS: tuple[tuple[Bucket, float], ...] = (
@@ -75,7 +75,7 @@ class TypingCadence(AbstractSense):
         self._current_bucket: Bucket = "idle"
         self._pending_bucket: Bucket = "idle"
         self._pending_streak: int = 0
-        self._fast_since: float = 0.0       # when current fast run began (0 = not fast)
+        self._fast_since: float = 0.0  # when current fast run began (0 = not fast)
         self._sustained_emitted: bool = False
         # post_burst_silence only fires once per burst — requires a burst to
         # have started first. Stays True until we actually enter a fast bucket.
@@ -131,18 +131,14 @@ class TypingCadence(AbstractSense):
                 self._fast_since = now
                 self._sustained_emitted = False
                 self._silence_emitted = False
-            elif (
-                not self._sustained_emitted
-                and now - self._fast_since >= _SUSTAINED_BURST_S
-            ):
+            elif not self._sustained_emitted and now - self._fast_since >= _SUSTAINED_BURST_S:
                 self._sustained_emitted = True
                 minutes = int((now - self._fast_since) / 60)
                 self._current_bucket = bucket
                 return self._reading(
                     data={"event": "sustained_burst", "minutes": minutes, "bucket": bucket},
                     summary=(
-                        f"User has been typing at a {bucket} pace "
-                        f"for {minutes} minutes straight"
+                        f"User has been typing at a {bucket} pace for {minutes} minutes straight"
                     ),
                     confidence=0.9,
                     changed_from=prev,

@@ -65,18 +65,20 @@ writing one class and registering it - no orchestrator edits, no new
 ```python
 # tokenpal/brain/wedge.py
 class GatePolicy(Enum):
-    BYPASS_CAP = auto()        # rage, git_nudge, urgent-git
-    NEEDS_CAP_OPEN = auto()    # drift, normal comment
-    IDLE_FILL = auto()         # freeform, idle_tools, llm_initiated_tool
+    BYPASS_CAP = auto()  # rage, git_nudge, urgent-git
+    NEEDS_CAP_OPEN = auto()  # drift, normal comment
+    IDLE_FILL = auto()  # freeform, idle_tools, llm_initiated_tool
+
 
 @dataclass(frozen=True)
 class EmissionCandidate:
     wedge_name: str
-    payload: object              # opaque; the wedge knows the type
+    payload: object  # opaque; the wedge knows the type
+
 
 class Wedge(ABC):
     name: ClassVar[str]
-    priority: ClassVar[int]      # higher = earlier in tiebreak
+    priority: ClassVar[int]  # higher = earlier in tiebreak
     gate: ClassVar[GatePolicy]
 
     def ingest(self, readings: list[SenseReading]) -> None: ...

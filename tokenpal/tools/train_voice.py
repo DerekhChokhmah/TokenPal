@@ -82,7 +82,9 @@ def _ollama_generate(prompt: str, max_tokens: int = 60, temperature: float = 0.7
         try:
             await backend.setup()
             response = await backend.generate(
-                prompt, max_tokens=max_tokens, enable_thinking=False,
+                prompt,
+                max_tokens=max_tokens,
+                enable_thinking=False,
             )
         finally:
             await backend.teardown()
@@ -114,22 +116,41 @@ _ENGLISH_ONLY_SUFFIX = (
 # Franchise → character names for cross-franchise banning
 _FRANCHISE_CHARACTERS: dict[str, list[str]] = {
     "Adventure Time": [
-        "Finn", "Jake", "BMO", "Marceline", "Princess Bubblegum",
-        "Ice King", "Lumpy Space Princess", "Prismo",
+        "Finn",
+        "Jake",
+        "BMO",
+        "Marceline",
+        "Princess Bubblegum",
+        "Ice King",
+        "Lumpy Space Princess",
+        "Prismo",
     ],
     "Futurama": [
-        "Bender", "Fry", "Leela", "Zoidberg", "Professor",
-        "Hermes", "Amy", "Nibbler",
+        "Bender",
+        "Fry",
+        "Leela",
+        "Zoidberg",
+        "Professor",
+        "Hermes",
+        "Amy",
+        "Nibbler",
     ],
     "Regular Show": [
-        "Mordecai", "Rigby", "Muscle Man", "Pops", "Benson",
-        "Skips", "Hi Five Ghost", "Thomas",
+        "Mordecai",
+        "Rigby",
+        "Muscle Man",
+        "Pops",
+        "Benson",
+        "Skips",
+        "Hi Five Ghost",
+        "Thomas",
     ],
 }
 
 
 def _derive_banned_names(
-    source: str, character: str,
+    source: str,
+    character: str,
 ) -> list[str]:
     """Build list of character names from OTHER franchises."""
     franchise = franchise_from_source(source)
@@ -167,7 +188,9 @@ def _score_line(line: str, catchphrases_lower: list[str]) -> float:
 
 
 def _extract_anchor_lines(
-    lines: list[str], catchphrases: list[str], max_anchors: int = 150,
+    lines: list[str],
+    catchphrases: list[str],
+    max_anchors: int = 150,
 ) -> list[str]:
     """Score all lines and return the top N most distinctive."""
     catchphrases_lower = [p.lower() for p in catchphrases]
@@ -185,19 +208,21 @@ def _validate_persona(text: str) -> bool:
 
 
 def _generate_persona(
-    character: str, lines: list[str], franchise: str = "",
+    character: str,
+    lines: list[str],
+    franchise: str = "",
 ) -> str | None:
     """Ask Ollama to generate a structured voice card from sample lines."""
     samples_block = _sample_block(lines, 25)
-    origin = f' from {franchise}' if franchise else ''
+    origin = f" from {franchise}" if franchise else ""
 
     prompt = (
         f'You are analyzing dialogue from "{character}"{origin}.\n\n'
         f"Here are 25 sample lines:\n{samples_block}\n\n"
         f"Write a character voice card for {character}. "
-        "Use \"You [verb]\" instructions, not personality adjectives.\n"
+        'Use "You [verb]" instructions, not personality adjectives.\n'
         "Use this EXACT format:\n\n"
-        "VOICE: How does this character talk? 2-3 \"You [verb] [pattern]\" "
+        'VOICE: How does this character talk? 2-3 "You [verb] [pattern]" '
         "instructions. Mention specific word choices, sentence structure, "
         "and energy level.\n"
         "CATCHPHRASES: 3-5 signature phrases in quotes, comma-separated. "
@@ -288,7 +313,11 @@ def _parse_numbered_lines(text: str) -> list[str]:
 
 
 def _generate_lines_from_prompt(
-    character: str, lines: list[str], task_prompt: str, *, min_accepted: int = 3,
+    character: str,
+    lines: list[str],
+    task_prompt: str,
+    *,
+    min_accepted: int = 3,
 ) -> list[str]:
     """Generate numbered one-liners via Ollama from a character's voice samples.
 
@@ -317,33 +346,44 @@ def _generate_lines_from_prompt(
 
 
 def _generate_greetings(character: str, lines: list[str]) -> list[str]:
-    return _generate_lines_from_prompt(character, lines,
+    return _generate_lines_from_prompt(
+        character,
+        lines,
         "Write 10 short startup greetings (what this character would say when waking up "
         "or arriving). One per line, numbered 1-10. Each under 50 characters. "
-        "Match their slang and attitude. No stage directions.")
+        "Match their slang and attitude. No stage directions.",
+    )
 
 
 def _generate_offline_quips(character: str, lines: list[str]) -> list[str]:
-    return _generate_lines_from_prompt(character, lines,
+    return _generate_lines_from_prompt(
+        character,
+        lines,
         "Write 10 short confused/disoriented lines — what this character would say if "
         "they suddenly lost their train of thought or their brain stopped working. "
-        "One per line, numbered 1-10. Each under 50 characters. Match their slang and attitude.")
+        "One per line, numbered 1-10. Each under 50 characters. Match their slang and attitude.",
+    )
 
 
 def _generate_structure_hints(character: str, lines: list[str]) -> list[str]:
-    return _generate_lines_from_prompt(character, lines,
+    return _generate_lines_from_prompt(
+        character,
+        lines,
         "Write 10 short style directions for how this character would comment on "
         "what someone is doing on their computer. Each should start with 'Respond' "
         "and describe the tone/format. One per line, numbered 1-10. Each under 60 characters. "
         "Examples: 'Respond as a casual bro observation.', 'Respond with excited slang.'\n"
-        "Match this character's personality.")
+        "Match this character's personality.",
+    )
 
 
 _HEX_COLOR_RE = re.compile(r"#[0-9a-fA-F]{6}")
 
 
 def _frames_look_usable(
-    idle: list[str], idle_alt: list[str], talking: list[str],
+    idle: list[str],
+    idle_alt: list[str],
+    talking: list[str],
 ) -> bool:
     """Reject blank, stunted, monotone, or markup-broken frame sets.
 
@@ -395,14 +435,19 @@ _DEFAULT_CLASSIFICATION: dict[str, Any] = {
     "eye": "●",
     "mouth": "▽",
     "zones": {
-        "headwear": "none", "facial_hair": "none",
-        "body_motif": "none", "eye_region": "none", "trailing": "none",
+        "headwear": "none",
+        "facial_hair": "none",
+        "body_motif": "none",
+        "eye_region": "none",
+        "trailing": "none",
     },
 }
 
 
 def _generate_ascii_art(
-    character: str, persona: str, source: str = "",
+    character: str,
+    persona: str,
+    source: str = "",
 ) -> tuple[list[str], list[str], list[str], dict[str, Any]]:
     """Classify the character + pick a palette, then render 3 frames.
 
@@ -420,7 +465,9 @@ def _generate_ascii_art(
     source_label = "cloud"
     if classification is None:
         classification = _classify_character_for_skeleton(
-            character, persona, source,
+            character,
+            persona,
+            source,
         )
         source_label = "local"
     if classification is None:
@@ -439,7 +486,9 @@ def _generate_ascii_art(
 
 
 def _classify_via_cloud(
-    character: str, persona: str, source: str = "",
+    character: str,
+    persona: str,
+    source: str = "",
 ) -> dict[str, Any] | None:
     """Route classification through CloudBackend when the user opted in.
 
@@ -468,7 +517,8 @@ def _classify_via_cloud(
         return None
     try:
         backend = CloudBackend(
-            api_key=key, model=cfg.cloud_llm.model,
+            api_key=key,
+            model=cfg.cloud_llm.model,
             timeout_s=cfg.cloud_llm.timeout_s,
         )
     except (ValueError, CloudBackendError):
@@ -483,89 +533,91 @@ def _classify_via_cloud(
 
 
 def _build_classifier_prompt(
-    character: str, persona: str, source: str = "",
+    character: str,
+    persona: str,
+    source: str = "",
 ) -> str:
     """Shared classifier prompt used by both local and cloud paths."""
     franchise = franchise_from_source(source) if source else ""
-    origin = f' from {franchise}' if franchise else ""
+    origin = f" from {franchise}" if franchise else ""
     visual_tells = parse_visual_tells(persona)
     visual_block = (
-        f'\nVisual canon (USE THESE COLORS AND SHAPES):\n{visual_tells}\n'
-        if visual_tells else
-        '\nPick bright, terminal-readable colors (mid-luminance hex, '
-        'nothing near #000000) — dark backgrounds hide dark palettes.\n'
+        f"\nVisual canon (USE THESE COLORS AND SHAPES):\n{visual_tells}\n"
+        if visual_tells
+        else "\nPick bright, terminal-readable colors (mid-luminance hex, "
+        "nothing near #000000) — dark backgrounds hide dark palettes.\n"
     )
     return (
         f'Pick an ASCII buddy template for "{character}"{origin}.\n'
-        f'{visual_block}\n'
-        f'Persona:\n{persona[:400]}\n\n'
-        f'Templates (pick ONE):\n'
-        f'- humanoid_tall: standard hero/adventurer (Finn, Mordecai)\n'
-        f'- humanoid_stocky: short/wide build (Dexter, Muscle Man)\n'
-        f'- robot_boxy: rectangular robot (BMO, Bender)\n'
-        f'- creature_small: tiny round pet/chibi (Nibbler)\n'
-        f'- mystical_cloaked: wizard/jester in hood or robe (Ice King)\n'
-        f'- ghost_floating: hovering spirit with no legs\n'
-        f'- animal_quadruped: 4-legged pet/creature (Jake dog form)\n'
-        f'- winged: humanoid with wings flared behind shoulders\n'
-        f'- blob_amorphous: irregular bumpy silhouette with no clear '
-        f'limbs (Lumpy Space Princess, talking food like Peppermint '
-        f'Butler or Cinnamon Bun)\n'
-        f'- hand_creature: disembodied five-fingered hand with a face '
-        f'on the palm (Hi Five Ghost, Thing, Rayman-style)\n\n'
-        f'Pick 6 hex colors that match the character:\n'
-        f'- hair: the character\'s HAIR AND BEARD color only. NOT '
-        f'their skin, NOT their hat, NOT their crown. If the character '
-        f'has white hair with blue skin (Ice King, Meta Knight), hair '
-        f'MUST be near-white (#eeeeee, #dddddd) and skin MUST be blue '
-        f'— do not collapse them into one color. If the character is '
-        f'bald, pick the color of their head-top highlight / fuzz.\n'
-        f'- skin: face / skin tone. Not hair, not clothing.\n'
-        f'- outfit: primary clothing (robe, shirt, armor).\n'
-        f'- accent: secondary trim color — buttons, gems, crowns, '
-        f'belts, weapon highlights. For Ice King\'s gold crown this is '
-        f'#ffd700-ish gold, NOT red.\n'
-        f'- shadow: a darker variant for shading (darker than outfit).\n'
-        f'- highlight: a brighter variant of outfit/accent (for sheen, '
-        f'crown gleam, wing tip). One shade up from outfit.\n\n'
-        f'Worked example (Ice King) — do not swap these slots:\n'
-        f'  hair=#e8e8e8 (his white hair+beard)\n'
-        f'  skin=#87ceeb (his blue skin)\n'
-        f'  outfit=#3a4a8c (his BLUE-PURPLE robe, NOT gold)\n'
-        f'  accent=#ffd700 (his GOLD CROWN, NOT red)\n'
-        f'  shadow=#1a2040 (dark blue-purple robe shadow, NOT brown)\n'
-        f'  highlight=#a3a7cc (one shade up from outfit)\n'
-        f'Slot assignment rule: the MAIN clothing goes in outfit, '
-        f'separate trim/accessories go in accent. Shadow is always a '
-        f'DARKER version of outfit, never a contrasting hue.\n\n'
-        f'Pick one eye glyph: ● ○ ◉ ◎ ⊙ ◐ ◑\n'
-        f'Pick one mouth glyph: ▽ ◇ ◡ ⌣ ω ᗣ\n\n'
+        f"{visual_block}\n"
+        f"Persona:\n{persona[:400]}\n\n"
+        f"Templates (pick ONE):\n"
+        f"- humanoid_tall: standard hero/adventurer (Finn, Mordecai)\n"
+        f"- humanoid_stocky: short/wide build (Dexter, Muscle Man)\n"
+        f"- robot_boxy: rectangular robot (BMO, Bender)\n"
+        f"- creature_small: tiny round pet/chibi (Nibbler)\n"
+        f"- mystical_cloaked: wizard/jester in hood or robe (Ice King)\n"
+        f"- ghost_floating: hovering spirit with no legs\n"
+        f"- animal_quadruped: 4-legged pet/creature (Jake dog form)\n"
+        f"- winged: humanoid with wings flared behind shoulders\n"
+        f"- blob_amorphous: irregular bumpy silhouette with no clear "
+        f"limbs (Lumpy Space Princess, talking food like Peppermint "
+        f"Butler or Cinnamon Bun)\n"
+        f"- hand_creature: disembodied five-fingered hand with a face "
+        f"on the palm (Hi Five Ghost, Thing, Rayman-style)\n\n"
+        f"Pick 6 hex colors that match the character:\n"
+        f"- hair: the character's HAIR AND BEARD color only. NOT "
+        f"their skin, NOT their hat, NOT their crown. If the character "
+        f"has white hair with blue skin (Ice King, Meta Knight), hair "
+        f"MUST be near-white (#eeeeee, #dddddd) and skin MUST be blue "
+        f"— do not collapse them into one color. If the character is "
+        f"bald, pick the color of their head-top highlight / fuzz.\n"
+        f"- skin: face / skin tone. Not hair, not clothing.\n"
+        f"- outfit: primary clothing (robe, shirt, armor).\n"
+        f"- accent: secondary trim color — buttons, gems, crowns, "
+        f"belts, weapon highlights. For Ice King's gold crown this is "
+        f"#ffd700-ish gold, NOT red.\n"
+        f"- shadow: a darker variant for shading (darker than outfit).\n"
+        f"- highlight: a brighter variant of outfit/accent (for sheen, "
+        f"crown gleam, wing tip). One shade up from outfit.\n\n"
+        f"Worked example (Ice King) — do not swap these slots:\n"
+        f"  hair=#e8e8e8 (his white hair+beard)\n"
+        f"  skin=#87ceeb (his blue skin)\n"
+        f"  outfit=#3a4a8c (his BLUE-PURPLE robe, NOT gold)\n"
+        f"  accent=#ffd700 (his GOLD CROWN, NOT red)\n"
+        f"  shadow=#1a2040 (dark blue-purple robe shadow, NOT brown)\n"
+        f"  highlight=#a3a7cc (one shade up from outfit)\n"
+        f"Slot assignment rule: the MAIN clothing goes in outfit, "
+        f"separate trim/accessories go in accent. Shadow is always a "
+        f"DARKER version of outfit, never a contrasting hue.\n\n"
+        f"Pick one eye glyph: ● ○ ◉ ◎ ⊙ ◐ ◑\n"
+        f"Pick one mouth glyph: ▽ ◇ ◡ ⌣ ω ᗣ\n\n"
         f'Pick ONE headwear zone. "none" is fronted — use it unless '
-        f'the character truly has that accessory in canon:\n'
+        f"the character truly has that accessory in canon:\n"
         + rubric_block(HEADWEAR_RUBRIC)
-        + 'Pick ONE facial_hair zone. If the character has canonical '
-        + 'facial hair on screen (beard, mustache, goatee), you MUST '
+        + "Pick ONE facial_hair zone. If the character has canonical "
+        + "facial hair on screen (beard, mustache, goatee), you MUST "
         + 'pick the matching option — "none" is for clean-shaven '
-        + 'characters only. When unsure between two beard styles, pick '
-        + 'the fuller one. Example: Ice King has a huge white beard '
-        + 'reaching his chest → beard_long (or beard_wide if it flares '
-        + 'past the jaw), NEVER none. Santa → beard_wide. Mario → '
-        + 'mustache_thick. Hank Hill → beard_stubble. Fred from '
-        + 'Scooby-Doo → beard_goatee.\n'
+        + "characters only. When unsure between two beard styles, pick "
+        + "the fuller one. Example: Ice King has a huge white beard "
+        + "reaching his chest → beard_long (or beard_wide if it flares "
+        + "past the jaw), NEVER none. Santa → beard_wide. Mario → "
+        + "mustache_thick. Hank Hill → beard_stubble. Fred from "
+        + "Scooby-Doo → beard_goatee.\n"
         + rubric_block(FACIAL_HAIR_RUBRIC)
         + 'Pick ONE body_motif zone. "none" is fronted — almost every '
-        + 'character picks this unless they have an iconic chest '
-        + 'element:\n'
+        + "character picks this unless they have an iconic chest "
+        + "element:\n"
         + rubric_block(BODY_MOTIF_RUBRIC)
         + 'Pick ONE eye_region zone. "none" is fronted — almost every '
-        + 'character picks this. Only override for characters with '
-        + 'truly unusual eye treatments on screen:\n'
+        + "character picks this. Only override for characters with "
+        + "truly unusual eye treatments on screen:\n"
         + rubric_block(EYE_REGION_RUBRIC)
         + 'Pick ONE trailing zone. "none" is fronted — only override for '
-        + 'characters with a distinctive trailing element (tail, '
-        + 'drifting hair):\n'
+        + "characters with a distinctive trailing element (tail, "
+        + "drifting hair):\n"
         + rubric_block(TRAILING_RUBRIC)
-        + 'Output ONLY this JSON, no prose:\n'
+        + "Output ONLY this JSON, no prose:\n"
         + '{"skeleton":"...","palette":{"hair":"#rrggbb",'
         + '"skin":"#rrggbb","outfit":"#rrggbb","accent":"#rrggbb",'
         + '"shadow":"#rrggbb","highlight":"#rrggbb"},'
@@ -576,7 +628,9 @@ def _build_classifier_prompt(
 
 
 def _classify_character_for_skeleton(
-    character: str, persona: str, source: str = "",
+    character: str,
+    persona: str,
+    source: str = "",
 ) -> dict[str, Any] | None:
     """Ask the local LLM for a skeleton + palette + face glyphs as JSON.
 
@@ -660,9 +714,7 @@ def _render_skeleton_frames(
 ) -> tuple[list[str], list[str], list[str]]:
     """Render idle / idle_alt / talking from a validated classification."""
     skeleton = classification["skeleton"]
-    base: dict[str, str] = {
-        k: f"[{classification['palette'][k]}]" for k in PALETTE_KEYS
-    }
+    base: dict[str, str] = {k: f"[{classification['palette'][k]}]" for k in PALETTE_KEYS}
     base["eye"] = classification["eye"]
     base["mouth"] = classification["mouth"]
     talking_mouth = _TALKING_MOUTH.get(classification["mouth"], "◇")
@@ -708,7 +760,9 @@ def _render_mood_frames(
         patched = {**classification, "eye": override}
         idle, idle_alt, talking = _render_skeleton_frames(patched)
         result[role.lower()] = {
-            "idle": idle, "idle_alt": idle_alt, "talking": talking,
+            "idle": idle,
+            "idle_alt": idle_alt,
+            "talking": talking,
         }
     return result
 
@@ -718,9 +772,18 @@ def _generate_voice_assets(
     lines: list[str],
     source: str = "",
 ) -> tuple[
-    str, list[str], list[str], dict[str, str], dict[str, str],
-    str, list[str], list[str], list[str],
-    list[str], list[str], list[str],
+    str,
+    list[str],
+    list[str],
+    dict[str, str],
+    dict[str, str],
+    str,
+    list[str],
+    list[str],
+    list[str],
+    list[str],
+    list[str],
+    list[str],
     dict[str, dict[str, list[str]]],
 ]:
     """Run all voice generation tasks in parallel.
@@ -751,8 +814,8 @@ def _generate_voice_assets(
 
     # Generate ASCII art (needs persona for character description; source
     # gives the classifier franchise context for canonical colors).
-    ascii_idle, ascii_idle_alt, ascii_talking, classification = (
-        _generate_ascii_art(character, persona, source)
+    ascii_idle, ascii_idle_alt, ascii_talking, classification = _generate_ascii_art(
+        character, persona, source
     )
     mood_frames = _render_mood_frames(classification, mood_roles)
 
@@ -817,7 +880,8 @@ def _parse_custom_moods(
 
 
 def _generate_mood_prompts_legacy(
-    character: str, lines: list[str],
+    character: str,
+    lines: list[str],
 ) -> dict[str, str]:
     """Legacy fallback: hardcoded mood names with character descriptions."""
     samples_block = _sample_block(lines)
@@ -847,7 +911,7 @@ def _generate_mood_prompts_legacy(
         line = line.strip()
         for mood in ("SNARKY", "IMPRESSED", "BORED", "CONCERNED", "HYPER", "SLEEPY"):
             if line.upper().startswith(mood):
-                desc = line[len(mood):].lstrip(":- ").strip()
+                desc = line[len(mood) :].lstrip(":- ").strip()
                 if desc:
                     moods[mood.lower()] = f"Your current mood: {mood}. {desc}"
                 break
@@ -855,7 +919,8 @@ def _generate_mood_prompts_legacy(
 
 
 def _generate_mood_prompts(
-    character: str, lines: list[str],
+    character: str,
+    lines: list[str],
 ) -> tuple[dict[str, str], dict[str, str], str]:
     """Generate character-specific mood names and descriptions.
 
@@ -943,10 +1008,18 @@ def train_from_wiki(
     source = f"{wiki}.fandom.com"
     _progress(f"Found {len(lines)} lines. Generating voice...")
     (
-        persona, greetings, offline_quips, mood_prompts,
-        mood_roles, default_mood, structure_hints,
-        anchor_lines, banned_names,
-        ascii_idle, ascii_idle_alt, ascii_talking,
+        persona,
+        greetings,
+        offline_quips,
+        mood_prompts,
+        mood_roles,
+        default_mood,
+        structure_hints,
+        anchor_lines,
+        banned_names,
+        ascii_idle,
+        ascii_idle_alt,
+        ascii_talking,
         mood_frames,
     ) = _generate_voice_assets(character, lines, source)
 
@@ -986,6 +1059,7 @@ def regenerate_voice_assets(
     mood_prompts/roles/default_mood, structure_hints, and ASCII art.
     Preserves lines, finetune metadata, source, and created.
     """
+
     def _progress(msg: str) -> None:
         if progress_callback:
             progress_callback(msg)
@@ -995,7 +1069,10 @@ def regenerate_voice_assets(
 
     with ThreadPoolExecutor(max_workers=6) as pool:
         f_p = pool.submit(
-            _generate_persona, profile.character, profile.lines, franchise,
+            _generate_persona,
+            profile.character,
+            profile.lines,
+            franchise,
         )
         f_v = pool.submit(_generate_visual_tells, profile.character, franchise)
         f_g = pool.submit(_generate_greetings, profile.character, profile.lines)
@@ -1006,10 +1083,12 @@ def regenerate_voice_assets(
     persona = attach_visual_tells(f_p.result() or "", f_v.result())
     profile.persona = persona
     profile.anchor_lines = _extract_anchor_lines(
-        profile.lines, parse_catchphrases(persona),
+        profile.lines,
+        parse_catchphrases(persona),
     )
     profile.banned_names = _derive_banned_names(
-        profile.source, profile.character,
+        profile.source,
+        profile.character,
     )
     profile.greetings = f_g.result()
     profile.offline_quips = f_q.result()
@@ -1057,6 +1136,7 @@ def regenerate_ascii_art(
     the ~60s full-regen bake on the five LLM-backed generators that also
     fire in `regenerate_voice_assets`.
     """
+
     def _progress(msg: str) -> None:
         if progress_callback:
             progress_callback(msg)
@@ -1068,10 +1148,13 @@ def regenerate_ascii_art(
         profile.ascii_talking,
         classification,
     ) = _generate_ascii_art(
-        profile.character, profile.persona, profile.source,
+        profile.character,
+        profile.persona,
+        profile.source,
     )
     profile.mood_frames = _render_mood_frames(
-        classification, profile.mood_roles,
+        classification,
+        profile.mood_roles,
     )
 
     # Surface what the classifier picked so the user can see the JSON
@@ -1081,15 +1164,11 @@ def regenerate_ascii_art(
     zone_str = ", ".join(f"{k}={v}" for k, v in zones.items())
     pal = classification["palette"]
     pal_str = " ".join(
-        f"{k}={pal[k]}" for k in
-        ("hair", "skin", "outfit", "accent", "shadow", "highlight")
+        f"{k}={pal[k]}" for k in ("hair", "skin", "outfit", "accent", "shadow", "highlight")
     )
     # Parens not brackets — Rich treats '[...]' as markup and crashes on
     # hex colors that don't parse as tags.
-    _progress(
-        f"Classified: skeleton={classification['skeleton']} "
-        f"({pal_str}) zones={{{zone_str}}}"
-    )
+    _progress(f"Classified: skeleton={classification['skeleton']} ({pal_str}) zones={{{zone_str}}}")
 
     out_dir = voices_dir or _get_voices_dir()
     save_profile(profile, out_dir)
@@ -1127,9 +1206,7 @@ def audit_profile(profile: VoiceProfile) -> AuditReport:
             continue
         dirty = [v for v in value if not is_clean_english(v)]
         if dirty:
-            issues.append(
-                f"{field_name} contains {len(dirty)} non-English / meta entries"
-            )
+            issues.append(f"{field_name} contains {len(dirty)} non-English / meta entries")
 
     if not profile.mood_prompts:
         issues.append("mood_prompts is empty")
@@ -1139,7 +1216,9 @@ def audit_profile(profile: VoiceProfile) -> AuditReport:
         issues.append("default_mood is empty")
 
     if not _frames_look_usable(
-        profile.ascii_idle, profile.ascii_idle_alt, profile.ascii_talking,
+        profile.ascii_idle,
+        profile.ascii_idle_alt,
+        profile.ascii_talking,
     ):
         issues.append("ascii frames are blank or too short")
 
@@ -1184,6 +1263,7 @@ def _cmd_audit(target: str | None) -> int:
 
 def activate_voice(slug: str) -> None:
     """Set active_voice in config.toml, creating the file/section if needed."""
+
     def mutate(data: dict[str, Any]) -> None:
         data.setdefault("brain", {})["active_voice"] = slug
 
@@ -1326,10 +1406,18 @@ def _cmd_extract(args: argparse.Namespace) -> None:
     if not args.no_persona:
         print("Generating voice assets via Ollama...", flush=True)
         (
-            persona, greetings, offline_quips, mood_prompts,
-            mood_roles, default_mood, structure_hints,
-            anchor_lines, banned_names,
-            _ascii_idle, _ascii_idle_alt, _ascii_talking,
+            persona,
+            greetings,
+            offline_quips,
+            mood_prompts,
+            mood_roles,
+            default_mood,
+            structure_hints,
+            anchor_lines,
+            banned_names,
+            _ascii_idle,
+            _ascii_idle_alt,
+            _ascii_talking,
             _mood_frames,
         ) = _generate_voice_assets(name, lines, source)
 
@@ -1371,7 +1459,7 @@ def _cmd_extract(args: argparse.Namespace) -> None:
     out_path = save_profile(profile, _get_voices_dir())
     slug = slugify(name)
 
-    print(f"Saved voice \"{slug}\" ({len(lines)} lines) to {out_path}")
+    print(f'Saved voice "{slug}" ({len(lines)} lines) to {out_path}')
 
     report = audit_profile(profile)
     if report.issues:
@@ -1385,7 +1473,7 @@ def _cmd_extract(args: argparse.Namespace) -> None:
 
     # Auto-activate in config.toml
     activate_voice(slug)
-    print(f"Activated voice \"{slug}\" in config.toml. Restart TokenPal to use it.")
+    print(f'Activated voice "{slug}" in config.toml. Restart TokenPal to use it.')
 
 
 def main() -> None:
@@ -1394,49 +1482,65 @@ def main() -> None:
         description="Extract character voice profiles from transcripts.",
     )
     parser.add_argument(
-        "--list", action="store_true",
+        "--list",
+        action="store_true",
         help="List all saved voice profiles",
     )
     parser.add_argument(
-        "--activate", action="store_true",
+        "--activate",
+        action="store_true",
         help="Switch between saved voice profiles",
     )
     parser.add_argument(
-        "file", nargs="?",
+        "file",
+        nargs="?",
         help="Path to transcript or lines file",
     )
     parser.add_argument(
-        "character", nargs="?",
+        "character",
+        nargs="?",
         help="Character name to extract",
     )
     parser.add_argument(
-        "--lines-only", action="store_true",
+        "--lines-only",
+        action="store_true",
         help="Treat input as one quote per line (skip character extraction)",
     )
     parser.add_argument(
-        "--preview", action="store_true",
+        "--preview",
+        action="store_true",
         help="Show extracted lines without saving",
     )
     parser.add_argument(
-        "--min-lines", type=int, default=10,
+        "--min-lines",
+        type=int,
+        default=10,
         help="Minimum lines required to save (default: 10)",
     )
     parser.add_argument(
-        "--no-persona", action="store_true",
+        "--no-persona",
+        action="store_true",
         help="Skip persona generation via Ollama",
     )
     parser.add_argument(
-        "--wiki", type=str, default="",
+        "--wiki",
+        type=str,
+        default="",
         help="Fetch transcripts from a Fandom wiki (e.g. 'regularshow', 'adventuretime')",
     )
     parser.add_argument(
-        "--max-pages", type=int, default=500,
+        "--max-pages",
+        type=int,
+        default=500,
         help="Max transcript pages to fetch from wiki (default: 500)",
     )
     parser.add_argument(
-        "--audit", nargs="?", const="", default=None,
+        "--audit",
+        nargs="?",
+        const="",
+        default=None,
         help="Audit voice profiles for drift/empty-field damage. "
-             "Pass a slug, or no argument to audit every profile.",
+        "Pass a slug, or no argument to audit every profile.",
     )
 
     args = parser.parse_args()

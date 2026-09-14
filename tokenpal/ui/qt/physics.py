@@ -15,13 +15,13 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class PhysicsConfig:
-    spring_k: float = 180.0          # px/s² per px of displacement (Hooke-ish)
-    gravity: float = 1200.0          # px/s² downward
-    damping: float = 12.0            # velocity-proportional damping (ζ≈0.45)
-    mass: float = 1.0                # acceleration = F/m
-    max_speed: float = 2000.0        # clamp per axis so flicks stay on-screen
-    settle_speed: float = 1.0        # px/s — "effectively stopped"
-    settle_distance: float = 0.5     # px from rest equilibrium
+    spring_k: float = 180.0  # px/s² per px of displacement (Hooke-ish)
+    gravity: float = 1200.0  # px/s² downward
+    damping: float = 12.0  # velocity-proportional damping (ζ≈0.45)
+    mass: float = 1.0  # acceleration = F/m
+    max_speed: float = 2000.0  # clamp per axis so flicks stay on-screen
+    settle_speed: float = 1.0  # px/s — "effectively stopped"
+    settle_distance: float = 0.5  # px from rest equilibrium
     settle_ticks_required: int = 10  # consecutive ticks below thresholds
 
 
@@ -100,11 +100,10 @@ class DangleSimulator:
 
         cfg = self._config
         s = self._state
-        ax = (-cfg.spring_k * (s.pos_x - self._anchor[0])
-              - cfg.damping * s.vel_x) / cfg.mass
-        ay = ((-cfg.spring_k * (s.pos_y - self._anchor[1])
-               - cfg.damping * s.vel_y) / cfg.mass
-              + cfg.gravity)
+        ax = (-cfg.spring_k * (s.pos_x - self._anchor[0]) - cfg.damping * s.vel_x) / cfg.mass
+        ay = (
+            -cfg.spring_k * (s.pos_y - self._anchor[1]) - cfg.damping * s.vel_y
+        ) / cfg.mass + cfg.gravity
 
         # Semi-implicit Euler: update velocity first, then use new velocity
         # for position. More stable than explicit Euler for stiff springs.
@@ -165,8 +164,7 @@ def run_until_settled(
         if sim.sleeping:
             return i + 1
     raise RuntimeError(
-        f"simulator did not settle within {max_ticks} ticks "
-        f"({max_ticks * dt:.2f}s)",
+        f"simulator did not settle within {max_ticks} ticks ({max_ticks * dt:.2f}s)",
     )
 
 
@@ -258,10 +256,10 @@ class RigidBodyConfig:
     upright_bias_radius: float = 30.0
     upright_bias_damping_ratio: float = 1.0
     # Settle thresholds — applied only when not grabbed.
-    settle_speed: float = 1.0       # px/s
-    settle_omega: float = 0.05      # rad/s
-    settle_distance: float = 0.5    # px from home
-    settle_angle: float = 0.02      # rad from upright (~1.1°)
+    settle_speed: float = 1.0  # px/s
+    settle_omega: float = 0.05  # rad/s
+    settle_distance: float = 0.5  # px from home
+    settle_angle: float = 0.02  # rad from upright (~1.1°)
     settle_ticks_required: int = 15
 
 
@@ -459,14 +457,8 @@ class RigidBodySimulator:
             if bias_factor > 0.0:
                 k_bias = cfg.upright_bias_strength
                 omega_b = math.sqrt(k_bias / inertia)
-                c_bias = (
-                    2.0 * inertia * cfg.upright_bias_damping_ratio * omega_b
-                )
-                alpha_bias = (
-                    bias_factor
-                    * (-k_bias * self._theta - c_bias * self._omega)
-                    / inertia
-                )
+                c_bias = 2.0 * inertia * cfg.upright_bias_damping_ratio * omega_b
+                alpha_bias = bias_factor * (-k_bias * self._theta - c_bias * self._omega) / inertia
                 self._omega += alpha_bias * dt
 
         # Angular home spring: returns θ → 0 (upright) when not

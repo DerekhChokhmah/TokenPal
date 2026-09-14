@@ -79,9 +79,7 @@ async def test_habit_streak_broken_by_gap(memory: MemoryStore) -> None:
     assert "2 day streak" in r.output
 
     # Now put a big gap: only a log from 10 days ago -> current streak 0.
-    memory.log_habit(
-        "old_habit", date=(today - timedelta(days=10)).strftime("%Y-%m-%d")
-    )
+    memory.log_habit("old_habit", date=(today - timedelta(days=10)).strftime("%Y-%m-%d"))
     r = await action.execute(name="old_habit", log=False)
     assert "0 day streak" in r.output
 

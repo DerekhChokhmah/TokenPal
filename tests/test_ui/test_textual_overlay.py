@@ -108,7 +108,8 @@ async def test_status_bar_via_message(app: TokenPalApp) -> None:
 
 
 async def test_input_dispatches_text(
-    app: TokenPalApp, overlay: TextualOverlay,
+    app: TokenPalApp,
+    overlay: TextualOverlay,
 ) -> None:
     cb = MagicMock()
     overlay.set_input_callback(cb)
@@ -122,7 +123,8 @@ async def test_input_dispatches_text(
 
 
 async def test_input_dispatches_command(
-    app: TokenPalApp, overlay: TextualOverlay,
+    app: TokenPalApp,
+    overlay: TextualOverlay,
 ) -> None:
     cb = MagicMock()
     overlay.set_command_callback(cb)
@@ -145,7 +147,8 @@ async def test_input_clears_after_submit(app: TokenPalApp) -> None:
 
 
 async def test_empty_input_not_dispatched(
-    app: TokenPalApp, overlay: TextualOverlay,
+    app: TokenPalApp,
+    overlay: TextualOverlay,
 ) -> None:
     cb = MagicMock()
     overlay.set_input_callback(cb)
@@ -172,7 +175,8 @@ async def test_persistent_bubble_no_auto_hide(app: TokenPalApp) -> None:
 
 
 async def test_overlay_post_is_thread_safe(
-    app: TokenPalApp, overlay: TextualOverlay,
+    app: TokenPalApp,
+    overlay: TextualOverlay,
 ) -> None:
     """Verify post_message works from a background thread."""
     async with app.run_test(size=(80, 24)) as pilot:
@@ -234,7 +238,8 @@ async def test_clear_log(app: TokenPalApp) -> None:
 
 
 async def test_input_submit_logs_user_message(
-    app: TokenPalApp, overlay: TextualOverlay,
+    app: TokenPalApp,
+    overlay: TextualOverlay,
 ) -> None:
     """User text (non-command) should appear in chat log."""
     overlay.set_input_callback(lambda _: None)
@@ -268,10 +273,7 @@ def test_mood_frame_sets_builds_per_mood_dict() -> None:
     }
     out = BuddyFrame.mood_frame_sets(raw)
     assert set(out.keys()) == {"sleepy", "bored"}
-    assert all(
-        set(triple.keys()) == {"idle", "idle_alt", "talking"}
-        for triple in out.values()
-    )
+    assert all(set(triple.keys()) == {"idle", "idle_alt", "talking"} for triple in out.values())
     assert all(f.markup for triple in out.values() for f in triple.values())
 
 

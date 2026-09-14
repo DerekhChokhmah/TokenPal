@@ -17,6 +17,7 @@ log = logging.getLogger(__name__)
 try:
     from astral import LocationInfo
     from astral.sun import sun as _astral_sun
+
     _HAS_ASTRAL = True
 except ImportError:
     _HAS_ASTRAL = False
@@ -24,7 +25,12 @@ except ImportError:
 _GOLDEN_HOUR_MIN = 30
 
 Phase = Literal[
-    "night", "dawn", "golden_morning", "day", "golden_evening", "dusk",
+    "night",
+    "dawn",
+    "golden_morning",
+    "day",
+    "golden_evening",
+    "dusk",
 ]
 
 _PHASE_SUMMARIES: dict[Phase, str] = {
@@ -91,6 +97,7 @@ class SunPositionSense(AbstractSense):
             return
 
         from tokenpal.config.loader import load_config
+
         weather = load_config().weather
         lat, lon = weather.latitude, weather.longitude
         if not lat and not lon:
@@ -131,13 +138,17 @@ class SunPositionSense(AbstractSense):
         )
 
     def _events_for(
-        self, date: dt.date, tzinfo: dt.tzinfo | None,
+        self,
+        date: dt.date,
+        tzinfo: dt.tzinfo | None,
     ) -> dict[str, dt.datetime] | None:
         if self._cached_date == date and self._cached_events is not None:
             return self._cached_events
         try:
             self._cached_events = _astral_sun(
-                self._observer, date=date, tzinfo=tzinfo or dt.UTC,
+                self._observer,
+                date=date,
+                tzinfo=tzinfo or dt.UTC,
             )
         except ValueError:
             # astral raises at extreme latitudes (polar day/night) — no events.

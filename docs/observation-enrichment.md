@@ -132,7 +132,7 @@ the CPU never gets enriched.
    ```python
    snapshot = await self._enrich_app_awareness(snapshot, readings)
    snapshot = await self._enrich_process_heat(snapshot, readings)
-   snapshot = await self._enrich_<sense_name>(snapshot, readings)   # <- add
+   snapshot = await self._enrich_ < sense_name > (snapshot, readings)  # <- add
    return snapshot
    ```
 

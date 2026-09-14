@@ -64,7 +64,9 @@ async def _run(model_path: str, voices_path: str) -> None:
         chunks: list[bytes] = []
         try:
             async for samples, _sr in kokoro.create_stream(
-                text, voice=voice, speed=speed,
+                text,
+                voice=voice,
+                speed=speed,
             ):
                 chunks.append(samples.tobytes())
         except Exception as e:  # noqa: BLE001 — bad input must not crash worker

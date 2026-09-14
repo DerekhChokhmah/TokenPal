@@ -25,7 +25,8 @@ def app(overlay: TextualOverlay) -> TokenPalApp:
 
 
 async def test_unpersisted_buddy_line_skips_persist_callback(
-    overlay: TextualOverlay, app: TokenPalApp,
+    overlay: TextualOverlay,
+    app: TokenPalApp,
 ) -> None:
     persisted: list[str] = []
     overlay._chat_persist_callback = lambda _s, text, _u: persisted.append(text)
@@ -38,7 +39,8 @@ async def test_unpersisted_buddy_line_skips_persist_callback(
 
 
 async def test_overlay_adapter_forwards_persist_through_the_message(
-    overlay: TextualOverlay, app: TokenPalApp,
+    overlay: TextualOverlay,
+    app: TokenPalApp,
 ) -> None:
     """`on_log_buddy_message` must carry `persist` across the Message hop —
     dropping it would silently re-persist."""
@@ -55,7 +57,8 @@ async def test_overlay_adapter_forwards_persist_through_the_message(
 
 
 async def test_persisted_buddy_line_reaches_the_callback(
-    overlay: TextualOverlay, app: TokenPalApp,
+    overlay: TextualOverlay,
+    app: TokenPalApp,
 ) -> None:
     persisted: list[str] = []
     overlay._chat_persist_callback = lambda _s, text, _u: persisted.append(text)

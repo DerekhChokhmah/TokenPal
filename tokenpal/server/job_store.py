@@ -100,7 +100,8 @@ class JsonFileJobStore(AbstractJobStore):
             if job and job.status in _ACTIVE_STATUSES:
                 log.warning(
                     "Recovering stale job %s (was %s). Server likely crashed during training.",
-                    job.job_id, job.status.value,
+                    job.job_id,
+                    job.status.value,
                 )
                 job.status = TrainingStatus.FAILED
                 job.error = "Server restarted during training"

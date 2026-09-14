@@ -81,9 +81,7 @@ def test_set_anchor_wakes_sim_and_drags_body() -> None:
     for _ in range(10):
         sim.tick(1.0 / 60.0)
     new_pos_x, _ = sim.position
-    assert new_pos_x > rest_before[0], (
-        "body should accelerate toward new anchor"
-    )
+    assert new_pos_x > rest_before[0], "body should accelerate toward new anchor"
 
 
 def test_tick_is_noop_when_sleeping() -> None:
@@ -145,7 +143,9 @@ def test_run_until_settled_raises_when_budget_exceeded() -> None:
     # 5 ticks, and verify the helper reports the problem.
     cfg = PhysicsConfig(damping=0.01, settle_ticks_required=2)
     sim = DangleSimulator(
-        anchor=(0.0, 0.0), initial_pos=(500.0, 0.0), config=cfg,
+        anchor=(0.0, 0.0),
+        initial_pos=(500.0, 0.0),
+        config=cfg,
     )
     with pytest.raises(RuntimeError, match="did not settle"):
         run_until_settled(sim, max_ticks=5)

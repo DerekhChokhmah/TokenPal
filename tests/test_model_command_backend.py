@@ -21,21 +21,33 @@ def _mock_llm() -> MagicMock:
 
 def test_model_pull_disabled_on_llamacpp():
     result = _handle_model_command(
-        "pull gemma4", _mock_llm(), MagicMock(), brain=None, config=_cfg("llamacpp"),
+        "pull gemma4",
+        _mock_llm(),
+        MagicMock(),
+        brain=None,
+        config=_cfg("llamacpp"),
     )
     assert "docs/amd-dgpu-setup.md" in result.message
 
 
 def test_model_browse_disabled_on_llamacpp():
     result = _handle_model_command(
-        "browse", _mock_llm(), MagicMock(), brain=None, config=_cfg("llamacpp"),
+        "browse",
+        _mock_llm(),
+        MagicMock(),
+        brain=None,
+        config=_cfg("llamacpp"),
     )
     assert "docs/amd-dgpu-setup.md" in result.message
 
 
 def test_model_list_disabled_on_llamacpp():
     result = _handle_model_command(
-        "list", _mock_llm(), MagicMock(), brain=None, config=_cfg("llamacpp"),
+        "list",
+        _mock_llm(),
+        MagicMock(),
+        brain=None,
+        config=_cfg("llamacpp"),
     )
     assert "docs/amd-dgpu-setup.md" in result.message
 
@@ -43,6 +55,10 @@ def test_model_list_disabled_on_llamacpp():
 def test_model_pull_usage_error_on_ollama():
     """Ollama path still reaches the existing handler — usage error proves the gate opens."""
     result = _handle_model_command(
-        "pull", _mock_llm(), MagicMock(), brain=None, config=_cfg("ollama"),
+        "pull",
+        _mock_llm(),
+        MagicMock(),
+        brain=None,
+        config=_cfg("ollama"),
     )
     assert "Usage" in result.message

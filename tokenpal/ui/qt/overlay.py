@@ -79,7 +79,7 @@ _BUBBLE_HIDE_DELAY_MS = 15000  # minimum lingers before auto-hide
 # muted, which reads as "frozen UI" to the user.
 _BUBBLE_TTS_MS_PER_CHAR = 100
 _BUBBLE_TTS_PADDING_MS = 2000
-_CHAT_FONT_DEFAULT_SIZE = 13   # fallback + Ctrl+0 reset target
+_CHAT_FONT_DEFAULT_SIZE = 13  # fallback + Ctrl+0 reset target
 # Park position for the real ``ChatDock`` while the swing-mock is up.
 # Off-screen but alive — hiding the NSWindow instead was breaking the
 # QLineEdit focus chain on macOS. Windows clamps window coords at
@@ -143,14 +143,21 @@ def _default_monospace_family() -> str:
 
 
 class _UIBridge(QObject):
-    """Marshals arbitrary no-arg callables from any thread onto the Qt
-    main thread via a queued-connection signal."""
+    """Marshal callbacks onto the Qt UI thread."""
 
     dispatch = Signal(object)
+    delayed_dispatch = Signal(object, int)
 
     def __init__(self) -> None:
         super().__init__()
-        self.dispatch.connect(self._run, Qt.ConnectionType.QueuedConnection)
+        self.dispatch.connect(
+            self._run,
+            Qt.ConnectionType.QueuedConnection,
+        )
+        self.delayed_dispatch.connect(
+            self._schedule_delayed,
+            Qt.ConnectionType.QueuedConnection,
+        )
 
     @Slot(object)
     def _run(self, fn: Callable[[], None]) -> None:
@@ -158,6 +165,25 @@ class _UIBridge(QObject):
             fn()
         except Exception:
             log.exception("Qt UI bridge dispatch raised")
+
+    @Slot(object, int)
+    def _schedule_delayed(
+        self,
+        fn: Callable[[], None],
+        delay_ms: int,
+    ) -> None:
+        timer = QTimer(self)
+        timer.setSingleShot(True)
+
+        def run() -> None:
+            try:
+                fn()
+            except Exception:
+                log.exception("Qt delayed callback raised")
+            finally:
+                timer.deleteLater()
+
+        QTimer.singleShot(max(0, delay_ms), run)
 
 
 @register_overlay
@@ -179,9 +205,7 @@ class QtOverlay(AbstractOverlay):
         # (which Qt substitutes noisily — "Populating font family
         # aliases took 38 ms" warning on every launch).
         requested_family = config.get("font_family") or ""
-        self._font_family: str = (
-            requested_family or _default_monospace_family()
-        )
+        self._font_family: str = requested_family or _default_monospace_family()
         self._font_size: int = int(config.get("font_size", 14))
 
         # Per-surface font configs. The dataclass loader (issue #16) turns
@@ -234,16 +258,10 @@ class QtOverlay(AbstractOverlay):
         self._input_callback: Callable[[str], None] | None = None
         self._command_callback: Callable[[str], None] | None = None
         self._buddy_reaction_callback: Callable[[str], None] | None = None
-        self._chat_persist_callback: (
-            Callable[[str, str, str | None], None] | None
-        ) = None
+        self._chat_persist_callback: Callable[[str, str, str | None], None] | None = None
         self._chat_clear_callback: Callable[[], None] | None = None
-        self._chat_font_persist_callback: (
-            Callable[[FontConfig], None] | None
-        ) = None
-        self._ui_state_persist_callback: (
-            Callable[[UiState], None] | None
-        ) = None
+        self._chat_font_persist_callback: Callable[[FontConfig], None] | None = None
+        self._ui_state_persist_callback: Callable[[UiState], None] | None = None
         self._zoom: float = 1.0
         self._persist_ui_state_timer: QTimer | None = None
         self._persist_pending: bool = False
@@ -251,12 +269,9 @@ class QtOverlay(AbstractOverlay):
         # Pre-setup buffers. The brain may call any adapter method before
         # setup() runs; stash the payload and drain on mount.
         self._pending_voice_frames: (
-            tuple[dict[str, BuddyFrame], dict[str, dict[str, BuddyFrame]] | None]
-            | None
+            tuple[dict[str, BuddyFrame], dict[str, dict[str, BuddyFrame]] | None] | None
         ) = None
-        self._pending_chat_history: (
-            list[tuple[float, str, str, str | None]] | None
-        ) = None
+        self._pending_chat_history: list[tuple[float, str, str, str | None]] | None = None
         self._pending_news_items: list[NewsItem] | None = None
         self._pending_status: str | None = None
         self._pending_voice_name: str | None = None
@@ -307,6 +322,7 @@ class QtOverlay(AbstractOverlay):
             from tokenpal.ui.quick.buddy_window import (  # noqa: PLC0415
                 BuddyQuickWindow,
             )
+
             bqw = BuddyQuickWindow(
                 frame_lines=BUDDY_IDLE,
                 initial_anchor=(400.0, 200.0),
@@ -525,7 +541,8 @@ class QtOverlay(AbstractOverlay):
             self._tray.set_buddy_visible(self._buddy_user_visible)
             for name in self._log_windows:
                 self._tray.set_window_visible(
-                    name, self._user_visible.get(name, False),
+                    name,
+                    self._user_visible.get(name, False),
                 )
             self._tray.show()
         self._app.exec()
@@ -568,13 +585,18 @@ class QtOverlay(AbstractOverlay):
             self._app.quit()
 
     def schedule_callback(
-        self, callback: Callable[[], None], delay_ms: int = 0,
+        self,
+        callback: Callable[[], None],
+        delay_ms: int = 0,
     ) -> None:
+        if self._bridge is None:
+            self._pending_post.append(callback)
+            return
+
         if delay_ms <= 0:
-            self._post(callback)
+            self._bridge.dispatch.emit(callback)
         else:
-            # Marshal the QTimer call itself — QTimer lives on UI thread.
-            self._post(lambda: QTimer.singleShot(delay_ms, callback))
+            self._bridge.delayed_dispatch.emit(callback, delay_ms)
 
     def request_exit(self) -> None:
         self._post(self.teardown)
@@ -614,7 +636,8 @@ class QtOverlay(AbstractOverlay):
         self._post(self._do_clear_chat)
 
     def load_chat_history(
-        self, entries: list[tuple[float, str, str, str | None]],
+        self,
+        entries: list[tuple[float, str, str, str | None]],
     ) -> None:
         if self._history is None:
             self._pending_chat_history = list(entries)
@@ -668,9 +691,13 @@ class QtOverlay(AbstractOverlay):
         on_save: Callable[[dict[str, list[str]] | None], None],
     ) -> bool:
         group_list: list[SelectionGroup] = list(groups)
-        self._post(lambda: self._do_open_selection_modal(
-            title, group_list, on_save,
-        ))
+        self._post(
+            lambda: self._do_open_selection_modal(
+                title,
+                group_list,
+                on_save,
+            )
+        )
         return True
 
     def open_confirm_modal(
@@ -683,7 +710,9 @@ class QtOverlay(AbstractOverlay):
         return True
 
     def _open_singleton_dialog(
-        self, attr: str, factory: Callable[[], QDialog],
+        self,
+        attr: str,
+        factory: Callable[[], QDialog],
     ) -> None:
         """Focus the existing dialog held at ``self.<attr>`` if one is
         already on screen; otherwise build one via ``factory``, wire it
@@ -710,7 +739,10 @@ class QtOverlay(AbstractOverlay):
         self._open_singleton_dialog(
             "_selection_dialog",
             lambda: SelectionDialog(
-                title, groups, on_save, parent=self._history,
+                title,
+                groups,
+                on_save,
+                parent=self._history,
             ),
         )
 
@@ -729,15 +761,20 @@ class QtOverlay(AbstractOverlay):
         on_result: Callable[[Any], None],
         on_open_subdialog: Callable[[str], None] | None = None,
     ) -> bool:
-        self._post(lambda: self._do_open_options_modal(
-            state, on_result, on_open_subdialog,
-        ))
+        self._post(
+            lambda: self._do_open_options_modal(
+                state,
+                on_result,
+                on_open_subdialog,
+            )
+        )
         return True
 
     def set_chat_history_opacity(self, opacity: float) -> None:
         def apply() -> None:
             for window in self._log_windows.values():
                 window.set_background_opacity(opacity)
+
         self._post(apply)
 
     def set_chat_history_background_color(self, hex_color: str) -> None:
@@ -746,6 +783,7 @@ class QtOverlay(AbstractOverlay):
                 window.set_background_color(hex_color)
             if self._bubble is not None:
                 self._bubble.set_background_color(hex_color)
+
         self._post(apply)
 
     def set_chat_history_font_color(self, hex_color: str) -> None:
@@ -754,6 +792,7 @@ class QtOverlay(AbstractOverlay):
                 window.set_font_color(hex_color)
             if self._bubble is not None:
                 self._bubble.set_font_color(hex_color)
+
         self._post(apply)
 
     def set_chat_font(self, cfg: FontConfig) -> None:
@@ -772,7 +811,8 @@ class QtOverlay(AbstractOverlay):
 
     def _apply_chat_font_live(self) -> None:
         font = qt_font_from_config(
-            self._chat_font, fallback_size=_CHAT_FONT_DEFAULT_SIZE,
+            self._chat_font,
+            fallback_size=_CHAT_FONT_DEFAULT_SIZE,
         )
         if self._dock is not None:
             self._dock.apply_font(font)
@@ -790,9 +830,7 @@ class QtOverlay(AbstractOverlay):
     def _handle_chat_zoom(self, delta: int) -> None:
         """``delta`` +1 / -1 bumps the chat font size; 0 resets to baseline."""
         current = self._chat_font
-        current_size = (
-            current.size_pt if current.size_pt > 0 else _CHAT_FONT_DEFAULT_SIZE
-        )
+        current_size = current.size_pt if current.size_pt > 0 else _CHAT_FONT_DEFAULT_SIZE
         if delta == 0:
             new_size = _CHAT_FONT_DEFAULT_SIZE
         else:
@@ -819,24 +857,28 @@ class QtOverlay(AbstractOverlay):
         self._open_singleton_dialog(
             "_options_dialog",
             lambda: OptionsDialog(
-                state, on_result, parent=self._history,
+                state,
+                on_result,
+                parent=self._history,
                 on_opacity_preview=self.set_chat_history_opacity,
-                on_background_color_preview=(
-                    self.set_chat_history_background_color
-                ),
+                on_background_color_preview=(self.set_chat_history_background_color),
                 on_font_color_preview=self.set_chat_history_font_color,
                 on_open_subdialog=on_open_subdialog,
             ),
         )
 
     def open_cloud_modal(
-        self, state: Any, on_result: Callable[[Any], None],
+        self,
+        state: Any,
+        on_result: Callable[[Any], None],
     ) -> bool:
         self._post(lambda: self._do_open_cloud_modal(state, on_result))
         return True
 
     def _do_open_cloud_modal(
-        self, state: Any, on_result: Callable[[Any], None],
+        self,
+        state: Any,
+        on_result: Callable[[Any], None],
     ) -> None:
         self._open_singleton_dialog(
             "_cloud_dialog",
@@ -844,13 +886,17 @@ class QtOverlay(AbstractOverlay):
         )
 
     def open_voice_modal(
-        self, state: Any, on_result: Callable[[Any], None],
+        self,
+        state: Any,
+        on_result: Callable[[Any], None],
     ) -> bool:
         self._post(lambda: self._do_open_voice_modal(state, on_result))
         return True
 
     def _do_open_voice_modal(
-        self, state: Any, on_result: Callable[[Any], None],
+        self,
+        state: Any,
+        on_result: Callable[[Any], None],
     ) -> None:
         self._open_singleton_dialog(
             "_voice_dialog",
@@ -866,7 +912,8 @@ class QtOverlay(AbstractOverlay):
         self._command_callback = callback
 
     def set_buddy_reaction_callback(
-        self, callback: Callable[[str], None],
+        self,
+        callback: Callable[[str], None],
     ) -> None:
         self._buddy_reaction_callback = callback
 
@@ -879,12 +926,14 @@ class QtOverlay(AbstractOverlay):
         self._chat_clear_callback = clear
 
     def set_chat_font_persist_callback(
-        self, persist: Callable[[FontConfig], None],
+        self,
+        persist: Callable[[FontConfig], None],
     ) -> None:
         self._chat_font_persist_callback = persist
 
     def set_ui_state_persist_callback(
-        self, persist: Callable[[UiState], None],
+        self,
+        persist: Callable[[UiState], None],
     ) -> None:
         """Register a callback invoked on every visibility toggle or
         zoom change. Receives the full ``UiState`` dict so future
@@ -920,7 +969,8 @@ class QtOverlay(AbstractOverlay):
             for name, visible in windows.items():
                 self._user_visible[name] = bool(visible)
         if not self._buddy_user_visible and not self._user_visible.get(
-            _WINDOW_CHAT, False,
+            _WINDOW_CHAT,
+            False,
         ):
             # An all-hidden persisted state would leave nothing on
             # screen; reset to the default surface and mark it dirty so
@@ -1012,7 +1062,8 @@ class QtOverlay(AbstractOverlay):
             log.exception("ui_state persist callback failed")
 
     def set_environment_provider(
-        self, provider: Callable[[], EnvironmentSnapshot] | None,
+        self,
+        provider: Callable[[], EnvironmentSnapshot] | None,
     ) -> None:
         self._env_provider = provider
 
@@ -1025,12 +1076,16 @@ class QtOverlay(AbstractOverlay):
     ) -> None:
         """Dev override for the /weather slash command — pipes through to
         ``WeatherSim.set_override`` on the Qt thread."""
+
         def apply() -> None:
             if self._weather_sim is None:
                 return
             self._weather_sim.set_override(
-                weather_code=weather_code, hour=hour, clear=clear,
+                weather_code=weather_code,
+                hour=hour,
+                clear=clear,
             )
+
         self._post(apply)
 
     def _env_provider_for_sim(self) -> EnvironmentSnapshot | None:
@@ -1082,11 +1137,7 @@ class QtOverlay(AbstractOverlay):
         if self._sky_window is not None:
             self._sky_window.reanchor()
         self._refresh_rain_overlay()
-        if (
-            self._buddy is not None
-            and self._weather_sim is not None
-            and self._buddy.is_dragging()
-        ):
+        if self._buddy is not None and self._weather_sim is not None and self._buddy.is_dragging():
             self._weather_sim.clear_buddy_accum()
 
     def _refresh_rain_overlay(self) -> None:
@@ -1163,7 +1214,8 @@ class QtOverlay(AbstractOverlay):
             self._chat_clear_callback()
 
     def _do_load_history(
-        self, entries: list[tuple[float, str, str, str | None]],
+        self,
+        entries: list[tuple[float, str, str, str | None]],
     ) -> None:
         if self._history is not None:
             self._history.load_history(entries)
@@ -1201,7 +1253,8 @@ class QtOverlay(AbstractOverlay):
             if not self._use_quick_backend:
                 apply_macos_stay_visible(self._resize_grip)
                 lock_macos_child_above(
-                    self._buddy, self._resize_grip,
+                    self._buddy,
+                    self._resize_grip,
                 )
             self._reposition_grip()
 
@@ -1353,8 +1406,10 @@ class QtOverlay(AbstractOverlay):
         """Transition the dock to ``floating`` / ``embedded`` / ``hidden``."""
         if self._dock is None or self._history is None:
             return
-        current = "embedded" if self._dock_docked else (
-            "floating" if self._dock.isVisible() else "hidden"
+        current = (
+            "embedded"
+            if self._dock_docked
+            else ("floating" if self._dock.isVisible() else "hidden")
         )
         if current == mode:
             return
@@ -1369,7 +1424,8 @@ class QtOverlay(AbstractOverlay):
 
         if mode == "embedded":
             self._dock.setAttribute(
-                Qt.WidgetAttribute.WA_TranslucentBackground, False,
+                Qt.WidgetAttribute.WA_TranslucentBackground,
+                False,
             )
             # The floating dock sets WA_ShowWithoutActivating so clicking
             # the pill never activates the app. Once embedded in the
@@ -1377,7 +1433,8 @@ class QtOverlay(AbstractOverlay):
             # frameless NSWindow that wraps the history never becomes key
             # and the QLineEdit silently drops every keystroke.
             self._dock.setAttribute(
-                Qt.WidgetAttribute.WA_ShowWithoutActivating, False,
+                Qt.WidgetAttribute.WA_ShowWithoutActivating,
+                False,
             )
             self._dock.setWindowFlags(Qt.WindowType.Widget)
             self._history.embed_dock(self._dock)
@@ -1391,10 +1448,12 @@ class QtOverlay(AbstractOverlay):
         self._dock.setParent(None)
         self._dock.setWindowFlags(buddy_overlay_flags(focusable=True))
         self._dock.setAttribute(
-            Qt.WidgetAttribute.WA_TranslucentBackground, True,
+            Qt.WidgetAttribute.WA_TranslucentBackground,
+            True,
         )
         self._dock.setAttribute(
-            Qt.WidgetAttribute.WA_ShowWithoutActivating, True,
+            Qt.WidgetAttribute.WA_ShowWithoutActivating,
+            True,
         )
         self._dock.restore_floating_size()
         self._reposition_dock()
@@ -1405,7 +1464,11 @@ class QtOverlay(AbstractOverlay):
         QTimer.singleShot(0, self._reposition_dock)
 
     def _clamp_to_buddy_screen(
-        self, x: int, y: int, w: int, h: int,
+        self,
+        x: int,
+        y: int,
+        w: int,
+        h: int,
     ) -> tuple[int, int]:
         """Keep an (x, y, w, h) rect inside the buddy's current screen."""
         if self._buddy is None:
@@ -1425,7 +1488,10 @@ class QtOverlay(AbstractOverlay):
         return x, y
 
     def _body_aligned_offset(
-        self, angle: float, dx: float, dy: float,
+        self,
+        angle: float,
+        dx: float,
+        dy: float,
     ) -> tuple[float, float]:
         """Rotate an art-frame offset ``(dx, dy)`` by ``angle`` so the
         follower trails the body's pose instead of drifting in screen
@@ -1480,7 +1546,8 @@ class QtOverlay(AbstractOverlay):
             return
         bounds = self._buddy.art_bounds()
         corner = self._buddy.art_frame_point_world(
-            float(bounds.width()), float(bounds.height()),
+            float(bounds.width()),
+            float(bounds.height()),
         )
         self._resize_grip.set_pose(corner, self._buddy.body_angle())
 
@@ -1497,7 +1564,9 @@ class QtOverlay(AbstractOverlay):
         angle = self._buddy.body_angle()
         head = self._buddy.head_world_position()
         ox, oy = self._body_aligned_offset(
-            angle, 0.0, -float(_BUBBLE_HOVER_OFFSET_Y),
+            angle,
+            0.0,
+            -float(_BUBBLE_HOVER_OFFSET_Y),
         )
         self._bubble.set_pose(QPointF(head.x() + ox, head.y() + oy), angle)
 
@@ -1517,10 +1586,7 @@ class QtOverlay(AbstractOverlay):
             name = self._pending_voice_name
             self._pending_voice_name = None
             self._do_set_voice_name(name)
-        if (
-            self._pending_chat_history is not None
-            and self._history is not None
-        ):
+        if self._pending_chat_history is not None and self._history is not None:
             entries = self._pending_chat_history
             self._pending_chat_history = None
             self._history.load_history(entries)

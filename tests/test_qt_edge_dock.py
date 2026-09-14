@@ -49,7 +49,8 @@ def test_dropping_near_top_edge_snaps_to_top(qapp: QApplication) -> None:
     )
     try:
         buddy.core.sim.snap_home(
-            float(left + 300), float(top + _EDGE_DOCK_THRESHOLD - 5),
+            float(left + 300),
+            float(top + _EDGE_DOCK_THRESHOLD - 5),
         )
         buddy.core.maybe_edge_dock()
         assert buddy.core.sim.home[1] == float(top)

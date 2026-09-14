@@ -25,6 +25,7 @@ def ensure_qapplication(existing: object | None = None) -> object:
     """
     from PySide6.QtCore import Qt
     from PySide6.QtWidgets import QApplication
+
     if existing is not None and isinstance(existing, QApplication):
         return existing
     inst = QApplication.instance()

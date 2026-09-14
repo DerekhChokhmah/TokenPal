@@ -65,10 +65,7 @@ class AirQualityAction(AbstractAction):
         us_aqi = current.get("us_aqi")
         pm25 = current.get("pm2_5")
         pm10 = current.get("pm10")
-        body = (
-            f"EU AQI: {aqi}, US AQI: {us_aqi}, "
-            f"PM2.5: {pm25} ug/m3, PM10: {pm10} ug/m3"
-        )
+        body = f"EU AQI: {aqi}, US AQI: {us_aqi}, PM2.5: {pm25} ug/m3, PM10: {pm10} ug/m3"
         return ActionResult(output=wrap_result(self.action_name, body))
 
 
@@ -100,8 +97,5 @@ class PollenCountAction(AbstractAction):
         birch = _first_hour(hourly.get("birch_pollen"))
         grass = _first_hour(hourly.get("grass_pollen"))
         ragweed = _first_hour(hourly.get("ragweed_pollen"))
-        body = (
-            f"alder: {alder}, birch: {birch}, "
-            f"grass: {grass}, ragweed: {ragweed} (grains/m3)"
-        )
+        body = f"alder: {alder}, birch: {birch}, grass: {grass}, ragweed: {ragweed} (grains/m3)"
         return ActionResult(output=wrap_result(self.action_name, body))

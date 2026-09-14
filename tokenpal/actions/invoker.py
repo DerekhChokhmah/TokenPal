@@ -32,9 +32,7 @@ class ToolInvoker:
         self._enforce_rate_limit = enforce_rate_limit
         self._call_times: dict[str, deque[float]] = {}
 
-    async def invoke(
-        self, action: AbstractAction, arguments: dict[str, Any]
-    ) -> ActionResult:
+    async def invoke(self, action: AbstractAction, arguments: dict[str, Any]) -> ActionResult:
         if action.path_params:
             contained = await self._contain_paths(action, arguments)
             if isinstance(contained, ActionResult):
@@ -54,8 +52,7 @@ class ToolInvoker:
             if len(q) >= limit.max_calls:
                 return ActionResult(
                     output=(
-                        f"rate limit: {limit.max_calls} calls per "
-                        f"{limit.window_s:g}s exceeded"
+                        f"rate limit: {limit.max_calls} calls per {limit.window_s:g}s exceeded"
                     ),
                     success=False,
                 )
@@ -87,9 +84,7 @@ class ToolInvoker:
                 # Absent, blank, or the wrong type. The tool owns that refusal
                 # — and a declared path can be optional, as grep_codebase's is.
                 continue
-            path, refusal = await resolve_declared_path(
-                raw, action.path_roots, action.path_screen
-            )
+            path, refusal = await resolve_declared_path(raw, action.path_roots, action.path_screen)
             if path is None:
                 return ActionResult(output=refusal, success=False)
             contained[name] = path

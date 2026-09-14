@@ -39,7 +39,10 @@ def _log() -> IO[str] | None:
     logs = base / "logs"
     logs.mkdir(parents=True, exist_ok=True)
     _log_fp = open(  # noqa: SIM115 -- lifetime = process
-        logs / "paint_trace.log", "w", buffering=1, encoding="utf-8",
+        logs / "paint_trace.log",
+        "w",
+        buffering=1,
+        encoding="utf-8",
     )
     _log_fp.write(f"# session_start t={time.monotonic():.6f}\n")
     return _log_fp

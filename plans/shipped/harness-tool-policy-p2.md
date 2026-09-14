@@ -17,10 +17,10 @@ See the master `plans/harness-tool-policy.md`. The decisions binding this phase:
 - Scope trace: PREREQUISITE — p3 enforces containment inside `ToolInvoker.invoke`. Without this phase the chat and ambient path would keep calling `execute()` directly and would be exempt from every policy p3 adds.
 - `tokenpal/actions/invoker.py` — add the kwarg. Proposed (shape is contract; name and default are proposals):
   ```python
-  def __init__(self, on_call: CallRecord | None = None, *,
-               enforce_rate_limit: bool = True) -> None:
+  def __init__(self, on_call: CallRecord | None = None, *, enforce_rate_limit: bool = True) -> None:
       ...
       self._enforce_rate_limit = enforce_rate_limit
+
 
   # in invoke():
   limit = action.rate_limit if self._enforce_rate_limit else None

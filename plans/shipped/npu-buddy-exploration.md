@@ -302,9 +302,9 @@ windoze/
 **AbstractSense** (`senses/base.py`):
 ```python
 class AbstractSense(abc.ABC):
-    sense_name: ClassVar[str]            # e.g. "screen_capture"
+    sense_name: ClassVar[str]  # e.g. "screen_capture"
     platforms: ClassVar[tuple[str, ...]]  # ("windows", "darwin", "linux")
-    priority: ClassVar[int] = 100        # lower = preferred when multiple impls exist
+    priority: ClassVar[int] = 100  # lower = preferred when multiple impls exist
 
     async def setup(self) -> None: ...
     async def poll(self) -> SenseReading | None: ...  # None = nothing interesting
@@ -334,7 +334,7 @@ class AbstractOverlay(abc.ABC):
     def show_buddy(self, frame: BuddyFrame, x: int, y: int) -> None: ...
     def show_speech(self, bubble: SpeechBubble) -> None: ...
     def hide_speech(self) -> None: ...
-    def run_loop(self) -> None: ...              # blocks main thread
+    def run_loop(self) -> None: ...  # blocks main thread
     def schedule_callback(self, cb, delay_ms=0): ...  # thread-safe UI update
     def teardown(self) -> None: ...
 ```
@@ -347,6 +347,7 @@ class MssScreenCapture(AbstractSense):
     sense_name = "screen_capture"
     platforms = ("windows", "darwin", "linux")
     priority = 200  # generic fallback
+
 
 @register_sense
 class MacOSScreenCapture(AbstractSense):

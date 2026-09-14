@@ -13,10 +13,13 @@ from tokenpal.brain.idle_rules import (
 
 
 def _ctx(
-    *, now: datetime | None = None, session_minutes: int = 10,
+    *,
+    now: datetime | None = None,
+    session_minutes: int = 10,
     first_session_of_day: bool = False,
     active_readings: dict[str, Any] | None = None,
-    mood: str = "snarky", time_since_last_comment_s: float = 30.0,
+    mood: str = "snarky",
+    time_since_last_comment_s: float = 30.0,
     consent_web_fetches: bool = True,
     daily_streak_days: int = 0,
     install_age_days: int = 0,
@@ -45,6 +48,7 @@ class _ReadingStub:
 
 # -- evening_moon ------------------------------------------------------------
 
+
 def test_evening_moon_fires_in_window() -> None:
     rule = rule_by_name("evening_moon")
     assert rule is not None
@@ -63,6 +67,7 @@ def test_evening_moon_blocks_after_midnight() -> None:
 
 # -- morning_word / on_this_day / monday_joke -------------------------------
 
+
 def test_morning_word_requires_first_session() -> None:
     rule = rule_by_name("morning_word")
     early = datetime(2026, 4, 17, 8, 30)
@@ -72,20 +77,29 @@ def test_morning_word_requires_first_session() -> None:
 
 def test_morning_word_window_edges() -> None:
     rule = rule_by_name("morning_word")
-    assert rule.predicate(_ctx(
-        now=datetime(2026, 4, 17, 6, 0), first_session_of_day=True,
-    ))
-    assert rule.predicate(_ctx(
-        now=datetime(2026, 4, 17, 10, 59), first_session_of_day=True,
-    ))
-    assert not rule.predicate(_ctx(
-        now=datetime(2026, 4, 17, 11, 0), first_session_of_day=True,
-    ))
+    assert rule.predicate(
+        _ctx(
+            now=datetime(2026, 4, 17, 6, 0),
+            first_session_of_day=True,
+        )
+    )
+    assert rule.predicate(
+        _ctx(
+            now=datetime(2026, 4, 17, 10, 59),
+            first_session_of_day=True,
+        )
+    )
+    assert not rule.predicate(
+        _ctx(
+            now=datetime(2026, 4, 17, 11, 0),
+            first_session_of_day=True,
+        )
+    )
 
 
 def test_monday_joke_requires_monday() -> None:
     rule = rule_by_name("monday_joke")
-    monday = datetime(2026, 4, 13, 9, 0)   # Mon
+    monday = datetime(2026, 4, 13, 9, 0)  # Mon
     tuesday = datetime(2026, 4, 14, 9, 0)  # Tue
     assert rule.predicate(_ctx(now=monday, first_session_of_day=True))
     assert not rule.predicate(_ctx(now=tuesday, first_session_of_day=True))
@@ -99,6 +113,7 @@ def test_on_this_day_requires_first_morning() -> None:
 
 
 # -- weather_change ----------------------------------------------------------
+
 
 def test_weather_change_needs_changed_from() -> None:
     rule = rule_by_name("weather_change")
@@ -119,6 +134,7 @@ def test_weather_change_skips_when_no_reading() -> None:
 
 # -- long_focus_fact ---------------------------------------------------------
 
+
 def test_long_focus_fact_triggers_on_deep_focus_marker() -> None:
     rule = rule_by_name("long_focus_fact")
     reading = _ReadingStub(summary="Deep focus in Terminal")
@@ -133,6 +149,7 @@ def test_long_focus_fact_skips_without_marker() -> None:
 
 # -- deep_lull_trivia --------------------------------------------------------
 
+
 def test_deep_lull_trivia_needs_long_silence() -> None:
     rule = rule_by_name("deep_lull_trivia")
     assert rule.predicate(_ctx(time_since_last_comment_s=901))
@@ -141,12 +158,11 @@ def test_deep_lull_trivia_needs_long_silence() -> None:
 
 def test_deep_lull_trivia_blocked_in_focused_mood() -> None:
     rule = rule_by_name("deep_lull_trivia")
-    assert not rule.predicate(
-        _ctx(time_since_last_comment_s=1500, mood="focused")
-    )
+    assert not rule.predicate(_ctx(time_since_last_comment_s=1500, mood="focused"))
 
 
 # -- memory_recall (offline floor) ------------------------------------------
+
 
 def test_memory_recall_does_not_need_consent() -> None:
     rule = rule_by_name("memory_recall")
@@ -162,6 +178,7 @@ def test_memory_recall_requires_settled_session() -> None:
 
 
 # -- friday_wrap -------------------------------------------------------------
+
 
 def test_friday_wrap_fires_friday_afternoon_settled() -> None:
     rule = rule_by_name("friday_wrap")
@@ -203,6 +220,7 @@ def test_friday_wrap_blocks_too_early_or_too_late() -> None:
 
 # -- coffee_break ------------------------------------------------------------
 
+
 def test_coffee_break_requires_not_first_session() -> None:
     """morning_monologue owns the first-session slot; coffee_break is second-plus."""
     rule = rule_by_name("coffee_break")
@@ -243,6 +261,7 @@ def test_coffee_break_blocks_outside_window() -> None:
 
 # -- late_night_host ---------------------------------------------------------
 
+
 def test_late_night_host_fires_late() -> None:
     rule = rule_by_name("late_night_host")
     assert rule is not None
@@ -282,6 +301,7 @@ def test_late_night_host_blocks_busy_daytime() -> None:
 
 # -- git_shipped_callback ----------------------------------------------------
 
+
 class _GitStub:
     def __init__(self, summary: str = "", changed_from: str = "", msg: str = "") -> None:
         self.summary = summary
@@ -306,7 +326,9 @@ def test_git_shipped_blocks_wip_msg() -> None:
     rule = rule_by_name("git_shipped_callback")
     for msg in ("wip save", "tmp", "TODO cleanup later", "fixup! into prior"):
         reading = _GitStub(
-            summary="commit", changed_from="prev", msg=msg,
+            summary="commit",
+            changed_from="prev",
+            msg=msg,
         )
         ctx = _ctx(active_readings={"git": reading})
         assert not rule.predicate(ctx), f"WIP marker {msg!r} should block"
@@ -326,6 +348,7 @@ def test_git_shipped_blocks_without_git_reading() -> None:
 
 
 # -- streak_celebration ------------------------------------------------------
+
 
 class _ProductivityStub:
     def __init__(self, summary: str) -> None:
@@ -354,6 +377,7 @@ def test_streak_celebration_blocks_without_productivity_reading() -> None:
 
 
 # -- callback_streak / session_arc / habit_rehearsal / anniversary ----------
+
 
 def test_callback_streak_fires_after_three_days_settled() -> None:
     rule = rule_by_name("callback_streak")
@@ -427,6 +451,7 @@ def test_anniversary_blocks_non_milestones() -> None:
 
 # -- running-bit promotions --------------------------------------------------
 
+
 def test_long_focus_fact_is_running_bit() -> None:
     rule = rule_by_name("long_focus_fact")
     assert rule.running_bit
@@ -448,6 +473,7 @@ def test_lunar_override_is_running_bit() -> None:
 
 
 # -- catalog integrity -------------------------------------------------------
+
 
 def test_all_rules_have_unique_names() -> None:
     names = [r.name for r in M1_RULES]

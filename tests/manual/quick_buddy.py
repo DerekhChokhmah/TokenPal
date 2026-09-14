@@ -12,6 +12,7 @@ updatePaintNode percentiles every second.
 Env:
     TOKENPAL_QUICK_BUDDY_SECONDS=0   auto-quit after N seconds
 """
+
 from __future__ import annotations
 
 import os

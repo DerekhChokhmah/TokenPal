@@ -89,6 +89,4 @@ class MoonPhaseAction(AbstractAction):
         phase_value = moon.phase(date)
         name = _phase_name(phase_value)
         illum = _illumination_pct(phase_value)
-        return ActionResult(
-            output=f"{date.isoformat()}: {name} moon ({illum}% illuminated)"
-        )
+        return ActionResult(output=f"{date.isoformat()}: {name} moon ({illum}% illuminated)")

@@ -38,20 +38,30 @@ def _bare_brain(builder: ContextWindowBuilder) -> Brain:
 
 def test_sustained_idle_active_true_when_event_sustained() -> None:
     builder = ContextWindowBuilder()
-    builder.ingest([
-        _reading("idle", "User has been idle for 6 minutes",
-                 data={"event": "sustained", "tier": "medium"}),
-    ])
+    builder.ingest(
+        [
+            _reading(
+                "idle",
+                "User has been idle for 6 minutes",
+                data={"event": "sustained", "tier": "medium"},
+            ),
+        ]
+    )
     brain = _bare_brain(builder)
     assert brain._sustained_idle_active() is True
 
 
 def test_sustained_idle_active_false_for_returned_event() -> None:
     builder = ContextWindowBuilder()
-    builder.ingest([
-        _reading("idle", "User returned after 5 minutes away",
-                 data={"event": "returned", "tier": "medium"}),
-    ])
+    builder.ingest(
+        [
+            _reading(
+                "idle",
+                "User returned after 5 minutes away",
+                data={"event": "returned", "tier": "medium"},
+            ),
+        ]
+    )
     brain = _bare_brain(builder)
     assert brain._sustained_idle_active() is False
 
@@ -67,22 +77,28 @@ def test_pick_topic_demotes_unchanged_app_during_afk() -> None:
     """With sustained-idle + low activity + unchanged app summary, app_awareness
     should lose almost every topic pick."""
     builder = ContextWindowBuilder()
-    builder.ingest([
-        _reading("idle", "User has been idle for 6 minutes",
-                 data={"event": "sustained", "tier": "medium",
-                       "idle_minutes": 6}),
-        _reading("app_awareness", "Ghostty"),
-    ])
+    builder.ingest(
+        [
+            _reading(
+                "idle",
+                "User has been idle for 6 minutes",
+                data={"event": "sustained", "tier": "medium", "idle_minutes": 6},
+            ),
+            _reading("app_awareness", "Ghostty"),
+        ]
+    )
     builder.acknowledge()  # prev_summary["app_awareness"] = "Ghostty"
     # Re-ingest idle so its summary is fresh and also acknowledged-as-changed
     # is no longer the case... we want idle to be "fresh" relative to the prev.
-    builder.ingest([
-        _reading(
-            "idle",
-            "User has been idle for 7 minutes",
-            data={"event": "sustained", "tier": "medium", "idle_minutes": 7},
-        ),
-    ])
+    builder.ingest(
+        [
+            _reading(
+                "idle",
+                "User has been idle for 7 minutes",
+                data={"event": "sustained", "tier": "medium", "idle_minutes": 7},
+            ),
+        ]
+    )
 
     brain = _bare_brain(builder)
     picks = [brain._pick_topic() for _ in range(200)]
@@ -90,8 +106,7 @@ def test_pick_topic_demotes_unchanged_app_during_afk() -> None:
     app_picks = picks.count("app_awareness")
     # Idle should dominate; app_awareness should be heavily demoted.
     assert idle_picks > app_picks * 3, (
-        f"expected idle to dominate during AFK: idle={idle_picks} "
-        f"app={app_picks}"
+        f"expected idle to dominate during AFK: idle={idle_picks} app={app_picks}"
     )
 
 
@@ -99,12 +114,16 @@ def test_pick_topic_does_not_demote_when_app_changed() -> None:
     """If app_awareness changed (user just switched apps) the demotion shouldn't
     fire — change_bonus should still let it compete normally."""
     builder = ContextWindowBuilder()
-    builder.ingest([
-        _reading("idle", "User has been idle for 6 minutes",
-                 data={"event": "sustained", "tier": "medium",
-                       "idle_minutes": 6}),
-        _reading("app_awareness", "Ghostty"),
-    ])
+    builder.ingest(
+        [
+            _reading(
+                "idle",
+                "User has been idle for 6 minutes",
+                data={"event": "sustained", "tier": "medium", "idle_minutes": 6},
+            ),
+            _reading("app_awareness", "Ghostty"),
+        ]
+    )
     # prev_summary["app_awareness"] == "Safari" -> different from current
     builder._prev_summaries["app_awareness"] = "Safari"
 

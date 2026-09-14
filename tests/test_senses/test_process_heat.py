@@ -52,6 +52,7 @@ async def test_fires_after_sustained(monkeypatch) -> None:
     sense = _make()
     # Pretend first hot poll happened 30s ago
     import tokenpal.senses.process_heat.sense as mod
+
     t = [1000.0]
     monkeypatch.setattr(mod.time, "monotonic", lambda: t[0])
 
@@ -68,6 +69,7 @@ async def test_fires_after_sustained(monkeypatch) -> None:
 async def test_sensitive_app_name_scrubbed(monkeypatch) -> None:
     sense = _make()
     import tokenpal.senses.process_heat.sense as mod
+
     t = [1000.0]
     monkeypatch.setattr(mod.time, "monotonic", lambda: t[0])
 
@@ -85,6 +87,7 @@ async def test_sensitive_app_name_scrubbed(monkeypatch) -> None:
 async def test_electron_family_aggregated(monkeypatch) -> None:
     sense = _make()
     import tokenpal.senses.process_heat.sense as mod
+
     t = [1000.0]
     monkeypatch.setattr(mod.time, "monotonic", lambda: t[0])
 
@@ -108,6 +111,7 @@ async def test_electron_family_aggregated(monkeypatch) -> None:
 async def test_cool_emits_clear(monkeypatch) -> None:
     sense = _make()
     import tokenpal.senses.process_heat.sense as mod
+
     t = [1000.0]
     monkeypatch.setattr(mod.time, "monotonic", lambda: t[0])
 
@@ -125,6 +129,7 @@ async def test_cool_emits_clear(monkeypatch) -> None:
 async def test_kernel_tasks_skipped(monkeypatch) -> None:
     sense = _make()
     import tokenpal.senses.process_heat.sense as mod
+
     t = [1000.0]
     monkeypatch.setattr(mod.time, "monotonic", lambda: t[0])
 

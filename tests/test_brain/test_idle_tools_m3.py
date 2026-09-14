@@ -83,10 +83,7 @@ def _full_actions() -> dict[str, AbstractAction]:
     """All M3-catalog actions registered, web flag set per M3_NEEDS_WEB."""
     from tokenpal.brain.idle_tools_m3 import M3_NEEDS_WEB
 
-    return {
-        name: _make_action(name, web=name in M3_NEEDS_WEB)
-        for name in M3_CATALOG
-    }
+    return {name: _make_action(name, web=name in M3_NEEDS_WEB) for name in M3_CATALOG}
 
 
 def _llm_response(*, tool_calls: list[ToolCall] | None = None) -> LLMResponse:
@@ -135,9 +132,15 @@ async def test_llm_decline_returns_none_no_state_mutation() -> None:
 
 @pytest.mark.asyncio
 async def test_llm_picks_valid_tool_returns_fire_result() -> None:
-    llm = ScriptedLLM([_llm_response(tool_calls=[
-        ToolCall(id="t1", name="word_of_the_day", arguments={}),
-    ])])
+    llm = ScriptedLLM(
+        [
+            _llm_response(
+                tool_calls=[
+                    ToolCall(id="t1", name="word_of_the_day", arguments={}),
+                ]
+            )
+        ]
+    )
     tracker = FireTracker()
     roller = LLMInitiatedRoller(
         config=_config(),
@@ -157,9 +160,15 @@ async def test_llm_picks_valid_tool_returns_fire_result() -> None:
 
 @pytest.mark.asyncio
 async def test_out_of_catalog_tool_rejected() -> None:
-    llm = ScriptedLLM([_llm_response(tool_calls=[
-        ToolCall(id="t1", name="open_app", arguments={"name": "Mail"}),
-    ])])
+    llm = ScriptedLLM(
+        [
+            _llm_response(
+                tool_calls=[
+                    ToolCall(id="t1", name="open_app", arguments={"name": "Mail"}),
+                ]
+            )
+        ]
+    )
     roller = LLMInitiatedRoller(
         config=_config(),
         actions=_full_actions(),
@@ -180,9 +189,7 @@ async def test_consent_filters_web_tools_from_catalog() -> None:
         tracker=FireTracker(),
     )
     await roller.maybe_fire(_ctx(consent_web=False))
-    sent_tool_names = {
-        spec["function"]["name"] for spec in llm.calls[0][1]
-    }
+    sent_tool_names = {spec["function"]["name"] for spec in llm.calls[0][1]}
     # Only the offline subset survives.
     assert sent_tool_names == {"moon_phase", "sunrise_sunset", "memory_query"}
 
@@ -250,9 +257,15 @@ async def test_m3_cooldown_blocks_back_to_back_fires() -> None:
 @pytest.mark.asyncio
 async def test_memory_query_missing_metric_gets_sanitized_default() -> None:
     """LLM omits the required `metric` arg; sanitizer injects the default."""
-    llm = ScriptedLLM([_llm_response(tool_calls=[
-        ToolCall(id="t1", name="memory_query", arguments={}),
-    ])])
+    llm = ScriptedLLM(
+        [
+            _llm_response(
+                tool_calls=[
+                    ToolCall(id="t1", name="memory_query", arguments={}),
+                ]
+            )
+        ]
+    )
     actions = _full_actions()
     roller = LLMInitiatedRoller(
         config=_config(),
@@ -268,11 +281,15 @@ async def test_memory_query_missing_metric_gets_sanitized_default() -> None:
 
 @pytest.mark.asyncio
 async def test_consecutive_streak_increments_on_repeat_picks() -> None:
-    llm = ScriptedLLM([
-        _llm_response(tool_calls=[
-            ToolCall(id="t1", name="random_fact", arguments={}),
-        ]),
-    ])
+    llm = ScriptedLLM(
+        [
+            _llm_response(
+                tool_calls=[
+                    ToolCall(id="t1", name="random_fact", arguments={}),
+                ]
+            ),
+        ]
+    )
     tracker = FireTracker()
     roller = LLMInitiatedRoller(
         config=_config(),

@@ -31,8 +31,7 @@ ACTION_MODES: tuple[str, ...] = ("arm", "cancel", "list")
 
 _NO_BRAIN = "Reminders need a running brain; not available here."
 _ONE_FORM = (
-    "arm needs exactly one of every_min (a repeating interval) or "
-    "at (a daily time like '22:30')."
+    "arm needs exactly one of every_min (a repeating interval) or at (a daily time like '22:30')."
 )
 _NEED_LABEL = "label is required for arm -- what should I say when it fires?"
 # Never echo what tripped the filter into the reply: it is read aloud and
@@ -257,8 +256,7 @@ class ReminderAction(AbstractAction):
         if not armed:
             return ActionResult(output="Nothing armed.")
         lines = [
-            f"{n.id}  {n.label}  {_schedule_words(n.schedule)}  "
-            f"next {_when(n.next_due_at)}"
+            f"{n.id}  {n.label}  {_schedule_words(n.schedule)}  next {_when(n.next_due_at)}"
             for n in armed
         ]
         return ActionResult(output="\n".join(lines))

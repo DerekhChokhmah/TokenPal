@@ -83,6 +83,7 @@ def make_agent_log(overlay: AbstractOverlay) -> LogFn:
     desktop content out of the chat log and the log file, so it is built here
     rather than inline: a closure inside the wiring function cannot be tested.
     """
+
     def _agent_log(
         text: str,
         *,
@@ -106,11 +107,13 @@ def make_agent_log(overlay: AbstractOverlay) -> LogFn:
 
 
 def make_desktop_task_command(
-    brain: Brain, task: DesktopTask,
+    brain: Brain,
+    task: DesktopTask,
 ) -> Callable[[str], CommandResult]:
     """Handler for /proofread and /explain: enqueue and say nothing. The reply
     reaches the pane through the brain, not through a bubble — every bubble is
     persisted."""
+
     def _cmd(args: str) -> CommandResult:
         brain.submit_desktop_task(task, args.strip() or None)
         return CommandResult("")
@@ -165,9 +168,12 @@ def main() -> None:
     setup_logging(verbose=args.verbose, log_dir=data_dir / "logs")
 
     if args.validate:
-        sys.exit(run_validate(
-            config_path=args.config, overlay_override=args.overlay,
-        ))
+        sys.exit(
+            run_validate(
+                config_path=args.config,
+                overlay_override=args.overlay,
+            )
+        )
 
     if args.check:
         sys.exit(run_check(config_path=args.config))
@@ -175,6 +181,7 @@ def main() -> None:
     # First-run welcome wizard
     if not args.skip_welcome:
         from tokenpal.first_run import needs_first_run, run_wizard
+
         if needs_first_run(data_dir):
             run_wizard(data_dir)
             # Reload config in case the wizard wrote weather settings
@@ -244,8 +251,7 @@ def main() -> None:
 
     # Resolve implementations for this platform + config
     sense_flags = {
-        f.name: getattr(config.senses, f.name)
-        for f in dataclasses.fields(config.senses)
+        f.name: getattr(config.senses, f.name) for f in dataclasses.fields(config.senses)
     }
     sense_configs: dict[str, dict[str, Any]] = {}
     if memory:
@@ -304,6 +310,7 @@ def main() -> None:
     # mirror the change into the in-memory dataclass so /options reopens
     # with the up-to-date values.
     if hasattr(overlay, "set_chat_font_persist_callback"):
+
         def _persist_chat_font_bump(new_cfg: Any) -> None:
             _apply_font_change("chat_font", new_cfg, lambda _c: None)
             config.ui.chat_font = new_cfg
@@ -360,12 +367,10 @@ def main() -> None:
     # boot(), so swallow ImportError gracefully so a config drift doesn't
     # block startup.
     audio_pipeline = None
-    if (
-        config.audio.speak_ambient_enabled
-        or config.audio.voice_conversation_enabled
-    ):
+    if config.audio.speak_ambient_enabled or config.audio.voice_conversation_enabled:
         try:
             from tokenpal.audio.pipeline import boot as _boot_audio
+
             audio_pipeline = _boot_audio(config.audio, data_dir)
         except ImportError as e:
             log.warning(
@@ -380,14 +385,8 @@ def main() -> None:
         ui_callback=lambda text: _overlay_show(overlay, text),
         personality=personality,
         user_log_callback=overlay.log_user_message,
-        status_callback=lambda text: overlay.schedule_callback(
-            lambda: overlay.update_status(text)
-        ),
-        mood_callback=(
-            lambda role: overlay.schedule_callback(
-                lambda: overlay.set_mood(role)
-            )
-        ),
+        status_callback=lambda text: overlay.schedule_callback(lambda: overlay.update_status(text)),
+        mood_callback=(lambda role: overlay.schedule_callback(lambda: overlay.set_mood(role))),
         news_callback=overlay.add_news_items,
         memory=memory,
         actions=actions,
@@ -454,9 +453,7 @@ def main() -> None:
         sense_names = ", ".join(s.sense_name for s in senses)
         action_names = ", ".join(a.action_name for a in actions)
         return CommandResult(
-            f"Model: {llm.model_name} | "
-            f"Senses: {sense_names} | "
-            f"Actions: {action_names or 'none'}"
+            f"Model: {llm.model_name} | Senses: {sense_names} | Actions: {action_names or 'none'}"
         )
 
     def _cmd_model(args: str) -> CommandResult:
@@ -471,8 +468,14 @@ def main() -> None:
             return CommandResult("")
         prev_voice = personality.voice_name
         result = _handle_voice_command(
-            args, personality, data_dir / "voices", overlay, brain,
-            llm, config, on_voice_loaded=_load_voice_art,
+            args,
+            personality,
+            data_dir / "voices",
+            overlay,
+            brain,
+            llm,
+            config,
+            on_voice_loaded=_load_voice_art,
         )
         if personality.voice_name != prev_voice:
             brain.reset_conversation()
@@ -504,17 +507,20 @@ def main() -> None:
         if personality.voice_name:
             active_slug = slugify(personality.voice_name)
             active_summary = next(
-                (s for s in saved if s.slug == active_slug), None,
+                (s for s in saved if s.slug == active_slug),
+                None,
             )
         cloud_ready = False
         if config.cloud_llm.enabled:
             try:
                 from tokenpal.config.secrets import get_cloud_key
+
                 cloud_ready = bool(get_cloud_key())
             except Exception:
                 cloud_ready = False
         state = VoiceModalState(
-            active_voice=active_summary, saved=saved,
+            active_voice=active_summary,
+            saved=saved,
             cloud_ready=cloud_ready,
             voice_classifier_on=config.cloud_llm.voice_classifier,
         )
@@ -531,8 +537,12 @@ def main() -> None:
                 if name:
                     _run_voice_action(
                         lambda: _voice_switch(
-                            name, personality, voices_dir,
-                            llm, config, _load_voice_art,
+                            name,
+                            personality,
+                            voices_dir,
+                            llm,
+                            config,
+                            _load_voice_art,
                         )
                     )
             elif action == "train":
@@ -542,7 +552,10 @@ def main() -> None:
                     _run_voice_action(
                         lambda: _start_voice_training(
                             f"{wiki} {character}",
-                            personality, voices_dir, overlay, brain,
+                            personality,
+                            voices_dir,
+                            overlay,
+                            brain,
                             on_voice_loaded=_load_voice_art,
                         )
                     )
@@ -551,22 +564,30 @@ def main() -> None:
                 if name:
                     _run_voice_action(
                         lambda: _start_voice_finetune(
-                            name, personality, voices_dir, overlay,
-                            brain, llm, config,
+                            name,
+                            personality,
+                            voices_dir,
+                            overlay,
+                            brain,
+                            llm,
+                            config,
                         )
                     )
             elif action == "finetune_setup":
-                _run_voice_action(
-                    lambda: _start_finetune_setup(overlay, config)
-                )
+                _run_voice_action(lambda: _start_finetune_setup(overlay, config))
             elif action == "regenerate":
+
                 def _do_regen() -> None:
                     _run_voice_action(
                         lambda: _start_voice_regenerate(
-                            "", personality, voices_dir, overlay,
+                            "",
+                            personality,
+                            voices_dir,
+                            overlay,
                             on_voice_loaded=_load_voice_art,
                         )
                     )
+
                 if not overlay.open_confirm_modal(
                     "Regenerate all voice assets?",
                     "This runs a ~60s LLM job. Continue?",
@@ -576,7 +597,10 @@ def main() -> None:
             elif action == "ascii":
                 _run_voice_action(
                     lambda: _start_voice_regenerate_ascii(
-                        "", personality, voices_dir, overlay,
+                        "",
+                        personality,
+                        voices_dir,
+                        overlay,
                         on_voice_loaded=_load_voice_art,
                     )
                 )
@@ -585,20 +609,23 @@ def main() -> None:
                 if path:
                     _run_voice_action(
                         lambda: _import_gguf(
-                            path, personality, voices_dir, overlay, llm,
+                            path,
+                            personality,
+                            voices_dir,
+                            overlay,
+                            llm,
                         )
                     )
             elif action == "cloud_classifier":
                 from tokenpal.config.cloud_writer import (
                     set_cloud_voice_classifier,
                 )
+
                 enabled = payload.get("enabled") == "true"
                 set_cloud_voice_classifier(enabled)
                 config.cloud_llm.voice_classifier = enabled
                 status = "Haiku" if enabled else "local model"
-                overlay.log_buddy_message(
-                    f"ASCII classifier will use {status} on next train."
-                )
+                overlay.log_buddy_message(f"ASCII classifier will use {status} on next train.")
 
         return overlay.open_voice_modal(state, on_result)
 
@@ -659,17 +686,17 @@ def main() -> None:
 
                     if llm.model_name:
                         remember_server_model(llm.api_url, llm.model_name)
-                        config.llm.per_server_models[
-                            canon_server_url(llm.api_url)
-                        ] = llm.model_name
+                        config.llm.per_server_models[canon_server_url(llm.api_url)] = llm.model_name
                 except Exception:
                     log.exception(
-                        "Failed to persist visited server %s", llm.api_url,
+                        "Failed to persist visited server %s",
+                        llm.api_url,
                     )
 
             assert brain._loop is not None, "brain loop not started"
             asyncio.run_coroutine_threadsafe(
-                _setup_then_remember(), brain._loop,
+                _setup_then_remember(),
+                brain._loop,
             )
             try:
                 from tokenpal.config.toml_writer import update_config
@@ -719,12 +746,8 @@ def main() -> None:
             key_fingerprint=fingerprint(stored_key) if stored_key else None,
             tavily_enabled=cs.enabled,
             tavily_search_depth=cs.search_depth,
-            tavily_key_fingerprint=(
-                fingerprint(tavily_key) if tavily_key else None
-            ),
-            brave_key_fingerprint=(
-                fingerprint(brave_key) if brave_key else None
-            ),
+            tavily_key_fingerprint=(fingerprint(tavily_key) if tavily_key else None),
+            brave_key_fingerprint=(fingerprint(brave_key) if brave_key else None),
             refine_max_supplemental=cs.refine_max_supplemental,
         )
 
@@ -752,10 +775,7 @@ def main() -> None:
         # Build known-server list: configured local + configured remote +
         # every key already in per_server_models. Dedup via canon_server_url.
         local_url = "http://localhost:11434/v1"
-        remote_host = (
-            config.server.host if config.server.host != "127.0.0.1"
-            else "localhost"
-        )
+        remote_host = config.server.host if config.server.host != "127.0.0.1" else "localhost"
         remote_url = f"http://{remote_host}:{config.server.port}/v1"
         current_key = canon_server_url(llm.api_url)
 
@@ -774,6 +794,7 @@ def main() -> None:
 
         def _label_from_url(url: str) -> str:
             from urllib.parse import urlparse
+
             host = urlparse(url).hostname or url
             return host
 
@@ -812,9 +833,7 @@ def main() -> None:
             if target == "cloud":
                 _open_cloud_modal()
             elif target == "senses":
-                flag_fields = [
-                    f.name for f in dataclasses.fields(config.senses)
-                ]
+                flag_fields = [f.name for f in dataclasses.fields(config.senses)]
                 _open_senses_modal(flag_fields)
             elif target == "tools":
                 _open_tools_modal()
@@ -889,8 +908,7 @@ def main() -> None:
                         cl.background_opacity = new_op
                         overlay.set_chat_history_opacity(new_op)
                         overlay.log_buddy_message(
-                            f"/options: chat background opacity = "
-                            f"{int(round(new_op * 100))}%.",
+                            f"/options: chat background opacity = {int(round(new_op * 100))}%.",
                         )
                     except OSError as e:
                         overlay.log_buddy_message(
@@ -945,14 +963,16 @@ def main() -> None:
 
             if result.set_chat_font is not None:
                 _apply_font_change(
-                    "chat_font", result.set_chat_font,
+                    "chat_font",
+                    result.set_chat_font,
                     overlay.set_chat_font,
                 )
                 config.ui.chat_font = result.set_chat_font
                 overlay.log_buddy_message("/options: saved chat font.")
             if result.set_bubble_font is not None:
                 _apply_font_change(
-                    "bubble_font", result.set_bubble_font,
+                    "bubble_font",
+                    result.set_bubble_font,
                     overlay.set_bubble_font,
                 )
                 config.ui.bubble_font = result.set_bubble_font
@@ -965,13 +985,9 @@ def main() -> None:
                     cl.max_persisted = new_max
                     if memory is not None and cl.persist:
                         memory.set_chat_log_max_persisted(new_max)
-                    overlay.log_buddy_message(
-                        f"/options: saved max_persisted = {new_max}."
-                    )
+                    overlay.log_buddy_message(f"/options: saved max_persisted = {new_max}.")
                 except OSError as e:
-                    overlay.log_buddy_message(
-                        f"/options: could not write config: {e}"
-                    )
+                    overlay.log_buddy_message(f"/options: could not write config: {e}")
             if result.clear_history:
                 if memory is not None:
                     try:
@@ -988,6 +1004,7 @@ def main() -> None:
                 set_speak_typed_replies_enabled,
                 set_voice_conversation_enabled,
             )
+
             audio_changed_to_on = False
             for field_name, new_value, label, setter in (
                 (
@@ -1014,30 +1031,26 @@ def main() -> None:
                 try:
                     setter(new_value)
                     setattr(config.audio, field_name, new_value)
-                    overlay.log_buddy_message(
-                        f"/options: {label} {'on' if new_value else 'off'}."
-                    )
+                    overlay.log_buddy_message(f"/options: {label} {'on' if new_value else 'off'}.")
                     if new_value:
                         audio_changed_to_on = True
                 except OSError as e:
-                    overlay.log_buddy_message(
-                        f"/options: could not write config: {e}"
-                    )
+                    overlay.log_buddy_message(f"/options: could not write config: {e}")
             if audio_changed_to_on:
                 warning = format_warning(prefix="audio deps missing")
                 if warning:
                     overlay.log_buddy_message(f"/options: {warning}.")
 
         return overlay.open_options_modal(
-            state, on_save, on_open_subdialog=on_open_subdialog,
+            state,
+            on_save,
+            on_open_subdialog=on_open_subdialog,
         )
 
     def _cmd_options(_args: str) -> CommandResult:
         if _open_options_modal():
             return CommandResult("")
-        return CommandResult(
-            "/options: modal not available on this overlay."
-        )
+        return CommandResult("/options: modal not available on this overlay.")
 
     def _cmd_ask(args: str) -> CommandResult:
         from tokenpal.config.consent import Category, has_consent
@@ -1046,9 +1059,7 @@ def main() -> None:
         if not query:
             return CommandResult("Usage: /ask <question>")
         if not has_consent(Category.WEB_FETCHES):
-            return CommandResult(
-                "/ask needs web_fetches consent. Run /consent."
-            )
+            return CommandResult("/ask needs web_fetches consent. Run /consent.")
 
         def _run_ask() -> None:
             from rich.markup import escape as _esc
@@ -1079,18 +1090,15 @@ def main() -> None:
                 )
                 return
 
-            if (
-                contains_sensitive_content_term(result.text)
-                or contains_sensitive_content_term(result.title)
+            if contains_sensitive_content_term(result.text) or contains_sensitive_content_term(
+                result.title
             ):
                 log.debug(
                     "/ask result filtered (sensitive term) for query: %s",
                     query[:LOG_TRUNCATE_CHARS],
                 )
                 overlay.schedule_callback(
-                    lambda: overlay.log_buddy_message(
-                        "/ask → result filtered (sensitive term)"
-                    )
+                    lambda: overlay.log_buddy_message("/ask → result filtered (sensitive term)")
                 )
                 return
 
@@ -1106,7 +1114,7 @@ def main() -> None:
             backend_name = result.backend.replace('"', "")
             prompt = (
                 f"[User ran /ask: {query}]\n"
-                f"<search_result backend=\"{backend_name}\">\n"
+                f'<search_result backend="{backend_name}">\n'
                 f"{result.text}\n"
                 f"</search_result>\n"
                 "React in character — riff on the result, "
@@ -1176,9 +1184,7 @@ def main() -> None:
                 except OSError as e:
                     failures.append(f"{name}: {e}")
             if failures:
-                overlay.log_buddy_message(
-                    "/senses: some writes failed — " + "; ".join(failures)
-                )
+                overlay.log_buddy_message("/senses: some writes failed — " + "; ".join(failures))
             elif changes == 0:
                 overlay.log_buddy_message("/senses: no changes.")
             else:
@@ -1249,12 +1255,10 @@ def main() -> None:
     def _cmd_summary(args: str) -> CommandResult:
         if brain._loop is None:
             return CommandResult("/summary: brain loop not running yet.")
-        which = (args.strip().lower() or "yesterday")
+        which = args.strip().lower() or "yesterday"
         if which not in ("today", "yesterday"):
             return CommandResult("Usage: /summary [today|yesterday]")
-        future = asyncio.run_coroutine_threadsafe(
-            brain.run_eod_summary(which), brain._loop
-        )
+        future = asyncio.run_coroutine_threadsafe(brain.run_eod_summary(which), brain._loop)
         try:
             message = future.result(timeout=30)
         except TimeoutError:
@@ -1279,9 +1283,7 @@ def main() -> None:
         if subcmd in ("", "status"):
             active = brain.intent.get_raw()
             if active is None:
-                return CommandResult(
-                    "No intent set. Try /intent finish the auth PR."
-                )
+                return CommandResult("No intent set. Try /intent finish the auth PR.")
             age_s = time.time() - active.started_at
             age_min = int(age_s / 60)
             max_age_h = int(config.intent.max_age_s / 3600)
@@ -1294,9 +1296,7 @@ def main() -> None:
 
         if subcmd == "clear":
             cleared = brain.intent.clear()
-            return CommandResult(
-                "Intent cleared." if cleared else "No active intent to clear."
-            )
+            return CommandResult("Intent cleared." if cleared else "No active intent to clear.")
 
         # Anything else: treat the whole args as the intent text
         try:
@@ -1310,9 +1310,7 @@ def main() -> None:
         if not goal:
             return CommandResult("Usage: /agent <goal>")
         if "agent_mode" not in config.tools.enabled_tools:
-            return CommandResult(
-                "/agent is off. Enable 'agent_mode' in /tools and restart."
-            )
+            return CommandResult("/agent is off. Enable 'agent_mode' in /tools and restart.")
         if brain.agent_running:
             return CommandResult("/agent: already running. Wait for the current goal to finish.")
         brain.submit_agent_goal(goal)
@@ -1342,8 +1340,7 @@ def main() -> None:
             )
         if "research_followup" not in config.tools.enabled_tools:
             return CommandResult(
-                "/followup is off. Enable 'research_followup' in /tools and "
-                "restart."
+                "/followup is off. Enable 'research_followup' in /tools and restart."
             )
         brain.submit_followup_question(question)
         return CommandResult(f"Following up: {question[:60]}")
@@ -1355,9 +1352,7 @@ def main() -> None:
         if not question:
             return CommandResult("Usage: /research <question>")
         if "research_mode" not in config.tools.enabled_tools:
-            return CommandResult(
-                "/research is off. Enable 'research_mode' in /tools and restart."
-            )
+            return CommandResult("/research is off. Enable 'research_mode' in /tools and restart.")
         if not has_consent(Category.RESEARCH_MODE) or not has_consent(Category.WEB_FETCHES):
             return CommandResult(
                 "/research needs research_mode + web_fetches consent. Run /consent."
@@ -1414,21 +1409,16 @@ def main() -> None:
                 lines.append("  (no implementation registered yet)")
             else:
                 lines.append(f"  platforms: {', '.join(cls.platforms)}")
-                lines.append(
-                    f"  safe: {cls.safe}, requires_confirm: {cls.requires_confirm}"
-                )
+                lines.append(f"  safe: {cls.safe}, requires_confirm: {cls.requires_confirm}")
                 if cls.rate_limit is not None:
                     lines.append(
-                        f"  rate_limit: {cls.rate_limit.max_calls}/"
-                        f"{cls.rate_limit.window_s:g}s"
+                        f"  rate_limit: {cls.rate_limit.max_calls}/{cls.rate_limit.window_s:g}s"
                     )
                 if not cls.cacheable:
                     lines.append("  cacheable: false")
             return CommandResult("\n".join(lines))
 
-        return CommandResult(
-            "Usage: /tools [list|describe <name>] — omit args to open picker."
-        )
+        return CommandResult("Usage: /tools [list|describe <name>] — omit args to open picker.")
 
     def _cmd_consent(args: str) -> CommandResult:
         from tokenpal.config.consent import ALL_CATEGORIES, load_consent, save_consent
@@ -1502,17 +1492,14 @@ def main() -> None:
             if not target:
                 return CommandResult(f"Usage: /senses {subcmd} <sense_name>")
             if target not in flag_fields:
-                return CommandResult(
-                    f"Unknown sense '{target}'. Try /senses list."
-                )
+                return CommandResult(f"Unknown sense '{target}'. Try /senses list.")
             try:
                 path = set_sense_enabled(target, subcmd == "enable")
             except OSError as e:
                 return CommandResult(f"/senses: could not write config: {e}")
             verb = "enabled" if subcmd == "enable" else "disabled"
             return CommandResult(
-                f"{target} {verb} in {path.name}. "
-                "Restart TokenPal for the change to take effect."
+                f"{target} {verb} in {path.name}. Restart TokenPal for the change to take effect."
             )
 
         return CommandResult("Usage: /senses [list|enable <name>|disable <name>]")
@@ -1550,17 +1537,14 @@ def main() -> None:
             if not target:
                 return CommandResult(f"Usage: /idle_tools {subcmd} <rule_name>")
             if rule_by_name(target) is None:
-                return CommandResult(
-                    f"Unknown idle rule '{target}'. Try /idle_tools list."
-                )
+                return CommandResult(f"Unknown idle rule '{target}'. Try /idle_tools list.")
             try:
                 path = set_idle_rule_enabled(target, subcmd == "enable")
             except OSError as e:
                 return CommandResult(f"/idle_tools: could not write config: {e}")
             verb = "enabled" if subcmd == "enable" else "disabled"
             return CommandResult(
-                f"{target} {verb} in {path.name}. "
-                "Restart TokenPal for the change to take effect."
+                f"{target} {verb} in {path.name}. Restart TokenPal for the change to take effect."
             )
 
         if subcmd in ("llm_on", "llm_off"):
@@ -1594,9 +1578,7 @@ def main() -> None:
                 )
             roll_rule = rule_by_name(target)
             if roll_rule is None:
-                return CommandResult(
-                    f"Unknown idle rule '{target}'. Try /idle_tools list."
-                )
+                return CommandResult(f"Unknown idle rule '{target}'. Try /idle_tools list.")
 
             def _run_roll() -> None:
                 async def _go() -> None:
@@ -1661,8 +1643,10 @@ def main() -> None:
                 except (OSError, ValueError) as e:
                     msg = f"/wifi: could not write config: {e}"
                 else:
-                    hint = "" if config.senses.network_state else (
-                        " (also run /senses enable network_state to turn the sense on)"
+                    hint = (
+                        ""
+                        if config.senses.network_state
+                        else (" (also run /senses enable network_state to turn the sense on)")
                     )
                     msg = (
                         f"Labeled current wifi as '{label}' in {path.name}. "
@@ -1691,9 +1675,7 @@ def main() -> None:
         if subcmd in ("", "list"):
             source = "config.toml" if configured else "defaults"
             rows = [f"  {p}" for p in effective] or ["  (none)"]
-            return CommandResult(
-                f"Watch roots ({source}):\n" + "\n".join(rows)
-            )
+            return CommandResult(f"Watch roots ({source}):\n" + "\n".join(rows))
 
         if subcmd in ("add", "remove"):
             if not target:
@@ -1706,12 +1688,13 @@ def main() -> None:
             except OSError as e:
                 return CommandResult(f"/watch: could not write config: {e}")
             verb = "added" if subcmd == "add" else "removed"
-            hint = "" if config.senses.filesystem_pulse else (
-                " (also run /senses enable filesystem_pulse to turn the sense on)"
+            hint = (
+                ""
+                if config.senses.filesystem_pulse
+                else (" (also run /senses enable filesystem_pulse to turn the sense on)")
             )
             return CommandResult(
-                f"{verb} {abs_path} in {path.name}. "
-                f"Restart TokenPal to apply.{hint}"
+                f"{verb} {abs_path} in {path.name}. Restart TokenPal to apply.{hint}"
             )
 
         return CommandResult("Usage: /watch [list|add <path>|remove <path>]")
@@ -1721,6 +1704,7 @@ def main() -> None:
         if not expr:
             return CommandResult("Usage: /math <expression>")
         from tokenpal.actions.do_math import MathError, safe_eval
+
         try:
             result = safe_eval(expr)
         except MathError as e:
@@ -1845,11 +1829,16 @@ def main() -> None:
         memory.set_chat_log_max_persisted(
             config.chat_log.max_persisted if config.chat_log.persist else 0
         )
+
         def _persist_chat(
-            speaker: str, text: str, url: str | None,
+            speaker: str,
+            text: str,
+            url: str | None,
         ) -> None:
             memory.record_chat_entry(
-                speaker=speaker, text=text, url=url,
+                speaker=speaker,
+                text=text,
+                url=url,
             )
 
         def _clear_chat() -> None:
@@ -1860,9 +1849,7 @@ def main() -> None:
         # Hydrate the chat log before the brain thread starts emitting.
         if config.chat_log.persist and config.chat_log.hydrate_on_start > 0:
             try:
-                entries = memory.get_recent_chat_entries(
-                    config.chat_log.hydrate_on_start
-                )
+                entries = memory.get_recent_chat_entries(config.chat_log.hydrate_on_start)
                 if entries:
                     overlay.load_chat_history(entries)
             except Exception as exc:
@@ -1965,13 +1952,16 @@ def _handle_gh_command(subcmd: str, extra: str) -> CommandResult:
         try:
             out = subprocess.run(
                 ["git", "log", f"-{count}", "--oneline", "--no-color"],
-                capture_output=True, text=True, timeout=5,
+                capture_output=True,
+                text=True,
+                timeout=5,
             )
             if out.returncode != 0:
                 return CommandResult("", error=out.stderr.strip() or "git log failed")
             stdout = out.stdout.strip()
             return CommandResult(
-                stdout or "", error="No commits found." if not stdout else None,
+                stdout or "",
+                error="No commits found." if not stdout else None,
             )
         except Exception as e:
             return CommandResult("", error=f"git log failed: {e}")
@@ -1983,13 +1973,16 @@ def _handle_gh_command(subcmd: str, extra: str) -> CommandResult:
     try:
         out = subprocess.run(
             ["gh", gh_cmd, "list", "--limit", "5"],
-            capture_output=True, text=True, timeout=10,
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         if out.returncode != 0:
             return CommandResult("", error=out.stderr.strip() or f"gh {gh_cmd} list failed")
         stdout = out.stdout.strip()
         return CommandResult(
-            stdout or "", error=f"No open {subcmd}." if not stdout else None,
+            stdout or "",
+            error=f"No open {subcmd}." if not stdout else None,
         )
     except Exception as e:
         return CommandResult("", error=f"gh failed: {e}")
@@ -2065,7 +2058,8 @@ def _apply_cloud_modal_result(result: Any, config: TokenPalConfig) -> None:
             set_cloud_search_layer_enabled(result.tavily_enabled)
         except OSError as e:
             log.warning(
-                "cloud modal: could not persist cloud_search enabled: %s", e,
+                "cloud modal: could not persist cloud_search enabled: %s",
+                e,
             )
         cs.enabled = result.tavily_enabled
 
@@ -2080,7 +2074,8 @@ def _apply_cloud_modal_result(result: Any, config: TokenPalConfig) -> None:
                 update_config(_mutate_depth)
             except OSError as e:
                 log.warning(
-                    "cloud modal: could not persist search_depth: %s", e,
+                    "cloud modal: could not persist search_depth: %s",
+                    e,
                 )
             cs.search_depth = depth  # type: ignore[assignment]
 
@@ -2102,14 +2097,13 @@ def _apply_cloud_modal_result(result: Any, config: TokenPalConfig) -> None:
             from tokenpal.config.toml_writer import update_config
 
             def _mutate_refine(data: dict[str, Any]) -> None:
-                data.setdefault("cloud_search", {})[
-                    "refine_max_supplemental"
-                ] = refine_max
+                data.setdefault("cloud_search", {})["refine_max_supplemental"] = refine_max
 
             update_config(_mutate_refine)
         except OSError as e:
             log.warning(
-                "cloud modal: could not persist refine_max_supplemental: %s", e,
+                "cloud modal: could not persist refine_max_supplemental: %s",
+                e,
             )
         cs.refine_max_supplemental = refine_max
 
@@ -2117,9 +2111,14 @@ def _apply_cloud_modal_result(result: Any, config: TokenPalConfig) -> None:
         "cloud modal: enabled=%s synth=%s plan=%s deep=%s search=%s "
         "model=%s tavily_enabled=%s tavily_depth=%s tavily_key=%s "
         "brave_key=%s",
-        cfg.enabled, cfg.research_synth, cfg.research_plan,
-        cfg.research_deep, cfg.research_search, cfg.model,
-        cs.enabled, cs.search_depth,
+        cfg.enabled,
+        cfg.research_synth,
+        cfg.research_plan,
+        cfg.research_deep,
+        cfg.research_search,
+        cfg.model,
+        cs.enabled,
+        cs.search_depth,
         "set" if get_tavily_key() else "unset",
         "set" if get_brave_key() else "unset",
     )
@@ -2201,10 +2200,7 @@ def _refine_gate_error(config: TokenPalConfig) -> str | None:
             "or set research_synth = true under [cloud_llm] in config.toml."
         )
     if not get_cloud_key():
-        return (
-            "/refine: no Anthropic API key stored. "
-            "Run /cloud anthropic enable <sk-ant-...>."
-        )
+        return "/refine: no Anthropic API key stored. Run /cloud anthropic enable <sk-ant-...>."
     try:
         import anthropic  # noqa: F401
     except ImportError:
@@ -2225,6 +2221,7 @@ def _anthropic_status_line(config: TokenPalConfig) -> str:
     if not key:
         return "Anthropic: enabled but no key — run /cloud anthropic enable <key>"
     from tokenpal.llm.cloud_backend import DEEP_MODE_MODELS
+
     flags: list[str] = []
     if cfg.research_synth:
         flags.append("synth")
@@ -2316,9 +2313,7 @@ def _handle_cloud_tavily(sub: str, target: str, config: TokenPalConfig) -> Comma
         cfg.enabled = False
         return CommandResult("Tavily search layer disabled and key wiped.")
 
-    return CommandResult(
-        "Usage: /cloud tavily [status|enable <key>|disable|forget]"
-    )
+    return CommandResult("Usage: /cloud tavily [status|enable <key>|disable|forget]")
 
 
 def _brave_status_line() -> str:
@@ -2419,13 +2414,10 @@ def _handle_cloud_anthropic(subcmd: str, target: str, config: TokenPalConfig) ->
     if subcmd == "model":
         if not target:
             return CommandResult(
-                f"Usage: /cloud model <id>. Choose from: "
-                f"{', '.join(ALLOWED_MODELS)}"
+                f"Usage: /cloud model <id>. Choose from: {', '.join(ALLOWED_MODELS)}"
             )
         if target not in ALLOWED_MODELS:
-            return CommandResult(
-                f"Unknown model '{target}'. Allowed: {', '.join(ALLOWED_MODELS)}"
-            )
+            return CommandResult(f"Unknown model '{target}'. Allowed: {', '.join(ALLOWED_MODELS)}")
         try:
             set_cloud_model(target)
         except OSError as e:
@@ -2456,6 +2448,7 @@ def _handle_cloud_anthropic(subcmd: str, target: str, config: TokenPalConfig) ->
 
     if subcmd == "deep":
         from tokenpal.llm.cloud_backend import DEEP_MODE_MODELS
+
         if target.lower() in ("on", "true", "enable"):
             new_val = True
         elif target.lower() in ("off", "false", "disable"):
@@ -2463,9 +2456,9 @@ def _handle_cloud_anthropic(subcmd: str, target: str, config: TokenPalConfig) ->
         else:
             state = "on" if cfg.research_deep else "off"
             needs = (
-                "" if cfg.model in DEEP_MODE_MODELS
-                else f"\nNote: deep mode requires Sonnet 4.6+ "
-                     f"(current model: {cfg.model})."
+                ""
+                if cfg.model in DEEP_MODE_MODELS
+                else f"\nNote: deep mode requires Sonnet 4.6+ (current model: {cfg.model})."
             )
             return CommandResult(
                 f"Cloud deep mode: {state}. "
@@ -2502,6 +2495,7 @@ def _handle_cloud_anthropic(subcmd: str, target: str, config: TokenPalConfig) ->
 
     if subcmd == "search":
         from tokenpal.llm.cloud_backend import DEEP_MODE_MODELS
+
         if target.lower() in ("on", "true", "enable"):
             new_val = True
         elif target.lower() in ("off", "false", "disable"):
@@ -2509,9 +2503,9 @@ def _handle_cloud_anthropic(subcmd: str, target: str, config: TokenPalConfig) ->
         else:
             state = "on" if cfg.research_search else "off"
             needs = (
-                "" if cfg.model in DEEP_MODE_MODELS
-                else f"\nNote: search mode requires Sonnet 4.6+ "
-                     f"(current model: {cfg.model})."
+                ""
+                if cfg.model in DEEP_MODE_MODELS
+                else f"\nNote: search mode requires Sonnet 4.6+ (current model: {cfg.model})."
             )
             return CommandResult(
                 f"Cloud search mode: {state}. "
@@ -2524,8 +2518,7 @@ def _handle_cloud_anthropic(subcmd: str, target: str, config: TokenPalConfig) ->
         if new_val and cfg.model not in DEEP_MODE_MODELS:
             allowed = ", ".join(sorted(DEEP_MODE_MODELS))
             return CommandResult(
-                f"Search mode requires one of: {allowed}. "
-                f"Current model is {cfg.model}."
+                f"Search mode requires one of: {allowed}. Current model is {cfg.model}."
             )
         try:
             set_cloud_search(new_val)
@@ -2536,7 +2529,8 @@ def _handle_cloud_anthropic(subcmd: str, target: str, config: TokenPalConfig) ->
         override = (
             "\nNote: /cloud deep is also on — deep takes precedence. "
             "Run /cloud deep off to use search mode."
-            if new_val and cfg.research_deep else ""
+            if new_val and cfg.research_deep
+            else ""
         )
         return CommandResult(f"Cloud search mode turned {verb}.{override}")
 
@@ -2547,7 +2541,8 @@ def _handle_cloud_anthropic(subcmd: str, target: str, config: TokenPalConfig) ->
 
 
 def _handle_voice_io_command(
-    args: str, config: TokenPalConfig,
+    args: str,
+    config: TokenPalConfig,
 ) -> CommandResult:
     """Handle /voice-io — terse audio I/O toggles for headless / muscle-memory use.
 
@@ -2671,9 +2666,7 @@ def _handle_model_command(
 
     parts = args.strip().split(maxsplit=1)
     subcmd = parts[0].lower() if parts else ""
-    inference_engine = (
-        config.llm.inference_engine if config is not None else "ollama"
-    )
+    inference_engine = config.llm.inference_engine if config is not None else "ollama"
     subargs = parts[1].strip() if len(parts) > 1 else ""
 
     # No args → show current model
@@ -2681,9 +2674,7 @@ def _handle_model_command(
         return CommandResult(f"Current model: {llm.model_name}")
 
     if subcmd in ("list", "pull", "browse") and inference_engine == "llamacpp":
-        return CommandResult(
-            "llama-server manages GGUFs manually — see docs/amd-dgpu-setup.md"
-        )
+        return CommandResult("llama-server manages GGUFs manually — see docs/amd-dgpu-setup.md")
 
     if subcmd == "list":
         try:
@@ -2712,60 +2703,50 @@ def _handle_model_command(
             import subprocess
 
             bubble = SpeechBubble(
-                text=f"Downloading {model}...", persistent=True,
+                text=f"Downloading {model}...",
+                persistent=True,
             )
             overlay.schedule_callback(lambda: overlay.show_speech(bubble))
-            overlay.schedule_callback(
-                lambda: overlay.update_status(f"Pulling {model}...")
-            )
+            overlay.schedule_callback(lambda: overlay.update_status(f"Pulling {model}..."))
             try:
                 result = subprocess.run(
                     ["ollama", "pull", model],
-                    capture_output=True, text=True, timeout=600,
+                    capture_output=True,
+                    text=True,
+                    timeout=600,
                 )
                 if result.returncode == 0:
-                    _overlay_finalize(
-                        overlay, f"Got {model}! /model {model} to use it."
-                    )
+                    _overlay_finalize(overlay, f"Got {model}! /model {model} to use it.")
                 else:
                     err = (result.stderr or "unknown error").strip()[:60]
                     _overlay_finalize(overlay, f"Pull failed: {err}")
             except Exception:
                 _overlay_finalize(overlay, "Pull failed. Check logs.")
             finally:
-                overlay.schedule_callback(
-                    lambda: overlay.update_status("")
-                )
+                overlay.schedule_callback(lambda: overlay.update_status(""))
 
         threading.Thread(
-            target=_pull, daemon=True, name="model-pull",
+            target=_pull,
+            daemon=True,
+            name="model-pull",
         ).start()
         return CommandResult("")
 
     if subcmd == "browse":
         lines = [f"{n} — {d}" for n, d in _RECOMMENDED_MODELS]
         return CommandResult(
-            "Recommended: " + " | ".join(lines)
-            + " — /model pull <name> to download"
+            "Recommended: " + " | ".join(lines) + " — /model pull <name> to download"
         )
 
     # Bare name → switch model for the CURRENT server and remember it there.
     # Does NOT touch the global [llm] model_name fallback.
     llm.set_model(subcmd)
-    if (
-        hasattr(llm, "refresh_capability")
-        and brain is not None
-        and brain._loop is not None
-    ):
+    if hasattr(llm, "refresh_capability") and brain is not None and brain._loop is not None:
         try:
             asyncio.run_coroutine_threadsafe(llm.refresh_capability(), brain._loop)
         except Exception:
             log.exception("Failed to schedule capability refresh for %s", subcmd)
-    if (
-        hasattr(llm, "warmup")
-        and brain is not None
-        and brain._loop is not None
-    ):
+    if hasattr(llm, "warmup") and brain is not None and brain._loop is not None:
         try:
             asyncio.run_coroutine_threadsafe(llm.warmup(), brain._loop)
         except Exception:
@@ -2790,6 +2771,7 @@ _VOICE_USAGE = (
 
 def _voice_list(voices_dir: Path) -> CommandResult:
     from tokenpal.tools.voice_profile import list_profiles
+
     profiles = list_profiles(voices_dir)
     if not profiles:
         return CommandResult("No voices saved yet.")
@@ -2811,6 +2793,7 @@ def _voice_off(
     config: TokenPalConfig | None = None,
 ) -> CommandResult:
     from tokenpal.tools.train_voice import activate_voice
+
     was_finetuned = personality.is_finetuned
     personality.set_voice(None)
     if was_finetuned and llm and config:
@@ -2829,6 +2812,7 @@ def _voice_switch(
 ) -> CommandResult:
     from tokenpal.tools.train_voice import activate_voice
     from tokenpal.tools.voice_profile import load_profile, slugify
+
     if not args:
         return CommandResult("Usage: /voice switch <name>")
     try:
@@ -2875,16 +2859,31 @@ def _handle_voice_command(
         return _voice_off(personality, llm, config)
     if subcmd == "switch":
         return _voice_switch(
-            subargs, personality, voices_dir, llm, config, on_voice_loaded,
+            subargs,
+            personality,
+            voices_dir,
+            llm,
+            config,
+            on_voice_loaded,
         )
     if subcmd == "train":
         return _start_voice_training(
-            subargs, personality, voices_dir, overlay, brain,
+            subargs,
+            personality,
+            voices_dir,
+            overlay,
+            brain,
             on_voice_loaded=on_voice_loaded,
         )
     if subcmd == "finetune":
         return _start_voice_finetune(
-            subargs, personality, voices_dir, overlay, brain, llm, config,
+            subargs,
+            personality,
+            voices_dir,
+            overlay,
+            brain,
+            llm,
+            config,
         )
     if subcmd == "finetune-setup":
         return _start_finetune_setup(overlay, config)
@@ -2892,12 +2891,18 @@ def _handle_voice_command(
         return _import_gguf(subargs, personality, voices_dir, overlay, llm)
     if subcmd == "regenerate":
         return _start_voice_regenerate(
-            subargs, personality, voices_dir, overlay,
+            subargs,
+            personality,
+            voices_dir,
+            overlay,
             on_voice_loaded=on_voice_loaded,
         )
     if subcmd == "ascii":
         return _start_voice_regenerate_ascii(
-            subargs, personality, voices_dir, overlay,
+            subargs,
+            personality,
+            voices_dir,
+            overlay,
             on_voice_loaded=on_voice_loaded,
         )
     return CommandResult(_VOICE_USAGE)
@@ -2932,9 +2937,7 @@ def _start_voice_training(
     """Kick off wiki voice training in a background thread."""
     parts = args.split(maxsplit=1)
     if len(parts) < 2:
-        return CommandResult(
-            'Usage: /voice train <wiki> "<character>"'
-        )
+        return CommandResult('Usage: /voice train <wiki> "<character>"')
 
     wiki = parts[0]
     character = parts[1].strip("\"'")
@@ -2949,7 +2952,9 @@ def _start_voice_training(
                 _overlay_status(overlay, f"Training: {step}")
 
             profile = train_from_wiki(
-                wiki, character, voices_dir=voices_dir,
+                wiki,
+                character,
+                voices_dir=voices_dir,
                 progress_callback=_on_progress,
             )
             if profile is None:
@@ -2960,12 +2965,12 @@ def _start_voice_training(
             activate_voice(slugify(profile.character))
             if on_voice_loaded:
                 overlay.schedule_callback(on_voice_loaded)
-            _overlay_finalize(
-                overlay, f"I'm {character} now! ({len(profile.lines)} lines)"
-            )
+            _overlay_finalize(overlay, f"I'm {character} now! ({len(profile.lines)} lines)")
             log.info(
                 "Voice trained: %s from %s (%d lines)",
-                character, wiki, len(profile.lines),
+                character,
+                wiki,
+                len(profile.lines),
             )
 
         except Exception:
@@ -3000,9 +3005,7 @@ def _start_voice_regenerate(
     if not args.strip():
         # Regenerate current voice
         if not personality.voice_name:
-            return CommandResult(
-                "No active voice. Usage: /voice regenerate <name> or --all"
-            )
+            return CommandResult("No active voice. Usage: /voice regenerate <name> or --all")
         slugs = [slugify(personality.voice_name)]
     elif do_all:
         profiles = list_profiles(voices_dir)
@@ -3027,7 +3030,9 @@ def _start_voice_regenerate(
                     _overlay_show(overlay, step, persistent=True)
 
                 regenerate_voice_assets(
-                    profile, voices_dir, progress_callback=_on_progress,
+                    profile,
+                    voices_dir,
+                    progress_callback=_on_progress,
                 )
 
             count = len(slugs)
@@ -3050,7 +3055,9 @@ def _start_voice_regenerate(
     _overlay_show(overlay, f"Regenerating {label}...", persistent=True)
 
     regen_thread = threading.Thread(
-        target=_regen, daemon=True, name="voice-regen",
+        target=_regen,
+        daemon=True,
+        name="voice-regen",
     )
     regen_thread.start()
     return CommandResult("")
@@ -3069,9 +3076,7 @@ def _start_voice_regenerate_ascii(
     do_all = args.strip().lower() == "--all"
     if not args.strip():
         if not personality.voice_name:
-            return CommandResult(
-                "No active voice. Usage: /voice ascii <name> or --all"
-            )
+            return CommandResult("No active voice. Usage: /voice ascii <name> or --all")
         slugs = [slugify(personality.voice_name)]
     elif do_all:
         profiles = list_profiles(voices_dir)
@@ -3096,7 +3101,9 @@ def _start_voice_regenerate_ascii(
                     _overlay_show(overlay, step, persistent=True)
 
                 regenerate_ascii_art(
-                    profile, voices_dir, progress_callback=_on_progress,
+                    profile,
+                    voices_dir,
+                    progress_callback=_on_progress,
                 )
 
             count = len(slugs)
@@ -3118,7 +3125,9 @@ def _start_voice_regenerate_ascii(
     _overlay_show(overlay, f"Regenerating ASCII for {label}...", persistent=True)
 
     regen_thread = threading.Thread(
-        target=_regen, daemon=True, name="voice-ascii-regen",
+        target=_regen,
+        daemon=True,
+        name="voice-ascii-regen",
     )
     regen_thread.start()
     return CommandResult("")
@@ -3146,9 +3155,7 @@ def _start_voice_finetune(
         return CommandResult(f"Voice '{args}' not found. Train it first with /voice train.")
 
     if not config or not config.finetune.remote.host:
-        return CommandResult(
-            "No remote GPU configured. Set [finetune.remote] host in config.toml"
-        )
+        return CommandResult("No remote GPU configured. Set [finetune.remote] host in config.toml")
 
     def _finetune() -> None:
         try:
@@ -3159,12 +3166,11 @@ def _start_voice_finetune(
                 _overlay_status(overlay, f"Fine-tuning: {step}")
 
             loop = asyncio.new_event_loop()
-            loop.run_until_complete(
-                remote_finetune(profile, config.finetune, _on_progress)
-            )
+            loop.run_until_complete(remote_finetune(profile, config.finetune, _on_progress))
             loop.close()
 
             from datetime import datetime
+
             model_name = f"tokenpal-{slug}"
             profile.finetuned_model = model_name
             profile.finetuned_base = config.finetune.base_model
@@ -3202,9 +3208,7 @@ def _start_finetune_setup(
 ) -> CommandResult:
     """Run one-time remote training environment setup."""
     if not config or not config.finetune.remote.host:
-        return CommandResult(
-            "No remote GPU configured. Set [finetune.remote] host in config.toml"
-        )
+        return CommandResult("No remote GPU configured. Set [finetune.remote] host in config.toml")
 
     def _setup() -> None:
         try:
@@ -3215,9 +3219,7 @@ def _start_finetune_setup(
                 _overlay_status(overlay, f"Setup: {step}")
 
             loop = asyncio.new_event_loop()
-            ok = loop.run_until_complete(
-                remote_setup(config.finetune.remote, _on_progress)
-            )
+            ok = loop.run_until_complete(remote_setup(config.finetune.remote, _on_progress))
             loop.close()
 
             if ok:
@@ -3266,8 +3268,7 @@ def _import_gguf(
         profile = load_profile(slug, voices_dir)
     except FileNotFoundError:
         return CommandResult(
-            f"No voice profile for '{slug}'. "
-            f"Train the voice first with /voice train."
+            f"No voice profile for '{slug}'. Train the voice first with /voice train."
         )
 
     # Register with Ollama
@@ -3280,6 +3281,7 @@ def _import_gguf(
 
     # Update profile
     from datetime import datetime
+
     profile.finetuned_model = model_name
     profile.finetuned_base = "imported"
     profile.finetuned_date = datetime.now().isoformat(timespec="seconds")

@@ -17,6 +17,7 @@ def set_chat_log_width(width: int) -> Path:
 
     Caller is responsible for bounds-clamping before persisting.
     """
+
     def mutate(data: dict[str, Any]) -> None:
         data.setdefault("ui", {})["chat_log_width"] = int(width)
 

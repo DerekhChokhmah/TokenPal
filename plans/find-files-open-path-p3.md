@@ -17,10 +17,14 @@ See the master `plans/find-files-open-path.md`. The decisions binding this phase
   @register_action
   class OpenPathAction(AbstractAction):
       action_name = "open_path"
-      description = ("Open a document, image, or media file from [paths] allowed_dirs "
-                     "with its default app. Never runs programs; use open_app for apps.")
-      parameters = {"path": str (required)}
-      safe = False; requires_confirm = True; cacheable = False
+      description = (
+          "Open a document, image, or media file from [paths] allowed_dirs "
+          "with its default app. Never runs programs; use open_app for apps."
+      )
+      parameters = {"path": str(required)}
+      safe = False
+      requires_confirm = True
+      cacheable = False
   ```
   `execute` order, each refusal a one-line `ActionResult(success=False)` naming the reason and never naming a sensitive app:
   1. `roots = await allowed_roots(load_config().paths.allowed_dirs)`; empty → refuse naming `[paths] allowed_dirs`.

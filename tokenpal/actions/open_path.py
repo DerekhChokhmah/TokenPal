@@ -24,13 +24,49 @@ log = logging.getLogger(__name__)
 # `open` routes .command to Terminal, .jar to JavaLauncher, .pkg to Installer
 # and .workflow to Automator; the Windows half tracks PATHEXT plus the
 # shortcut formats (.lnk, .url, .webloc), which redirect to arbitrary targets.
-_DENIED = frozenset({
-    ".action", ".app", ".applescript", ".bat", ".bundle", ".cmd", ".com",
-    ".command", ".dmg", ".exe", ".fish", ".hta", ".jar", ".js", ".jse",
-    ".lnk", ".mpkg", ".msc", ".msi", ".pif", ".php", ".pkg", ".pl", ".ps1",
-    ".py", ".rb", ".reg", ".scpt", ".scr", ".sh", ".terminal", ".url",
-    ".vbe", ".vbs", ".webloc", ".workflow", ".wsf", ".wsh", ".zsh",
-})
+_DENIED = frozenset(
+    {
+        ".action",
+        ".app",
+        ".applescript",
+        ".bat",
+        ".bundle",
+        ".cmd",
+        ".com",
+        ".command",
+        ".dmg",
+        ".exe",
+        ".fish",
+        ".hta",
+        ".jar",
+        ".js",
+        ".jse",
+        ".lnk",
+        ".mpkg",
+        ".msc",
+        ".msi",
+        ".pif",
+        ".php",
+        ".pkg",
+        ".pl",
+        ".ps1",
+        ".py",
+        ".rb",
+        ".reg",
+        ".scpt",
+        ".scr",
+        ".sh",
+        ".terminal",
+        ".url",
+        ".vbe",
+        ".vbs",
+        ".webloc",
+        ".workflow",
+        ".wsf",
+        ".wsh",
+        ".zsh",
+    }
+)
 
 # A directory whose name ends in one of these is an executable package: every
 # file inside it, however benign its own suffix, is part of a program.
@@ -95,8 +131,10 @@ class OpenPathAction(AbstractAction):
 
         if resolved.suffix.lower() in _DENIED:
             return _refuse("open_path does not open scripts, programs, or installers.")
-        if os.access(resolved, os.X_OK):
+
+        if os.name != "nt" and os.access(resolved, os.X_OK):
             return _refuse("That file is executable, so open_path will not open it.")
+
         if _inside_bundle(resolved):
             return _refuse("That file is inside an app bundle.")
 

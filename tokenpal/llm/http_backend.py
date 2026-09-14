@@ -49,9 +49,7 @@ class HttpBackend(AbstractLLMBackend):
         per_model: dict[str, str] = config.get("per_server_models") or {}
         if key in per_model:
             self._model_name = per_model[key]
-        self._per_server_max_tokens: dict[str, int] = (
-            config.get("per_server_max_tokens") or {}
-        )
+        self._per_server_max_tokens: dict[str, int] = config.get("per_server_max_tokens") or {}
         self._max_tokens_pinned: bool = key in self._per_server_max_tokens
         if self._max_tokens_pinned:
             self._max_tokens = int(self._per_server_max_tokens[key])
@@ -112,17 +110,20 @@ class HttpBackend(AbstractLLMBackend):
                     self._model_available = True
                     log.info(
                         "Server advertises '%s' (was '%s') -- auto-adopted",
-                        self._model_name, old,
+                        self._model_name,
+                        old,
                     )
                 else:
                     log.warning(
                         "Model '%s' not found on server. Available: %s",
-                        self._model_name, ", ".join(model_ids),
+                        self._model_name,
+                        ", ".join(model_ids),
                     )
             elif model_ids:
                 log.warning(
                     "Model '%s' not found on fallback. Available: %s",
-                    self._model_name, ", ".join(model_ids),
+                    self._model_name,
+                    ", ".join(model_ids),
                 )
             else:
                 log.warning("No models found on server at %s", url)
@@ -147,7 +148,8 @@ class HttpBackend(AbstractLLMBackend):
         is_local = any(h in self._api_url for h in self._LOCAL_HOSTS)
         if self._server_mode == "auto" and not is_local:
             log.warning(
-                "Cannot reach %s — trying local Ollama fallback...", self._api_url,
+                "Cannot reach %s — trying local Ollama fallback...",
+                self._api_url,
             )
             if await self._try_connect(self._FALLBACK_URL, allow_adopt=False):
                 self._using_fallback = True
@@ -178,11 +180,7 @@ class HttpBackend(AbstractLLMBackend):
         routes thinking tokens to a separate `reasoning_content` response field
         so callers that request JSON get a clean `content`.
         """
-        effective = (
-            enable_thinking
-            if enable_thinking is not None
-            else not self._disable_reasoning
-        )
+        effective = enable_thinking if enable_thinking is not None else not self._disable_reasoning
         if self._inference_engine == "llamacpp":
             body["chat_template_kwargs"] = {"enable_thinking": effective}
             body["reasoning_format"] = "deepseek"
@@ -225,8 +223,10 @@ class HttpBackend(AbstractLLMBackend):
                     log.info(
                         "user-pinned max_tokens=%d leaves ~%d tokens on the "
                         "table vs measured (%.0f t/s decode, %.2fs ttft)",
-                        self._max_tokens, suggested - self._max_tokens,
-                        self._decode_tps_ewma, self._ttft_ewma_s,
+                        self._max_tokens,
+                        suggested - self._max_tokens,
+                        self._decode_tps_ewma,
+                        self._ttft_ewma_s,
                     )
                     self._logged_pin_underuse = True
             return self._max_tokens
@@ -235,9 +235,7 @@ class HttpBackend(AbstractLLMBackend):
             return self._derive_from_latency(target_latency_s, min_tokens)
         return self._max_tokens
 
-    def _derive_from_latency(
-        self, target_latency_s: float, min_tokens: int | None
-    ) -> int:
+    def _derive_from_latency(self, target_latency_s: float, min_tokens: int | None) -> int:
         """Map (target_latency_s, ewmas) → int cap. Caller pre-checks EWMAs."""
         assert self._decode_tps_ewma is not None
         assert self._ttft_ewma_s is not None
@@ -273,9 +271,7 @@ class HttpBackend(AbstractLLMBackend):
                 return
             decode_tps = completion_tokens / elapsed_minus_ttft
             assert self._decode_tps_ewma is not None
-            ttft = max(
-                0.0, total_elapsed_s - completion_tokens / self._decode_tps_ewma
-            )
+            ttft = max(0.0, total_elapsed_s - completion_tokens / self._decode_tps_ewma)
         self._decode_tps_ewma = self._ewma_update(self._decode_tps_ewma, decode_tps)
         self._ttft_ewma_s = self._ewma_update(self._ttft_ewma_s, ttft)
         self._sample_count += 1
@@ -285,15 +281,20 @@ class HttpBackend(AbstractLLMBackend):
         ):
             log.info(
                 "throughput measured: ≈%.0f t/s decode, %.2fs TTFT (%s @ %s)",
-                self._decode_tps_ewma, self._ttft_ewma_s,
-                self._model_name, self._api_url,
+                self._decode_tps_ewma,
+                self._ttft_ewma_s,
+                self._model_name,
+                self._api_url,
             )
             self._logged_measurement_available = True
         self._maybe_persist_estimator()
         log.debug(
             "sample: tokens=%d elapsed=%.3fs decode≈%.1f t/s ttft≈%.2fs n=%d",
-            completion_tokens, total_elapsed_s,
-            self._decode_tps_ewma, self._ttft_ewma_s, self._sample_count,
+            completion_tokens,
+            total_elapsed_s,
+            self._decode_tps_ewma,
+            self._ttft_ewma_s,
+            self._sample_count,
         )
 
     def _ewma_update(self, prior: float | None, sample: float) -> float:
@@ -320,9 +321,7 @@ class HttpBackend(AbstractLLMBackend):
         """
         if self._memory_store is None:
             return
-        row = self._memory_store.get_llm_throughput_estimator(
-            self._api_url, self._model_name
-        )
+        row = self._memory_store.get_llm_throughput_estimator(self._api_url, self._model_name)
         if row is None:
             return
         decode_tps, ttft_s, n = row
@@ -333,7 +332,11 @@ class HttpBackend(AbstractLLMBackend):
         log.info(
             "resuming throughput estimator: %.0f t/s decode, %.2fs TTFT "
             "(%d prior samples, %s @ %s)",
-            decode_tps, ttft_s, n, self._model_name, self._api_url,
+            decode_tps,
+            ttft_s,
+            n,
+            self._model_name,
+            self._api_url,
         )
 
     def _maybe_persist_estimator(self) -> None:
@@ -403,9 +406,7 @@ class HttpBackend(AbstractLLMBackend):
         assert self._client is not None, "Call setup() first"
 
         start = time.monotonic()
-        effective_max = self._resolve_max_tokens(
-            max_tokens, target_latency_s, min_tokens
-        )
+        effective_max = self._resolve_max_tokens(max_tokens, target_latency_s, min_tokens)
         body: dict[str, Any] = {
             "model": self._model_name,
             "messages": messages,
@@ -451,11 +452,13 @@ class HttpBackend(AbstractLLMBackend):
                 args = {}
             if not isinstance(args, dict):
                 args = {}
-            tool_calls.append(ToolCall(
-                id=tc.get("id", ""),
-                name=fn.get("name", ""),
-                arguments=args,
-            ))
+            tool_calls.append(
+                ToolCall(
+                    id=tc.get("id", ""),
+                    name=fn.get("name", ""),
+                    arguments=args,
+                )
+            )
 
         return LLMResponse(
             text=text,
@@ -572,7 +575,8 @@ class HttpBackend(AbstractLLMBackend):
             resp.raise_for_status()
             model_info = resp.json().get("model_info") or {}
             lengths = [
-                int(v) for k, v in model_info.items()
+                int(v)
+                for k, v in model_info.items()
                 if k.endswith(".context_length") and isinstance(v, (int, float))
             ]
             if not lengths:
@@ -619,13 +623,20 @@ class HttpBackend(AbstractLLMBackend):
             log.info(
                 "Auto-derived max_tokens=%d from context_length=%d (%s @ %s) "
                 "— not applied (user-pinned at %d)",
-                derived, ctx, self._model_name, self._api_url, self._max_tokens,
+                derived,
+                ctx,
+                self._model_name,
+                self._api_url,
+                self._max_tokens,
             )
             return
         self._max_tokens = derived
         log.info(
             "Auto-derived max_tokens=%d from context_length=%d (%s @ %s)",
-            derived, ctx, self._model_name, self._api_url,
+            derived,
+            ctx,
+            self._model_name,
+            self._api_url,
         )
 
     async def refresh_capability(self) -> None:

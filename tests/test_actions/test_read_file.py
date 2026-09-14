@@ -46,9 +46,7 @@ async def test_read_file_rejects_denied_pattern() -> None:
         assert result.success is False
 
 
-async def test_read_file_caps_at_max_bytes(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+async def test_read_file_caps_at_max_bytes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     _init_repo(tmp_path)
     big = tmp_path / "big.txt"
     big.write_bytes(b"x" * (_MAX_BYTES + 1024))

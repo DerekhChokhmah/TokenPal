@@ -27,8 +27,11 @@ class _ReadingStub:
         self.data = data or {}
 
 
-def _enricher(descriptions: dict[str, str | None] | None = None) -> tuple[
-    ObservationEnricher, _StubAppEnricher,
+def _enricher(
+    descriptions: dict[str, str | None] | None = None,
+) -> tuple[
+    ObservationEnricher,
+    _StubAppEnricher,
 ]:
     stub = _StubAppEnricher(descriptions)
     return ObservationEnricher(app_enricher=stub), stub
@@ -120,10 +123,12 @@ async def test_process_heat_noop_when_summary_missing_from_snapshot() -> None:
 @pytest.mark.asyncio
 async def test_chained_enrichment_both_apply() -> None:
     """App-awareness splice must land even when process_heat also fires."""
-    enricher, _ = _enricher({
-        "Cronometer": "nutrition tracker",
-        "Docker Desktop": "container runtime",
-    })
+    enricher, _ = _enricher(
+        {
+            "Cronometer": "nutrition tracker",
+            "Docker Desktop": "container runtime",
+        }
+    )
     snapshot = "App: Cronometer | Docker Desktop is working hard"
     readings = {
         "app_awareness": _ReadingStub(data={"app_name": "Cronometer"}),

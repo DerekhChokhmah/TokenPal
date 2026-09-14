@@ -15,6 +15,7 @@ See the master `plans/desktop-content-contract.md`. The decisions binding this p
   def accessibility_granted() -> bool | None:
       """True/False on macOS; None when not macOS or pyobjc is unavailable."""
 
+
   def screen_recording_granted() -> bool | None:
       """Same contract, via Quartz.CGPreflightScreenCaptureAccess."""
   ```

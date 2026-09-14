@@ -92,7 +92,9 @@ async def test_the_worst_case_envelope_fits_the_runners_result_cap(
 
 
 async def test_an_agent_run_delivers_the_selection_without_persisting_it(
-    tmp_path: Path, caplog: Any, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    caplog: Any,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     caplog.set_level(logging.DEBUG)
     _stub_capture(monkeypatch, selected_text(FIXTURE))
@@ -100,11 +102,13 @@ async def test_an_agent_run_delivers_the_selection_without_persisting_it(
     memory.setup()
     memory.set_chat_log_max_persisted(50)
     try:
-        llm = ScriptedLLM([
-            tool_call_response(tool_call("read_selection")),
-            ok_response(f"You selected {FIXTURE}."),
-            ok_response(PERSONA_LINE),
-        ])
+        llm = ScriptedLLM(
+            [
+                tool_call_response(tool_call("read_selection")),
+                ok_response(f"You selected {FIXTURE}."),
+                ok_response(PERSONA_LINE),
+            ]
+        )
         brain, buf = agent_brain(llm, [ReadSelectionAction({})], memory)
 
         session = await brain._handle_agent_goal(GOAL)

@@ -109,9 +109,7 @@ class EnvState:
         hot_threshold_f: float = HOT_OUTSIDE_F_DEFAULT,
         now: _dt.datetime | None = None,
     ) -> EnvState:
-        kind, intensity = wmo_to_kind(
-            weather_data.get("weather_code") if weather_data else None
-        )
+        kind, intensity = wmo_to_kind(weather_data.get("weather_code") if weather_data else None)
         hot = False
         if weather_data:
             temp = weather_data.get("temperature")
@@ -197,12 +195,8 @@ class BuddyMotion:
         """Accumulate a drag delta (cells). Runs shake-detection over a
         rolling window of recent deltas."""
         self._dragging = True
-        self.drag_offset_x = _clamp(
-            self.drag_offset_x + dx, -_MAX_DRAG_OFFSET, _MAX_DRAG_OFFSET
-        )
-        self.drag_offset_y = _clamp(
-            self.drag_offset_y + dy, -_MAX_DRAG_OFFSET, _MAX_DRAG_OFFSET
-        )
+        self.drag_offset_x = _clamp(self.drag_offset_x + dx, -_MAX_DRAG_OFFSET, _MAX_DRAG_OFFSET)
+        self.drag_offset_y = _clamp(self.drag_offset_y + dy, -_MAX_DRAG_OFFSET, _MAX_DRAG_OFFSET)
         self._shake_window = [
             (px, py, age + dt)
             for (px, py, age) in self._shake_window
@@ -321,21 +315,15 @@ class BuddyMotion:
         self.x = _clamp(self.x, 0.0, bounds_w)
         self.y = _clamp(self.y, 0.0, bounds_h)
 
-    def _pick_new_target(
-        self, bounds_w: float, bounds_h: float, *, afk: bool
-    ) -> None:
+    def _pick_new_target(self, bounds_w: float, bounds_h: float, *, afk: bool) -> None:
         self.target_x = self._rng.uniform(0.0, max(0.0, bounds_w))
         # Vertical wander is small — buddies look weird hopping rows.
         wander_h = max(0.0, min(bounds_h, 2.0))
         self.target_y = self._rng.uniform(0.0, wander_h)
         if afk:
-            self._dwell_left = self._rng.uniform(
-                self.max_dwell_s * 2, self.max_dwell_s * 4
-            )
+            self._dwell_left = self._rng.uniform(self.max_dwell_s * 2, self.max_dwell_s * 4)
         else:
-            self._dwell_left = self._rng.uniform(
-                self.min_dwell_s, self.max_dwell_s
-            )
+            self._dwell_left = self._rng.uniform(self.min_dwell_s, self.max_dwell_s)
 
 
 _STAR_PALETTE: tuple[str, ...] = (
@@ -458,8 +446,14 @@ class ParticleField:
         cull = y_bound if cull_y_bound is None else cull_y_bound
         self._advance(dt, panel_w, cull)
         self._spawn(
-            dt, panel_w, panel_h, env, buddy_x, buddy_y,
-            weather_y_top=y_top, weather_y_bound=y_bound,
+            dt,
+            panel_w,
+            panel_h,
+            env,
+            buddy_x,
+            buddy_y,
+            weather_y_top=y_top,
+            weather_y_bound=y_bound,
         )
 
     def _try_append(self, p: Particle) -> None:
@@ -528,7 +522,7 @@ class ParticleField:
         seed = self.rng.randrange(1, 1 << 28)
         # Noise feature size: ~1 "cluster" per ~8x8 cell region.
         scale = 8.0
-        min_dist_sq = 2.0 ** 2
+        min_dist_sq = 2.0**2
 
         placed: list[tuple[float, float]] = []
         max_attempts = target_count * 30
@@ -548,16 +542,22 @@ class ParticleField:
             placed.append((x, y))
 
         for x, y in placed:
-            self._try_append(Particle(
-                x=x, y=y,
-                vx=0.0, vy=0.0, ax=0.0, ay=0.0,
-                life=99999.0,
-                glyph=self.rng.choice(_STAR_GLYPHS),
-                color=_STAR_PALETTE[0],
-                spin=self.rng.uniform(0.0, 6.0),
-                pulse_palette=_STAR_PALETTE,
-                pulse_period_s=self.rng.uniform(3.0, 6.0),
-            ))
+            self._try_append(
+                Particle(
+                    x=x,
+                    y=y,
+                    vx=0.0,
+                    vy=0.0,
+                    ax=0.0,
+                    ay=0.0,
+                    life=99999.0,
+                    glyph=self.rng.choice(_STAR_GLYPHS),
+                    color=_STAR_PALETTE[0],
+                    spin=self.rng.uniform(0.0, 6.0),
+                    pulse_palette=_STAR_PALETTE,
+                    pulse_period_s=self.rng.uniform(3.0, 6.0),
+                )
+            )
 
     def clear_stars(self) -> None:
         self.particles = [p for p in self.particles if not p.pulse_palette]
@@ -620,70 +620,87 @@ class ParticleField:
             self._hot_accum = 0.0
 
     def _spawn_dust(self, panel_w: int, y_top: float, sky_h: float) -> None:
-        self._try_append(Particle(
-            x=self.rng.uniform(0.0, max(1.0, float(panel_w))),
-            y=y_top + self.rng.uniform(0.0, max(1.0, sky_h)),
-            vx=self.rng.uniform(-0.4, 0.4),
-            vy=self.rng.uniform(-0.2, 0.2),
-            ax=0.0, ay=0.0,
-            life=self.rng.uniform(3.0, 7.0),
-            glyph=self.rng.choice([".", "·"]),
-            color="#444466",
-        ))
+        self._try_append(
+            Particle(
+                x=self.rng.uniform(0.0, max(1.0, float(panel_w))),
+                y=y_top + self.rng.uniform(0.0, max(1.0, sky_h)),
+                vx=self.rng.uniform(-0.4, 0.4),
+                vy=self.rng.uniform(-0.2, 0.2),
+                ax=0.0,
+                ay=0.0,
+                life=self.rng.uniform(3.0, 7.0),
+                glyph=self.rng.choice([".", "·"]),
+                color="#444466",
+            )
+        )
 
     def _spawn_star(self, panel_w: int, panel_h: int) -> None:
         # Stars: fixed position, slow brightness pulse, very long life.
-        self._try_append(Particle(
-            x=self.rng.uniform(0.0, max(1.0, float(panel_w))),
-            y=self.rng.uniform(0.0, max(1.0, float(panel_h) * 0.7)),
-            vx=0.0,
-            vy=0.0,
-            ax=0.0, ay=0.0,
-            life=300.0,
-            glyph=self.rng.choice(["*", "·", "✦", "+"]),
-            color=_STAR_PALETTE[0],
-            spin=self.rng.uniform(0.0, 6.0),
-            pulse_palette=_STAR_PALETTE,
-            pulse_period_s=self.rng.uniform(3.0, 6.0),
-        ))
+        self._try_append(
+            Particle(
+                x=self.rng.uniform(0.0, max(1.0, float(panel_w))),
+                y=self.rng.uniform(0.0, max(1.0, float(panel_h) * 0.7)),
+                vx=0.0,
+                vy=0.0,
+                ax=0.0,
+                ay=0.0,
+                life=300.0,
+                glyph=self.rng.choice(["*", "·", "✦", "+"]),
+                color=_STAR_PALETTE[0],
+                spin=self.rng.uniform(0.0, 6.0),
+                pulse_palette=_STAR_PALETTE,
+                pulse_period_s=self.rng.uniform(3.0, 6.0),
+            )
+        )
 
     def _spawn_rain(self, panel_w: int, intensity: float, y_top: float = -1.0) -> None:
-        self._try_append(Particle(
-            x=self.rng.uniform(0.0, max(1.0, float(panel_w))),
-            y=y_top,
-            vx=self.rng.uniform(-0.3, 0.3),
-            vy=self.rng.uniform(8.0 + 4.0 * intensity, 14.0 + 6.0 * intensity),
-            ax=0.0, ay=0.0,
-            life=4.0,
-            glyph=self.rng.choice(["'", "│", "."]),
-            color="#5599ff",
-        ))
+        self._try_append(
+            Particle(
+                x=self.rng.uniform(0.0, max(1.0, float(panel_w))),
+                y=y_top,
+                vx=self.rng.uniform(-0.3, 0.3),
+                vy=self.rng.uniform(8.0 + 4.0 * intensity, 14.0 + 6.0 * intensity),
+                ax=0.0,
+                ay=0.0,
+                life=4.0,
+                glyph=self.rng.choice(["'", "│", "."]),
+                color="#5599ff",
+            )
+        )
 
     def _spawn_snow(self, panel_w: int, y_top: float = -1.0) -> None:
-        self._try_append(Particle(
-            x=self.rng.uniform(0.0, max(1.0, float(panel_w))),
-            y=y_top,
-            vx=0.0,
-            vy=self.rng.uniform(1.5, 3.5),
-            ax=0.0, ay=0.0,
-            life=10.0,
-            glyph=self.rng.choice(["*", "·", "❄"]),
-            color="#ddddff",
-            spin=self.rng.uniform(0.0, 6.28),
-        ))
+        self._try_append(
+            Particle(
+                x=self.rng.uniform(0.0, max(1.0, float(panel_w))),
+                y=y_top,
+                vx=0.0,
+                vy=self.rng.uniform(1.5, 3.5),
+                ax=0.0,
+                ay=0.0,
+                life=10.0,
+                glyph=self.rng.choice(["*", "·", "❄"]),
+                color="#ddddff",
+                spin=self.rng.uniform(0.0, 6.28),
+            )
+        )
 
     def _spawn_lightning(self, panel_w: int, y_top: float, sky_h: float) -> None:
         x = self.rng.uniform(2.0, max(2.0, float(panel_w - 2)))
         height_rows = int(min(sky_h, 4))
         for i in range(height_rows):
-            self._try_append(Particle(
-                x=x + (i % 2) * 0.5,
-                y=y_top + float(i),
-                vx=0.0, vy=0.0, ax=0.0, ay=0.0,
-                life=0.25,
-                glyph="╲" if i % 2 else "╱",
-                color="#ffff66",
-            ))
+            self._try_append(
+                Particle(
+                    x=x + (i % 2) * 0.5,
+                    y=y_top + float(i),
+                    vx=0.0,
+                    vy=0.0,
+                    ax=0.0,
+                    ay=0.0,
+                    life=0.25,
+                    glyph="╲" if i % 2 else "╱",
+                    color="#ffff66",
+                )
+            )
 
     def spawn_impact_burst(self, x: float, y: float, count: int = 5) -> None:
         """Radial star burst on click — short life, outward velocity, light
@@ -693,16 +710,20 @@ class ParticleField:
         for i in range(count):
             angle = (i / max(1, count)) * 2.0 * math.pi + self.rng.uniform(-0.3, 0.3)
             speed = self.rng.uniform(6.0, 10.0)
-            self._try_append(Particle(
-                x=x, y=y,
-                vx=math.cos(angle) * speed,
-                vy=math.sin(angle) * speed * 0.6,
-                ax=0.0, ay=8.0,
-                life=self.rng.uniform(0.4, 0.7),
-                glyph=self.rng.choice(_IMPACT_GLYPHS),
-                color=self.rng.choice(_IMPACT_PALETTE),
-                always_render=True,
-            ))
+            self._try_append(
+                Particle(
+                    x=x,
+                    y=y,
+                    vx=math.cos(angle) * speed,
+                    vy=math.sin(angle) * speed * 0.6,
+                    ax=0.0,
+                    ay=8.0,
+                    life=self.rng.uniform(0.4, 0.7),
+                    glyph=self.rng.choice(_IMPACT_GLYPHS),
+                    color=self.rng.choice(_IMPACT_PALETTE),
+                    always_render=True,
+                )
+            )
 
     def spawn_dizzy_swirl(self, x: float, y: float, count: int = 4) -> None:
         """Short-lived orbiting glyphs at the bottom of the sky widget.
@@ -717,28 +738,34 @@ class ParticleField:
         for _ in range(count):
             angle = self.rng.uniform(0.0, 2.0 * math.pi)
             radius = self.rng.uniform(1.0, 2.5)
-            self._try_append(Particle(
-                x=x + math.cos(angle) * radius,
-                y=y,
-                vx=math.cos(angle + math.pi / 2.0) * 2.0,
-                vy=0.0,
-                ax=0.0, ay=0.0,
-                life=self.rng.uniform(0.5, 0.8),
-                glyph=self.rng.choice(_SWIRL_GLYPHS),
-                color=self.rng.choice(_SWIRL_PALETTE),
-            ))
+            self._try_append(
+                Particle(
+                    x=x + math.cos(angle) * radius,
+                    y=y,
+                    vx=math.cos(angle + math.pi / 2.0) * 2.0,
+                    vy=0.0,
+                    ax=0.0,
+                    ay=0.0,
+                    life=self.rng.uniform(0.5, 0.8),
+                    glyph=self.rng.choice(_SWIRL_GLYPHS),
+                    color=self.rng.choice(_SWIRL_PALETTE),
+                )
+            )
 
     def _spawn_steam(self, buddy_x: float, buddy_y: float) -> None:
-        self._try_append(Particle(
-            x=buddy_x + self.rng.uniform(-2.0, 2.0),
-            y=buddy_y + self.rng.uniform(-1.0, 0.0),
-            vx=self.rng.uniform(-0.4, 0.4),
-            vy=self.rng.uniform(-3.5, -2.0),
-            ax=0.0, ay=0.0,
-            life=1.5,
-            glyph=self.rng.choice(["~", "°"]),
-            color="#aaccff",
-        ))
+        self._try_append(
+            Particle(
+                x=buddy_x + self.rng.uniform(-2.0, 2.0),
+                y=buddy_y + self.rng.uniform(-1.0, 0.0),
+                vx=self.rng.uniform(-0.4, 0.4),
+                vy=self.rng.uniform(-3.5, -2.0),
+                ax=0.0,
+                ay=0.0,
+                life=1.5,
+                glyph=self.rng.choice(["~", "°"]),
+                color="#aaccff",
+            )
+        )
 
 
 class BuddyEnvironmentController:
@@ -794,8 +821,12 @@ class BuddyEnvironmentController:
         self.motion.tick(dt, slide_w, slide_h, env)
         self.cloud_drift.tick(dt, env)
         self.field.tick(
-            dt, panel_w, panel_h, env,
-            buddy_x=buddy_x, buddy_y=buddy_y,
+            dt,
+            panel_w,
+            panel_h,
+            env,
+            buddy_x=buddy_x,
+            buddy_y=buddy_y,
             weather_y_top=weather_y_top,
             weather_y_bound=weather_y_bound,
             cull_y_bound=cull_y_bound,

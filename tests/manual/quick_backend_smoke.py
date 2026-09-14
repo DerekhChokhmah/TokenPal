@@ -13,6 +13,7 @@ Bash:
     TOKENPAL_QUICK_BACKEND_SMOKE_SECONDS=4 \\
         .venv/Scripts/python.exe tests/manual/quick_backend_smoke.py
 """
+
 from __future__ import annotations
 
 import os

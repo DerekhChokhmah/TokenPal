@@ -26,7 +26,8 @@ def _discovered() -> None:
 
 
 def test_fallback_when_qt_not_in_registry(
-    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """If PySide6 isn't importable, qt never got registered — a user
     who set `overlay = "qt"` in config should get textual, not a crash."""
@@ -37,15 +38,14 @@ def test_fallback_when_qt_not_in_registry(
         with caplog.at_level(logging.INFO, logger="tokenpal.ui.registry"):
             overlay = resolve_overlay({"overlay": "qt"})
         assert overlay.overlay_name == "textual"
-        assert any(
-            "qt overlay unavailable" in rec.message for rec in caplog.records
-        )
+        assert any("qt overlay unavailable" in rec.message for rec in caplog.records)
     finally:
         _OVERLAY_REGISTRY["qt"] = qt_cls
 
 
 def test_fallback_when_tokenpal_headless_env_set(
-    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     monkeypatch.setenv("TOKENPAL_HEADLESS", "1")
     with caplog.at_level(logging.INFO, logger="tokenpal.ui.registry"):
@@ -63,6 +63,7 @@ def test_qt_unavailable_reason_reports_specific_cause(
     # With qt registered and no headless env, Linux with no DISPLAY
     # should still flag a reason. macOS/Windows always have a display.
     from tokenpal.util.platform import current_platform
+
     monkeypatch.delenv("DISPLAY", raising=False)
     monkeypatch.delenv("WAYLAND_DISPLAY", raising=False)
     if current_platform() == "linux":

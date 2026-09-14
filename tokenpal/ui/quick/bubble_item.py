@@ -15,6 +15,7 @@ into a ``QSGTexture`` lazily on the render thread inside
 ``updatePaintNode``; per-frame paint is a textured-quad composite
 with no QPainter on the hot path.
 """
+
 from __future__ import annotations
 
 from typing import cast
@@ -63,7 +64,9 @@ class BubbleQuickItem(QQuickItem):
     """
 
     def __init__(
-        self, font_family: str = "Courier", font_size: int = 13,
+        self,
+        font_family: str = "Courier",
+        font_size: int = 13,
     ) -> None:
         super().__init__()
         self.setFlag(QQuickItem.Flag.ItemHasContents, True)
@@ -219,7 +222,9 @@ class BubbleQuickItem(QQuickItem):
         if self._content_w <= 0 or self._content_h <= 0:
             return None
         img = QImage(
-            self._content_w, self._content_h, QImage.Format.Format_ARGB32_Premultiplied,
+            self._content_w,
+            self._content_h,
+            QImage.Format.Format_ARGB32_Premultiplied,
         )
         img.fill(Qt.GlobalColor.transparent)
         p = QPainter(img)
@@ -229,7 +234,8 @@ class BubbleQuickItem(QQuickItem):
         p.setPen(Qt.PenStyle.NoPen)
         p.drawRoundedRect(
             QRectF(0.0, 0.0, float(self._content_w), float(self._content_h)),
-            _BUBBLE_RADIUS, _BUBBLE_RADIUS,
+            _BUBBLE_RADIUS,
+            _BUBBLE_RADIUS,
         )
         p.setFont(self._font)
         p.setPen(self._fg_color)
@@ -273,10 +279,7 @@ class BubbleQuickItem(QQuickItem):
     def contains(self, point: QPointF) -> bool:  # type: ignore[override]
         if self._content_w <= 0 or self._content_h <= 0:
             return False
-        return (
-            0.0 <= point.x() <= self._content_w
-            and 0.0 <= point.y() <= self._content_h
-        )
+        return 0.0 <= point.x() <= self._content_w and 0.0 <= point.y() <= self._content_h
 
     # Duck-type shims so QtOverlay can hold a Quick item in the same
     # ``self._bubble`` slot as the QWidget ``SpeechBubble``. The pivot

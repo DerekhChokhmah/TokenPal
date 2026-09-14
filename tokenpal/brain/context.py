@@ -20,7 +20,7 @@ _SENSE_WEIGHTS: dict[str, float] = {
     "productivity": 0.1,
     "music": 0.2,
     "weather": 0.0,  # never triggers alone, enriches context only
-    "git": 0.8,      # commits and branch switches are high-signal events
+    "git": 0.8,  # commits and branch switches are high-signal events
 }
 _DEFAULT_WEIGHT = 0.5
 
@@ -176,48 +176,55 @@ class ContextWindowBuilder:
             and (typing is None or typing.data.get("bucket") == "idle")
         ):
             idle_min = idle.data.get("idle_minutes", 0)
-            composites.append((
-                f"User is parked on \"{app.summary}\" — no input for "
-                f"{int(idle_min)} minutes",
-                {"idle", "productivity"},
-            ))
+            composites.append(
+                (
+                    f'User is parked on "{app.summary}" — no input for {int(idle_min)} minutes',
+                    {"idle", "productivity"},
+                )
+            )
 
         # High CPU + frequent app switching = something is grinding
         if hw and prod:
             cpu = hw.data.get("cpu_percent", 0)
             switches = prod.data.get("switches_per_hour", 0)
             if cpu > 70 and switches > 8:
-                composites.append((
-                    f"CPU is at {cpu}% and user has switched apps "
-                    f"{int(switches)} times per hour",
-                    set(),
-                ))
+                composites.append(
+                    (
+                        f"CPU is at {cpu}% and user has switched apps "
+                        f"{int(switches)} times per hour",
+                        set(),
+                    )
+                )
 
         # Long focus + music = flow state
         if prod and music:
             focus_min = prod.data.get("time_in_current_min", 0)
             if focus_min > 30 and music.data.get("state") == "playing":
-                composites.append((
-                    f"User has been focused for {focus_min} minutes with music on",
-                    set(),
-                ))
+                composites.append(
+                    (
+                        f"User has been focused for {focus_min} minutes with music on",
+                        set(),
+                    )
+                )
 
         # Late night + long session
         if time_r and prod:
             hour = time_r.data.get("hour", 12)
             session_min = prod.data.get("session_minutes", 0)
             if hour >= 23 and session_min > 120:
-                composites.append((
-                    f"It's past 11 PM and user has been at it for "
-                    f"{session_min // 60} hours",
-                    set(),
-                ))
+                composites.append(
+                    (
+                        f"It's past 11 PM and user has been at it for {session_min // 60} hours",
+                        set(),
+                    )
+                )
             elif hour < 6 and hour >= 0 and session_min > 60:
-                composites.append((
-                    f"It's {hour} AM and user is still working "
-                    f"after {session_min} minutes",
-                    set(),
-                ))
+                composites.append(
+                    (
+                        f"It's {hour} AM and user is still working after {session_min} minutes",
+                        set(),
+                    )
+                )
 
         return composites[:2]  # Cap at 2 to avoid bloating the context
 
@@ -225,8 +232,7 @@ class ContextWindowBuilder:
         """Return non-expired readings keyed by sense name."""
         now = time.monotonic()
         return {
-            name: r for name, r in self._readings.items()
-            if now - r.timestamp <= self.ttl_for(name)
+            name: r for name, r in self._readings.items() if now - r.timestamp <= self.ttl_for(name)
         }
 
     def prev_summary(self, sense_name: str) -> str | None:

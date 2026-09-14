@@ -29,6 +29,7 @@ See the master `plans/desktop-content-contract.md`. The decisions binding this p
   ```python
   ContentKind = Literal["selection", "document", "ocr"]
 
+
   @dataclass(frozen=True, repr=False)
   class DesktopContent:
       text: str
@@ -47,8 +48,10 @@ See the master `plans/desktop-content-contract.md`. The decisions binding this p
               f"{scrub_body(self.text)}\n</desktop_content>"
           )
 
+
   def refuse_if_sensitive(source_app: str) -> ActionResult | None:
       """Error result when *source_app* matches SENSITIVE_APPS, else None."""
+
 
   def require_consent(path: Path | None = None) -> ActionResult | None:
       """consent_error('desktop content') unless Category.DESKTOP_CONTENT is granted.

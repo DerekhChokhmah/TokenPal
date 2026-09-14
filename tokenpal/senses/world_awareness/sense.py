@@ -37,16 +37,15 @@ class WorldAwarenessSense(AbstractSense):
             return None
 
         stories = [
-            s for s in fetch_top_stories(limit=_HEADLINE_LIMIT)
-            if is_latin_script(s.title)
-            and not contains_sensitive_content_term(s.title)
+            s
+            for s in fetch_top_stories(limit=_HEADLINE_LIMIT)
+            if is_latin_script(s.title) and not contains_sensitive_content_term(s.title)
         ]
         if not stories:
             return None
 
         formatted = [
-            f"'{truncate_ellipsis(s.title, _TITLE_MAX_CHARS)}' — {s.points} pts"
-            for s in stories
+            f"'{truncate_ellipsis(s.title, _TITLE_MAX_CHARS)}' — {s.points} pts" for s in stories
         ]
         summary = "Top HN: " + " | ".join(formatted)
         if summary == self._prev_summary:

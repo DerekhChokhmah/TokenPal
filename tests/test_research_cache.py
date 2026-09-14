@@ -29,26 +29,26 @@ class _BrainStub:
         from tokenpal.config.schema import ResearchConfig
 
         self._memory = memory
-        self._research = SimpleNamespace(
-            config=ResearchConfig(cache_ttl_s=cache_ttl_s)
-        )
+        self._research = SimpleNamespace(config=ResearchConfig(cache_ttl_s=cache_ttl_s))
 
     def _load_research_cache(self, question: str, mode: str = ""):
         from tokenpal.brain.orchestrator import Brain
+
         return Brain._load_research_cache(self, question, mode=mode)
 
-    def _save_research_cache(
-        self, question: str, session: ResearchSession, mode: str = ""
-    ) -> None:
+    def _save_research_cache(self, question: str, session: ResearchSession, mode: str = "") -> None:
         from tokenpal.brain.orchestrator import Brain
+
         Brain._save_research_cache(self, question, session, mode=mode)
 
     def _research_cache_key(self, question: str, mode: str = "") -> str:
         from tokenpal.brain.orchestrator import Brain
+
         return Brain._research_cache_key(self, question, mode=mode)
 
     def _research_cache_ttl(self) -> float | None:
         from tokenpal.brain.orchestrator import Brain
+
         return Brain._research_cache_ttl(self)
 
 
@@ -80,9 +80,7 @@ def test_save_then_load_round_trip(memory: MemoryStore) -> None:
 
 def test_expired_cache_miss(memory: MemoryStore) -> None:
     stub = _make_brain(memory, cache_ttl_s=5.0)
-    session = ResearchSession(
-        question="q", answer="a", stopped_reason=ResearchStopReason.COMPLETE
-    )
+    session = ResearchSession(question="q", answer="a", stopped_reason=ResearchStopReason.COMPLETE)
     stub._save_research_cache("q", session)
     assert memory._conn is not None
     memory._conn.execute(
@@ -96,8 +94,6 @@ def test_expired_cache_miss(memory: MemoryStore) -> None:
 
 def test_disabled_when_ttl_zero(memory: MemoryStore) -> None:
     stub = _make_brain(memory, cache_ttl_s=0.0)
-    session = ResearchSession(
-        question="q", answer="a", stopped_reason=ResearchStopReason.COMPLETE
-    )
+    session = ResearchSession(question="q", answer="a", stopped_reason=ResearchStopReason.COMPLETE)
     stub._save_research_cache("q", session)
     assert stub._load_research_cache("q") is None

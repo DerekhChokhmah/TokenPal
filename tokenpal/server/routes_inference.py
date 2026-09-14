@@ -46,10 +46,13 @@ async def proxy_ollama(path: str, request: Request) -> Response:
         request.app.state.ollama_healthy = False
         return ollama_unavailable()
     except httpx.ReadTimeout:
-        return JSONResponse(status_code=504, content={
-            "error": "Ollama timed out",
-            "hint": "Model may be loading. Try again in a few seconds.",
-        })
+        return JSONResponse(
+            status_code=504,
+            content={
+                "error": "Ollama timed out",
+                "hint": "Model may be loading. Try again in a few seconds.",
+            },
+        )
 
     request.app.state.ollama_healthy = True
     return Response(

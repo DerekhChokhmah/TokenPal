@@ -54,12 +54,10 @@ class Wedge(ABC):
         pass
 
     @abstractmethod
-    def propose(self) -> EmissionCandidate | None:
-        ...
+    def propose(self) -> EmissionCandidate | None: ...
 
     @abstractmethod
-    def build_prompt(self, candidate: EmissionCandidate, ctx: PromptContext) -> str:
-        ...
+    def build_prompt(self, candidate: EmissionCandidate, ctx: PromptContext) -> str: ...
 
     def on_emitted(self, candidate: EmissionCandidate, success: bool) -> None:
         """Notify the Wedge after the riff pipeline runs.
@@ -71,7 +69,6 @@ class Wedge(ABC):
         real emit gate on this; wedges that want to cool down on any
         post-LLM attempt ignore it.
         """
-
 
 
 class WedgeRegistry:

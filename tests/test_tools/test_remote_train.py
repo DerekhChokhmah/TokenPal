@@ -73,7 +73,11 @@ class _MockSSH:
         self.calls: list[str] = []
 
     async def __call__(
-        self, remote, cmd, progress=None, timeout=3600,
+        self,
+        remote,
+        cmd,
+        progress=None,
+        timeout=3600,
     ):
         self.calls.append(cmd)
         for pattern, response in self.routes.items():
@@ -91,7 +95,13 @@ class _MockSCP:
         self.calls: list[tuple[str, str]] = []
 
     async def __call__(
-        self, remote, local, remote_path, *, pull=False, timeout=1800,
+        self,
+        remote,
+        local,
+        remote_path,
+        *,
+        pull=False,
+        timeout=1800,
     ):
         self.calls.append((local, remote_path))
         return (self.rc, self.err)
@@ -137,7 +147,7 @@ def test_ssh_target_without_user():
 
 def test_wsl_wrap_escapes_quotes():
     result = _wsl_wrap('echo "hello"')
-    assert 'wsl -e bash -lc' in result
+    assert "wsl -e bash -lc" in result
     assert '\\"hello\\"' in result
 
 
@@ -182,7 +192,7 @@ def test_install_sh_has_strict_mode():
 
 
 def test_install_sh_detects_wsl_mount():
-    assert '/mnt/*' in _INSTALL_SH
+    assert "/mnt/*" in _INSTALL_SH
 
 
 def test_install_sh_checks_python_version():
@@ -315,9 +325,11 @@ def test_build_windows_base_model_check_embeds_model_dir():
 async def test_ensure_base_model_windows_skips_when_present():
     """Config + weights verified → skip download path entirely."""
     remote = _make_remote()
-    ssh = _MockSSH({
-        "BASE_MODEL_OK": (0, "BASE_MODEL_OK\n", ""),
-    })
+    ssh = _MockSSH(
+        {
+            "BASE_MODEL_OK": (0, "BASE_MODEL_OK\n", ""),
+        }
+    )
     progress_msgs: list[str] = []
 
     result = await _ensure_base_model_windows(
@@ -337,10 +349,12 @@ async def test_ensure_base_model_windows_skips_when_present():
 async def test_ensure_base_model_windows_downloads_when_missing():
     """Missing weights → HF snapshot_download on the remote."""
     remote = _make_remote()
-    ssh = _MockSSH({
-        "BASE_MODEL_OK": (1, "", "no weights found"),
-        "snapshot_download": (0, "downloaded", ""),
-    })
+    ssh = _MockSSH(
+        {
+            "BASE_MODEL_OK": (1, "", "no weights found"),
+            "snapshot_download": (0, "downloaded", ""),
+        }
+    )
     progress_msgs: list[str] = []
 
     result = await _ensure_base_model_windows(
@@ -365,10 +379,12 @@ async def test_ensure_base_model_windows_surfaces_hf_auth_error():
     """Remote download fails with 401/403 → RemoteTrainError('auth') with hint
     pointing at `setx HF_TOKEN` (not `~/.bashrc`)."""
     remote = _make_remote()
-    ssh = _MockSSH({
-        "BASE_MODEL_OK": (1, "", ""),
-        "snapshot_download": (1, "", "HTTPError: 401 Client Error: Unauthorized"),
-    })
+    ssh = _MockSSH(
+        {
+            "BASE_MODEL_OK": (1, "", ""),
+            "snapshot_download": (1, "", "HTTPError: 401 Client Error: Unauthorized"),
+        }
+    )
 
     with pytest.raises(RemoteTrainError) as exc_info:
         await _ensure_base_model_windows(
@@ -390,10 +406,12 @@ async def test_ensure_base_model_windows_surfaces_hf_auth_error():
 async def test_ensure_base_model_windows_no_local_fallback():
     """Non-auth failure → hard error (no SCP push fallback on Windows path)."""
     remote = _make_remote()
-    ssh = _MockSSH({
-        "BASE_MODEL_OK": (1, "", ""),
-        "snapshot_download": (1, "", "Connection timed out"),
-    })
+    ssh = _MockSSH(
+        {
+            "BASE_MODEL_OK": (1, "", ""),
+            "snapshot_download": (1, "", "Connection timed out"),
+        }
+    )
 
     with pytest.raises(RemoteTrainError) as exc_info:
         await _ensure_base_model_windows(
@@ -443,14 +461,16 @@ async def test_remote_finetune_windows_reassigns_paths_to_backslash(tmp_path):
         # Raise to short-circuit the rest of remote_finetune
         raise RemoteTrainError("test_stop", "captured")
 
-    ssh = _MockSSH({
-        "uname -s": (0, "Microsoft Windows [Version 10.0.22631.3007]\n", ""),
-        "echo %USERPROFILE%": (0, "C:\\Users\\smabe\n", ""),
-        **_preflight_clean(),
-        "nvidia-smi": (0, "GPU OK", ""),
-        "df -BG": (0, "50G", ""),
-        ".source-hash": (0, _hash_training_sources(), ""),  # skip bundle push
-    })
+    ssh = _MockSSH(
+        {
+            "uname -s": (0, "Microsoft Windows [Version 10.0.22631.3007]\n", ""),
+            "echo %USERPROFILE%": (0, "C:\\Users\\smabe\n", ""),
+            **_preflight_clean(),
+            "nvidia-smi": (0, "GPU OK", ""),
+            "df -BG": (0, "50G", ""),
+            ".source-hash": (0, _hash_training_sources(), ""),  # skip bundle push
+        }
+    )
 
     with (
         patch("tokenpal.tools.remote_train._run_ssh", ssh),
@@ -494,14 +514,16 @@ async def test_remote_finetune_windows_dispatches_to_windows_base_model_helper()
         windows_called = True
         raise RemoteTrainError("test_stop", "windows helper was called")
 
-    ssh = _MockSSH({
-        "uname -s": (0, "Microsoft Windows\n", ""),
-        "echo %USERPROFILE%": (0, "C:\\Users\\smabe\n", ""),
-        **_preflight_clean(),
-        "nvidia-smi": (0, "GPU OK", ""),
-        "df -BG": (0, "50G", ""),
-        ".source-hash": (0, _hash_training_sources(), ""),
-    })
+    ssh = _MockSSH(
+        {
+            "uname -s": (0, "Microsoft Windows\n", ""),
+            "echo %USERPROFILE%": (0, "C:\\Users\\smabe\n", ""),
+            **_preflight_clean(),
+            "nvidia-smi": (0, "GPU OK", ""),
+            "df -BG": (0, "50G", ""),
+            ".source-hash": (0, _hash_training_sources(), ""),
+        }
+    )
 
     with (
         patch("tokenpal.tools.remote_train._run_ssh", ssh),
@@ -526,6 +548,7 @@ def test_build_bundle_includes_install_ps1(tmp_path):
 
     def mock_build(args, **kwargs):
         import shutil
+
         outdir = args[args.index("--outdir") + 1]
         shutil.copy2(fake_wheel, outdir)
         return subprocess.CompletedProcess(args=args, returncode=0, stdout="", stderr="")
@@ -542,6 +565,7 @@ def test_build_bundle_includes_install_ps1(tmp_path):
 
     # Cleanup
     import shutil
+
     shutil.rmtree(tarball.parent, ignore_errors=True)
 
 
@@ -568,7 +592,7 @@ def test_train_ps1_streams_via_tee_object():
 def test_train_ps1_emits_exit_code_marker():
     """train.log must end with EXIT_CODE=N for the Python-side check."""
     assert "EXIT_CODE=$exitCode" in _TRAIN_PS1
-    assert 'Add-Content -Path \'train.log\'' in _TRAIN_PS1
+    assert "Add-Content -Path 'train.log'" in _TRAIN_PS1
 
 
 def test_train_ps1_sets_hf_hub_offline():
@@ -602,7 +626,10 @@ def test_build_checkpoint_check_cmd_windows():
 
 def test_build_merge_cmd_linux_uses_bash_env_syntax():
     cmd = _build_merge_cmd(
-        "linux", "/venv/bin/python", "/home/user", "/home/user/model",
+        "linux",
+        "/venv/bin/python",
+        "/home/user",
+        "/home/user/model",
     )
     assert "HF_HUB_OFFLINE=1" in cmd
     assert "finetune_voice merge" in cmd
@@ -706,7 +733,9 @@ async def test_remote_finetune_windows_skips_flock(tmp_path):
             return (0, "", "")
         return (0, "", "")
 
-    async def succeeding_scp(remote, local, remote_path, *, pull=False, recursive=False, timeout=1800):
+    async def succeeding_scp(
+        remote, local, remote_path, *, pull=False, recursive=False, timeout=1800
+    ):
         return (0, "")
 
     with (
@@ -738,18 +767,14 @@ async def test_remote_finetune_windows_skips_flock(tmp_path):
     # tmux has-session is used BY the training poll loop (which we skip on
     # Windows) — the preflight's own tmux probe IS allowed.
     assert not any(
-        "tmux has-session -t tokenpal-" in c and "&& echo running" in c
-        for c in captured_calls
+        "tmux has-session -t tokenpal-" in c and "&& echo running" in c for c in captured_calls
     )
     # Windows must have invoked run_train.ps1
     assert any("run_train.ps1" in c for c in captured_calls), (
         f"Windows path should have invoked run_train.ps1; got: {captured_calls}"
     )
     # Progress should acknowledge skipped flock
-    assert any(
-        "concurrent-training detection skipped" in msg.lower()
-        for msg in progress_msgs
-    )
+    assert any("concurrent-training detection skipped" in msg.lower() for msg in progress_msgs)
 
 
 async def test_remote_finetune_windows_training_failure_includes_ssh_drop_hint(tmp_path):
@@ -781,7 +806,9 @@ async def test_remote_finetune_windows_training_failure_includes_ssh_drop_hint(t
             return (1, "", "CUDA out of memory")  # training fails
         return (0, "", "")
 
-    async def succeeding_scp(remote, local, remote_path, *, pull=False, recursive=False, timeout=1800):
+    async def succeeding_scp(
+        remote, local, remote_path, *, pull=False, recursive=False, timeout=1800
+    ):
         return (0, "")
 
     with (
@@ -821,6 +848,7 @@ def test_build_bundle_produces_tarball(tmp_path):
         class FakeResult:
             returncode = 0
             stderr = ""
+
         return FakeResult()
 
     with patch("tokenpal.tools.remote_train.subprocess.run", mock_build):
@@ -849,6 +877,7 @@ def test_build_bundle_includes_profile_json(tmp_path):
         class FakeResult:
             returncode = 0
             stderr = ""
+
         return FakeResult()
 
     from tokenpal.tools.remote_train import _build_bundle
@@ -868,6 +897,7 @@ def test_build_bundle_raises_on_wheel_failure():
         class FakeResult:
             returncode = 1
             stderr = "error: no setup.py"
+
         return FakeResult()
 
     with patch("tokenpal.tools.remote_train.subprocess.run", mock_fail):
@@ -920,12 +950,14 @@ async def test_remote_finetune_calls_progress():
     config = _make_config()
     progress_msgs: list[str] = []
 
-    ssh = _MockSSH({
-        "nvidia-smi": (0, "GPU OK", ""),
-        "mkdir": (0, "", ""),
-        "df -BG": (0, "50G", ""),
-        ".source-hash": (0, "none", ""),
-    })
+    ssh = _MockSSH(
+        {
+            "nvidia-smi": (0, "GPU OK", ""),
+            "mkdir": (0, "", ""),
+            "df -BG": (0, "50G", ""),
+            ".source-hash": (0, "none", ""),
+        }
+    )
     scp = _MockSCP(rc=1, err="SCP failed")
 
     with (
@@ -938,7 +970,9 @@ async def test_remote_finetune_calls_progress():
     ):
         with pytest.raises(RemoteTrainError, match="push"):
             await remote_finetune(
-                _make_profile(), config, lambda msg: progress_msgs.append(msg),
+                _make_profile(),
+                config,
+                lambda msg: progress_msgs.append(msg),
             )
 
     assert any("GPU" in msg for msg in progress_msgs)
@@ -950,14 +984,16 @@ async def test_source_hash_match_skips_bundle_push():
     local_hash = _hash_training_sources()
     progress_msgs: list[str] = []
 
-    ssh = _MockSSH({
-        **_preflight_clean(),
-        "nvidia-smi": (0, "GPU OK", ""),
-        "mkdir": (0, "", ""),
-        "df -BG": (0, "50G", ""),
-        ".source-hash": (0, local_hash, ""),  # hash matches!
-        "test -d": (1, "", ""),  # base model not found → triggers model push
-    })
+    ssh = _MockSSH(
+        {
+            **_preflight_clean(),
+            "nvidia-smi": (0, "GPU OK", ""),
+            "mkdir": (0, "", ""),
+            "df -BG": (0, "50G", ""),
+            ".source-hash": (0, local_hash, ""),  # hash matches!
+            "test -d": (1, "", ""),  # base model not found → triggers model push
+        }
+    )
     scp = _MockSCP(rc=0)
 
     with (
@@ -970,7 +1006,9 @@ async def test_source_hash_match_skips_bundle_push():
     ):
         with pytest.raises(RemoteTrainError, match="model_push"):
             await remote_finetune(
-                _make_profile(), config, lambda msg: progress_msgs.append(msg),
+                _make_profile(),
+                config,
+                lambda msg: progress_msgs.append(msg),
             )
 
     assert any("skipping bundle push" in msg.lower() for msg in progress_msgs)
@@ -981,13 +1019,15 @@ async def test_install_failure_raises():
     """install.sh failure raises RemoteTrainError('install')."""
     config = _make_config()
 
-    ssh = _MockSSH({
-        "nvidia-smi": (0, "GPU OK", ""),
-        "mkdir": (0, "", ""),
-        "df -BG": (0, "50G", ""),
-        ".source-hash": (0, "none", ""),  # hash mismatch → push bundle
-        "install.sh": (1, "", "pip install failed"),  # install fails
-    })
+    ssh = _MockSSH(
+        {
+            "nvidia-smi": (0, "GPU OK", ""),
+            "mkdir": (0, "", ""),
+            "df -BG": (0, "50G", ""),
+            ".source-hash": (0, "none", ""),  # hash mismatch → push bundle
+            "install.sh": (1, "", "pip install failed"),  # install fails
+        }
+    )
     scp = _MockSCP(rc=0)
 
     with (
@@ -1006,17 +1046,19 @@ async def test_concurrent_training_blocked():
     """Lock busy → RemoteTrainError about concurrent training."""
     config = _make_config()
 
-    ssh = _MockSSH({
-        **_preflight_clean(),
-        "nvidia-smi": (0, "GPU OK", ""),
-        "mkdir": (0, "", ""),
-        "df -BG": (0, "50G", ""),
-        ".source-hash": (0, _hash_training_sources(), ""),
-        "test -d": (0, "exists", ""),  # base model exists
-        "finetune_voice prep": (0, "", ""),  # prep succeeds
-        "checkpoint": (1, "", ""),  # no checkpoints
-        "flock": (0, "busy", ""),  # lock is busy!
-    })
+    ssh = _MockSSH(
+        {
+            **_preflight_clean(),
+            "nvidia-smi": (0, "GPU OK", ""),
+            "mkdir": (0, "", ""),
+            "df -BG": (0, "50G", ""),
+            ".source-hash": (0, _hash_training_sources(), ""),
+            "test -d": (0, "exists", ""),  # base model exists
+            "finetune_voice prep": (0, "", ""),  # prep succeeds
+            "checkpoint": (1, "", ""),  # no checkpoints
+            "flock": (0, "busy", ""),  # lock is busy!
+        }
+    )
     scp = _MockSCP(rc=0)
 
     with (
@@ -1037,11 +1079,13 @@ async def test_preflight_live_training_raises():
     """Live training detected (lock held + tmux alive) → error with attach hint."""
     config = _make_config()
 
-    ssh = _MockSSH({
-        **_preflight_state(lock_file=True, lock_held=True, tmux_alive=True, venv_ok=True),
-        "nvidia-smi": (0, "GPU OK", ""),
-        "df -BG": (0, "50G", ""),
-    })
+    ssh = _MockSSH(
+        {
+            **_preflight_state(lock_file=True, lock_held=True, tmux_alive=True, venv_ok=True),
+            "nvidia-smi": (0, "GPU OK", ""),
+            "df -BG": (0, "50G", ""),
+        }
+    )
 
     with patch("tokenpal.tools.remote_train._run_ssh", ssh):
         with pytest.raises(RemoteTrainError) as exc_info:
@@ -1057,25 +1101,28 @@ async def test_preflight_live_training_raises():
 async def test_preflight_stale_flock_auto_removed(caplog):
     """Lock held but no tmux session → stale → rm -f issued, WARN logged."""
     import logging
+
     caplog.set_level(logging.WARNING, logger="tokenpal.tools.remote_train")
     config = _make_config()
     progress_msgs: list[str] = []
 
-    ssh = _MockSSH({
-        **_preflight_state(lock_file=True, lock_held=True, tmux_alive=False, venv_ok=True),
-        "nvidia-smi": (0, "GPU OK", ""),
-        "df -BG": (0, "50G", ""),
-        ".source-hash": (0, _hash_training_sources(), ""),
-        "test -d": (0, "exists", ""),
-        "finetune_voice prep": (0, "", ""),
-        "checkpoint": (1, "", ""),
-        # flock re-check later returns "locked" (free) — stale was cleaned up
-        "flock -n /tmp/tokenpal-training.lock -c": (0, "locked", ""),
-        # tmux new-session succeeds, has-session returns "done" immediately
-        "tmux new-session": (0, "", ""),
-        "tmux has-session": (0, "done", ""),
-        "EXIT_CODE=0": (0, "EXIT_CODE=0", ""),
-    })
+    ssh = _MockSSH(
+        {
+            **_preflight_state(lock_file=True, lock_held=True, tmux_alive=False, venv_ok=True),
+            "nvidia-smi": (0, "GPU OK", ""),
+            "df -BG": (0, "50G", ""),
+            ".source-hash": (0, _hash_training_sources(), ""),
+            "test -d": (0, "exists", ""),
+            "finetune_voice prep": (0, "", ""),
+            "checkpoint": (1, "", ""),
+            # flock re-check later returns "locked" (free) — stale was cleaned up
+            "flock -n /tmp/tokenpal-training.lock -c": (0, "locked", ""),
+            # tmux new-session succeeds, has-session returns "done" immediately
+            "tmux new-session": (0, "", ""),
+            "tmux has-session": (0, "done", ""),
+            "EXIT_CODE=0": (0, "EXIT_CODE=0", ""),
+        }
+    )
 
     with (
         patch("tokenpal.tools.remote_train._run_ssh", ssh),
@@ -1106,11 +1153,13 @@ async def test_preflight_orphan_tmux_session_killed():
     config = _make_config()
     progress_msgs: list[str] = []
 
-    ssh = _MockSSH({
-        **_preflight_state(lock_file=False, lock_held=False, tmux_alive=True, venv_ok=True),
-        "nvidia-smi": (0, "GPU OK", ""),
-        "df -BG": (0, "50G", ""),
-    })
+    ssh = _MockSSH(
+        {
+            **_preflight_state(lock_file=False, lock_held=False, tmux_alive=True, venv_ok=True),
+            "nvidia-smi": (0, "GPU OK", ""),
+            "df -BG": (0, "50G", ""),
+        }
+    )
 
     with (
         patch("tokenpal.tools.remote_train._run_ssh", ssh),
@@ -1134,7 +1183,8 @@ async def test_preflight_orphan_tmux_session_killed():
     # Expect a tmux kill-session targeting tokenpal-mordecai (not the default
     # silent `2>/dev/null` inline kill that happens later at new-session time)
     preflight_kill = [
-        c for c in ssh.calls
+        c
+        for c in ssh.calls
         if "tmux kill-session -t tokenpal-mordecai" in c and "2>/dev/null" not in c
     ]
     assert preflight_kill, f"expected explicit preflight kill-session, got: {ssh.calls}"
@@ -1152,13 +1202,15 @@ async def test_preflight_broken_venv_forces_reinstall():
     local_hash = _hash_training_sources()
 
     # venv_ok=False simulates a torch import failure on a venv that looks installed
-    ssh = _MockSSH({
-        **_preflight_state(venv_ok=False),
-        "nvidia-smi": (0, "GPU OK", ""),
-        "mkdir": (0, "", ""),
-        "df -BG": (0, "50G", ""),
-        ".source-hash": (0, local_hash, ""),  # hash matches — WOULD skip push...
-    })
+    ssh = _MockSSH(
+        {
+            **_preflight_state(venv_ok=False),
+            "nvidia-smi": (0, "GPU OK", ""),
+            "mkdir": (0, "", ""),
+            "df -BG": (0, "50G", ""),
+            ".source-hash": (0, local_hash, ""),  # hash matches — WOULD skip push...
+        }
+    )
     # ...but broken venv forces incomplete → push + install. Make install fail
     # to stop the test before we get deeper into the pipeline.
     ssh.routes["install.sh"] = (1, "", "reinstall triggered")
@@ -1189,12 +1241,14 @@ async def test_preflight_all_clean_proceeds():
     config = _make_config()
     progress_msgs: list[str] = []
 
-    ssh = _MockSSH({
-        **_preflight_clean(),
-        "nvidia-smi": (0, "GPU OK", ""),
-        "df -BG": (0, "50G", ""),
-        "mkdir": (0, "", ""),
-    })
+    ssh = _MockSSH(
+        {
+            **_preflight_clean(),
+            "nvidia-smi": (0, "GPU OK", ""),
+            "df -BG": (0, "50G", ""),
+            "mkdir": (0, "", ""),
+        }
+    )
 
     with (
         patch("tokenpal.tools.remote_train._run_ssh", ssh),
@@ -1217,9 +1271,7 @@ async def test_preflight_all_clean_proceeds():
 
     # No stale-lock cleanup commands should have fired
     assert not any("rm -f /tmp/tokenpal-training.lock" in c for c in ssh.calls)
-    assert not any(
-        "tmux kill-session" in c and "2>/dev/null" not in c for c in ssh.calls
-    )
+    assert not any("tmux kill-session" in c and "2>/dev/null" not in c for c in ssh.calls)
     assert not any("stale training lock" in msg.lower() for msg in progress_msgs)
     assert not any("orphan tmux session" in msg.lower() for msg in progress_msgs)
 
@@ -1277,12 +1329,14 @@ async def test_disk_space_warning(capsys):
     config = _make_config()
     progress_msgs: list[str] = []
 
-    ssh = _MockSSH({
-        "nvidia-smi": (0, "GPU OK", ""),
-        "mkdir": (0, "", ""),
-        "df -BG": (0, "10G", ""),  # only 10GB free!
-        ".source-hash": (0, "none", ""),
-    })
+    ssh = _MockSSH(
+        {
+            "nvidia-smi": (0, "GPU OK", ""),
+            "mkdir": (0, "", ""),
+            "df -BG": (0, "10G", ""),  # only 10GB free!
+            ".source-hash": (0, "none", ""),
+        }
+    )
     scp = _MockSCP(rc=1, err="fail")
 
     with (
@@ -1295,7 +1349,9 @@ async def test_disk_space_warning(capsys):
     ):
         with pytest.raises(RemoteTrainError):
             await remote_finetune(
-                _make_profile(), config, lambda msg: progress_msgs.append(msg),
+                _make_profile(),
+                config,
+                lambda msg: progress_msgs.append(msg),
             )
 
     assert any("10GB free" in msg for msg in progress_msgs)
@@ -1347,6 +1403,7 @@ async def test_checkpoint_resume_detected():
     assert script_calls
     # Decode the base64 payload to verify --resume is in the script
     import base64
+
     b64_data = script_calls[0].split("echo ")[1].split(" |")[0]
     script_content = base64.b64decode(b64_data).decode()
     assert "--resume" in script_content
@@ -1402,10 +1459,12 @@ async def test_merge_failure_includes_debug_hint():
 async def test_ensure_base_model_valid_skips_download():
     """Config.json + nonzero weight shard → skip download entirely."""
     remote = _make_remote()
-    ssh = _MockSSH({
-        # The new check command contains "BASE_MODEL_OK" as its echo argument
-        "BASE_MODEL_OK": (0, "BASE_MODEL_OK\n", ""),
-    })
+    ssh = _MockSSH(
+        {
+            # The new check command contains "BASE_MODEL_OK" as its echo argument
+            "BASE_MODEL_OK": (0, "BASE_MODEL_OK\n", ""),
+        }
+    )
     progress_msgs: list[str] = []
 
     result = await _ensure_base_model(
@@ -1437,10 +1496,12 @@ async def test_ensure_base_model_config_without_weights_redownloads():
     remote = _make_remote()
     # Check command returns empty (BASE_MODEL_OK never echoed — check failed)
     # Then snapshot_download is attempted and succeeds.
-    ssh = _MockSSH({
-        "BASE_MODEL_OK": (1, "", "no weights found"),
-        "snapshot_download": (0, "downloaded", ""),
-    })
+    ssh = _MockSSH(
+        {
+            "BASE_MODEL_OK": (1, "", "no weights found"),
+            "snapshot_download": (0, "downloaded", ""),
+        }
+    )
     progress_msgs: list[str] = []
 
     result = await _ensure_base_model(
@@ -1569,7 +1630,12 @@ async def test_pull_checksum_mismatch_raises_hard_error(tmp_path):
     # Rsync "succeeds" but creates no files — local hash will be the empty digest,
     # which won't match the remote hash of "f" * 64 → triggers mismatch branch.
     async def succeeding_rsync_noop(
-        remote, local, remote_path, pull=False, progress=None, timeout=3600,
+        remote,
+        local,
+        remote_path,
+        pull=False,
+        progress=None,
+        timeout=3600,
     ):
         return (0, "")
 
@@ -1620,10 +1686,12 @@ def test_looks_like_hf_auth_error_detects_common_patterns():
 async def test_ensure_base_model_surfaces_hf_auth_error():
     """Remote HF download fails with 401/403 → RemoteTrainError('auth') with hint."""
     remote = _make_remote()
-    ssh = _MockSSH({
-        "BASE_MODEL_OK": (1, "", ""),  # model not present
-        "snapshot_download": (1, "", "HTTPError: 401 Client Error: Unauthorized"),
-    })
+    ssh = _MockSSH(
+        {
+            "BASE_MODEL_OK": (1, "", ""),  # model not present
+            "snapshot_download": (1, "", "HTTPError: 401 Client Error: Unauthorized"),
+        }
+    )
 
     with pytest.raises(RemoteTrainError) as exc_info:
         await _ensure_base_model(
@@ -1654,14 +1722,21 @@ async def test_ensure_base_model_nonauth_error_falls_through_to_local():
     that WOULD succeed on the local fallback.
     """
     remote = _make_remote()
-    ssh = _MockSSH({
-        "BASE_MODEL_OK": (1, "", ""),
-        "snapshot_download": (1, "", "Connection reset by peer"),
-    })
+    ssh = _MockSSH(
+        {
+            "BASE_MODEL_OK": (1, "", ""),
+            "snapshot_download": (1, "", "Connection reset by peer"),
+        }
+    )
 
     # Patch local snapshot_download + the push transport (rsync for non-WSL).
     async def succeeding_rsync(
-        remote, local, remote_path, pull=False, progress=None, timeout=3600,
+        remote,
+        local,
+        remote_path,
+        pull=False,
+        progress=None,
+        timeout=3600,
     ):
         return (0, "")
 
@@ -1807,12 +1882,14 @@ async def test_remote_finetune_resolves_platform_auto_at_runtime():
     assert config.remote.platform == "auto"
     progress_msgs: list[str] = []
 
-    ssh = _MockSSH({
-        "uname -s": (0, "Linux\n", ""),
-        **_preflight_clean(),
-        "nvidia-smi": (0, "GPU OK", ""),
-        "df -BG": (0, "50G", ""),
-    })
+    ssh = _MockSSH(
+        {
+            "uname -s": (0, "Linux\n", ""),
+            **_preflight_clean(),
+            "nvidia-smi": (0, "GPU OK", ""),
+            "df -BG": (0, "50G", ""),
+        }
+    )
 
     with (
         patch("tokenpal.tools.remote_train._run_ssh", ssh),
@@ -1839,11 +1916,13 @@ async def test_remote_finetune_respects_explicit_platform_config():
     config = _make_config(platform="linux")
     progress_msgs: list[str] = []
 
-    ssh = _MockSSH({
-        **_preflight_clean(),
-        "nvidia-smi": (0, "GPU OK", ""),
-        "df -BG": (0, "50G", ""),
-    })
+    ssh = _MockSSH(
+        {
+            **_preflight_clean(),
+            "nvidia-smi": (0, "GPU OK", ""),
+            "df -BG": (0, "50G", ""),
+        }
+    )
 
     with (
         patch("tokenpal.tools.remote_train._run_ssh", ssh),

@@ -114,9 +114,7 @@ async def test_spotlight_argv_escapes_the_query(
 # --- modified_within parser ---
 
 
-@pytest.mark.parametrize(
-    ("raw", "seconds"), [("12h", 43_200), ("2d", 172_800), ("1w", 604_800)]
-)
+@pytest.mark.parametrize(("raw", "seconds"), [("12h", 43_200), ("2d", 172_800), ("1w", 604_800)])
 def test_modified_within_parses(raw: str, seconds: int) -> None:
     assert find_files._parse_within(raw) == seconds
 

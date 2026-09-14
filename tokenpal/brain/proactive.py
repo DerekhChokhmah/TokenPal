@@ -114,8 +114,7 @@ class ProactiveScheduler:
         )
         if self._memory is not None:
             self._memory.upsert_reminder(id, label, schedule.to_row(), due)
-        log.info("Proactive nudge '%s' armed (%s), next due in %.0fs",
-                 id, schedule.kind, due - now)
+        log.info("Proactive nudge '%s' armed (%s), next due in %.0fs", id, schedule.kind, due - now)
 
     def cancel(self, id: str) -> bool:
         """Disarm a nudge and unpersist it. True if one was armed."""
@@ -157,12 +156,8 @@ class ProactiveScheduler:
             # recomputed gap would never reach the fire.
             if next_due_at > now + _MAX_DEADLINE_AHEAD_S:
                 next_due_at = schedule.next_due_at(now)
-                self._memory.upsert_reminder(
-                    reminder_id, label, schedule.to_row(), next_due_at
-                )
-                log.warning(
-                    "Reminder '%s' had an impossible deadline; re-armed", reminder_id
-                )
+                self._memory.upsert_reminder(reminder_id, label, schedule.to_row(), next_due_at)
+                log.warning("Reminder '%s' had an impossible deadline; re-armed", reminder_id)
             last_fired_at = row.get("last_fired_at")
             self._nudges[reminder_id] = ScheduledNudge(
                 id=reminder_id,

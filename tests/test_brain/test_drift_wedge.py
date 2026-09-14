@@ -51,5 +51,7 @@ def test_build_prompt_delegates_to_personality() -> None:
     prompt = w.build_prompt(cand, ctx)
     assert prompt == "drifted"
     personality.build_drift_nudge_prompt.assert_called_once_with(
-        intent_text="finish PR", app_name="twitter", dwell_s=600,
+        intent_text="finish PR",
+        app_name="twitter",
+        dwell_s=600,
     )

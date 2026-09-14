@@ -42,8 +42,10 @@ Drafted one way so the Work is executable; each is decided by the operator at ap
       ),
   }
 
+
   def build_task_prompt(task: DesktopTask, block: str) -> str:
       return f"{_INSTRUCTIONS[task]}\n\n{block}"
+
 
   def task_max_tokens(chars: int) -> int:
       return min(4_096, max(512, chars // 2))
@@ -66,6 +68,7 @@ Drafted one way so the Work is executable; each is decided by the operator at ap
       def _cmd(args: str) -> CommandResult:
           brain.submit_desktop_task(task, args.strip() or None)
           return CommandResult("")
+
       return _cmd
   ```
   Register `dispatcher.register("proofread", make_desktop_task_command(brain, "proofread"))` and the same for `"explain"` next to the `agent` registration (`:1726`). `/help` lists them automatically (`tokenpal/commands.py:48-50`).

@@ -150,13 +150,9 @@ def test_from_row_ignores_extra_keys() -> None:
 
 def test_from_row_rejects_fields_that_do_not_match_kind() -> None:
     with pytest.raises(ValueError):
-        Schedule.from_row(
-            {"kind": "interval", "interval_s": 600.0, "at_hour": 8, "at_minute": 0}
-        )
+        Schedule.from_row({"kind": "interval", "interval_s": 600.0, "at_hour": 8, "at_minute": 0})
     with pytest.raises(ValueError):
-        Schedule.from_row(
-            {"kind": "daily", "interval_s": None, "at_hour": None, "at_minute": None}
-        )
+        Schedule.from_row({"kind": "daily", "interval_s": None, "at_hour": None, "at_minute": None})
     with pytest.raises(ValueError):
         Schedule.from_row({"kind": "weekly", "interval_s": None})
 
@@ -179,9 +175,7 @@ def test_interval_from_minutes_rejects_junk_naming_every_min(raw: object) -> Non
 
 
 def test_daily_from_hhmm_accepts_single_digit_hour() -> None:
-    assert Schedule.daily_from_hhmm("9:05") == Schedule(
-        kind="daily", at_hour=9, at_minute=5
-    )
+    assert Schedule.daily_from_hhmm("9:05") == Schedule(kind="daily", at_hour=9, at_minute=5)
 
 
 def test_next_due_at_from_now_collapses_a_missed_gap(eastern: None) -> None:

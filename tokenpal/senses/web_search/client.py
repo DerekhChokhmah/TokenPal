@@ -168,10 +168,7 @@ class DuckDuckGoBackend(SearchBackend):
 
     def search(self, query: str) -> SearchResult | None:
         q = urllib.parse.quote_plus(query)
-        url = (
-            f"https://api.duckduckgo.com/?q={q}"
-            f"&format=json&no_html=1&skip_disambig=1"
-        )
+        url = f"https://api.duckduckgo.com/?q={q}&format=json&no_html=1&skip_disambig=1"
         data = _http_get_json(url)
         if not data:
             return None
@@ -407,14 +404,16 @@ class TavilyBackend(SearchBackend):
         out: list[SearchResult] = []
         for hit in hits:
             content = hit["content"]
-            out.append(SearchResult(
-                query=query,
-                backend="tavily",
-                title=hit["title"],
-                text=_truncate(content),  # short snippet for logging/display
-                source_url=hit["url"],
-                preloaded_content=content,  # full body, NEVER truncated
-            ))
+            out.append(
+                SearchResult(
+                    query=query,
+                    backend="tavily",
+                    title=hit["title"],
+                    text=_truncate(content),  # short snippet for logging/display
+                    source_url=hit["url"],
+                    preloaded_content=content,  # full body, NEVER truncated
+                )
+            )
         return out
 
 

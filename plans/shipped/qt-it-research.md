@@ -60,6 +60,7 @@ Each `QWidget` toplevel today (buddy, bubble, sky, rain overlay, chrome, dock) g
 
 ```python
 import ctypes
+
 ctypes.windll.dwmapi.DwmFlush()
 ```
 

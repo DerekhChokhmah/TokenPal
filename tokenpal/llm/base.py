@@ -95,15 +95,11 @@ class AbstractLLMBackend(abc.ABC):
 
     def set_model(self, model_name: str) -> None:
         """Swap the active model. Override in backends that support it."""
-        raise NotImplementedError(
-            f"{type(self).__name__} does not support model swapping"
-        )
+        raise NotImplementedError(f"{type(self).__name__} does not support model swapping")
 
     def set_api_url(self, url: str) -> None:
         """Switch the API endpoint at runtime. Override in backends that support it."""
-        raise NotImplementedError(
-            f"{type(self).__name__} does not support URL switching"
-        )
+        raise NotImplementedError(f"{type(self).__name__} does not support URL switching")
 
     @abc.abstractmethod
     async def setup(self) -> None:

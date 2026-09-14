@@ -41,7 +41,10 @@ def extract_news_items(reading: SenseReading) -> list[NewsItem]:
 
 
 def _extract_stories(
-    reading: SenseReading, now: float, *, score_field: str,
+    reading: SenseReading,
+    now: float,
+    *,
+    score_field: str,
 ) -> list[NewsItem]:
     raw = reading.data.get("stories")
     if not isinstance(raw, list):
@@ -55,14 +58,16 @@ def _extract_stories(
             continue
         score = s.get(score_field)
         meta = f"{score} pts" if isinstance(score, int) else ""
-        out.append(NewsItem(
-            source=reading.sense_name,
-            title=title,
-            url=str(s.get("url", "") or "").strip(),
-            meta=meta,
-            description="",
-            timestamp=now,
-        ))
+        out.append(
+            NewsItem(
+                source=reading.sense_name,
+                title=title,
+                url=str(s.get("url", "") or "").strip(),
+                meta=meta,
+                description="",
+                timestamp=now,
+            )
+        )
     return out
 
 
@@ -84,14 +89,16 @@ def _extract_repos(reading: SenseReading, now: float) -> list[NewsItem]:
             bits.append(f"{stars}★")
         if language:
             bits.append(language)
-        out.append(NewsItem(
-            source="github_trending",
-            title=name,
-            url=str(r.get("url", "") or "").strip(),
-            meta=" · ".join(bits),
-            description=str(r.get("description", "") or "").strip(),
-            timestamp=now,
-        ))
+        out.append(
+            NewsItem(
+                source="github_trending",
+                title=name,
+                url=str(r.get("url", "") or "").strip(),
+                meta=" · ".join(bits),
+                description=str(r.get("description", "") or "").strip(),
+                timestamp=now,
+            )
+        )
     return out
 
 
@@ -116,10 +123,7 @@ class NewsBuffer:
             # Drop the about-to-be-evicted entry from `_seen` before the
             # deque rotates, otherwise `_seen` grows unbounded as the
             # buffer churns.
-            if (
-                self._items.maxlen is not None
-                and len(self._items) == self._items.maxlen
-            ):
+            if self._items.maxlen is not None and len(self._items) == self._items.maxlen:
                 self._seen.discard(self._items[0].dedupe_key)
             self._items.append(it)
             self._seen.add(key)

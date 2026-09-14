@@ -452,14 +452,17 @@ def _build_checkpoint_check_cmd(platform: str, cmd_rdir: str) -> str:
         return (
             f'powershell -Command "Get-ChildItem {ckpt_dir} -Directory '
             f"-ErrorAction SilentlyContinue "
-            f'| Where-Object {{ $_.Name -like \'checkpoint-*\' }} '
+            f"| Where-Object {{ $_.Name -like 'checkpoint-*' }} "
             f'| Select-Object -Last 1 -ExpandProperty Name"'
         )
     return f"ls -d {cmd_rdir}/output/adapter/checkpoint-* 2>/dev/null | tail -1"
 
 
 def _build_merge_cmd(
-    platform: str, venv_py: str, cmd_rdir: str, raw_model_dir: str,
+    platform: str,
+    venv_py: str,
+    cmd_rdir: str,
+    raw_model_dir: str,
 ) -> str:
     """Return the command to run `tokenpal.tools.finetune_voice merge` on
     the remote. Differs per platform because env var syntax and invocation
@@ -468,8 +471,8 @@ def _build_merge_cmd(
     """
     if platform == "windows":
         return (
-            f'powershell -ExecutionPolicy Bypass -Command '
-            f'"$env:HF_HUB_OFFLINE = \'1\'; '
+            f"powershell -ExecutionPolicy Bypass -Command "
+            f"\"$env:HF_HUB_OFFLINE = '1'; "
             f"Set-Location {_ps_quote(cmd_rdir)}; "
             f"& {_ps_quote(venv_py)} -m tokenpal.tools.finetune_voice merge "
             f"--adapter output/adapter --output output/merged "
@@ -505,13 +508,13 @@ def _build_remote_sha256_cmd(platform: str, cmd_rdir: str) -> str:
             f'powershell -Command "'
             f"$files = Get-ChildItem {merged_dir} "
             f"-Recurse -Filter '*.safetensors' -ErrorAction SilentlyContinue "
-            f'| Sort-Object Name; '
-            f'$combined = ($files | ForEach-Object '
+            f"| Sort-Object Name; "
+            f"$combined = ($files | ForEach-Object "
             f"{{ $h = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower(); "
             f"($h + '  ' + $_.Name) }}) -join [string][char]10; "
             f"$bytes = [Text.Encoding]::UTF8.GetBytes($combined + [string][char]10); "
-            f'$sha = [Security.Cryptography.SHA256]::Create(); '
-            f'$hash = $sha.ComputeHash($bytes); '
+            f"$sha = [Security.Cryptography.SHA256]::Create(); "
+            f"$hash = $sha.ComputeHash($bytes); "
             f"($hash | ForEach-Object {{ $_.ToString('x2') }}) -join ''\""
         )
     return (
@@ -680,7 +683,9 @@ def _build_bundle(profile_json_path: Path | None = None) -> Path:
     result = subprocess.run(
         [sys.executable, "-m", "build", "--wheel", "--outdir", str(bundle_dir)],
         cwd=str(project_root),
-        capture_output=True, text=True, timeout=120,
+        capture_output=True,
+        text=True,
+        timeout=120,
     )
     if result.returncode != 0:
         raise RuntimeError(f"Wheel build failed:\n{result.stderr[-500:]}")
@@ -697,17 +702,13 @@ def _build_bundle(profile_json_path: Path | None = None) -> Path:
     #      maps to a right double quote in 1252, prematurely closing any
     #      double-quoted string and cascading parser errors.
     install_ps1 = bundle_dir / "install.ps1"
-    install_ps1.write_bytes(
-        _UTF8_BOM + _INSTALL_PS1.replace("\n", "\r\n").encode("utf-8")
-    )
+    install_ps1.write_bytes(_UTF8_BOM + _INSTALL_PS1.replace("\n", "\r\n").encode("utf-8"))
     # No chmod on .ps1 — PowerShell execution policy controls this, not file perms
 
     # Write run_train.ps1 (native Windows training runner, parameterized).
     # Same CRLF + BOM requirements as install.ps1.
     run_train_ps1 = bundle_dir / "run_train.ps1"
-    run_train_ps1.write_bytes(
-        _UTF8_BOM + _TRAIN_PS1.replace("\n", "\r\n").encode("utf-8")
-    )
+    run_train_ps1.write_bytes(_UTF8_BOM + _TRAIN_PS1.replace("\n", "\r\n").encode("utf-8"))
 
     # Write source hash
     source_hash = _hash_training_sources()
@@ -716,6 +717,7 @@ def _build_bundle(profile_json_path: Path | None = None) -> Path:
     # Include profile JSON if provided
     if profile_json_path and profile_json_path.exists():
         import shutil
+
         shutil.copy2(profile_json_path, bundle_dir)
 
     # Create tarball
@@ -777,7 +779,7 @@ def _wsl_wrap(command: str) -> str:
     Double-quotes the command because the SSH target is PowerShell,
     which doesn't handle single quotes the same way bash does.
     """
-    escaped = command.replace('\\', '\\\\').replace('"', '\\"')
+    escaped = command.replace("\\", "\\\\").replace('"', '\\"')
     return f'wsl -e bash -lc "{escaped}"'
 
 
@@ -867,7 +869,8 @@ async def _run_scp(
 
     try:
         stdout, stderr = await asyncio.wait_for(
-            proc.communicate(), timeout=timeout,
+            proc.communicate(),
+            timeout=timeout,
         )
     except TimeoutError:
         proc.kill()
@@ -908,15 +911,23 @@ async def _run_rsync(
     # Trailing slash on source = copy contents, not the directory itself
     if pull:
         args = [
-            "rsync", "-a", "--partial", "--progress",
-            "-e", ssh_cmd,
+            "rsync",
+            "-a",
+            "--partial",
+            "--progress",
+            "-e",
+            ssh_cmd,
             f"{target}:{remote_path}/",
             f"{local_path}/",
         ]
     else:
         args = [
-            "rsync", "-a", "--partial", "--progress",
-            "-e", ssh_cmd,
+            "rsync",
+            "-a",
+            "--partial",
+            "--progress",
+            "-e",
+            ssh_cmd,
             f"{local_path}/",
             f"{target}:{remote_path}/",
         ]
@@ -948,7 +959,7 @@ async def _run_rsync(
                 else:
                     idx = min(idx_r, idx_n)
                 line = buf[:idx].decode("utf-8", errors="replace").strip()
-                buf = buf[idx + 1:]
+                buf = buf[idx + 1 :]
                 if progress and line and "%" in line:
                     progress(line)
 
@@ -986,11 +997,15 @@ def _looks_like_hf_auth_error(text: str) -> bool:
         return False
     lower = text.lower()
     markers = (
-        "401", "403",
-        "unauthorized", "forbidden",
-        "gated", "gatedrepoerror",
+        "401",
+        "403",
+        "unauthorized",
+        "forbidden",
+        "gated",
+        "gatedrepoerror",
         "invalid credentials",
-        "token is not valid", "invalid token",
+        "token is not valid",
+        "invalid token",
         "repository not found",  # private repo without token
         "access to model",  # "access to model X is restricted"
         "must be authenticated",
@@ -1084,7 +1099,9 @@ async def _ensure_base_model(
         # surface them with an actionable hint. Other snapshot_download
         # failures (network, disk full) propagate as-is.
         if _looks_like_hf_auth_error(str(exc)) or type(exc).__name__ in (
-            "GatedRepoError", "RepositoryNotFoundError", "HfHubHTTPError",
+            "GatedRepoError",
+            "RepositoryNotFoundError",
+            "HfHubHTTPError",
         ):
             raise RemoteTrainError(
                 "auth",
@@ -1105,13 +1122,19 @@ async def _ensure_base_model(
     scp_rdir = remote.remote_dir
     if remote.use_wsl:
         rc, err = await _run_scp(
-            remote, str(local_model_dir), f"{scp_rdir}/model",
-            recursive=True, timeout=3600,
+            remote,
+            str(local_model_dir),
+            f"{scp_rdir}/model",
+            recursive=True,
+            timeout=3600,
         )
     else:
         rc, err = await _run_rsync(
-            remote, str(local_model_dir), f"{scp_rdir}/model",
-            progress=progress, timeout=3600,
+            remote,
+            str(local_model_dir),
+            f"{scp_rdir}/model",
+            progress=progress,
+            timeout=3600,
         )
     if rc != 0:
         raise RemoteTrainError("model_push", f"SCP failed: {err[:200]}")
@@ -1165,10 +1188,10 @@ class RemoteState:
     `remote_finetune` uses this to decide: proceed, raise, or auto-recover.
     """
 
-    lock_file_exists: bool      # /tmp/tokenpal-training.lock exists on disk?
-    lock_held: bool             # something is actively holding the flock?
-    tmux_session_alive: bool    # tokenpal-<slug> tmux session exists?
-    venv_functional: bool       # .venv/bin/python -c "import torch" succeeds?
+    lock_file_exists: bool  # /tmp/tokenpal-training.lock exists on disk?
+    lock_held: bool  # something is actively holding the flock?
+    tmux_session_alive: bool  # tokenpal-<slug> tmux session exists?
+    venv_functional: bool  # .venv/bin/python -c "import torch" succeeds?
 
 
 async def _detect_remote_platform(
@@ -1193,7 +1216,9 @@ async def _detect_remote_platform(
     returns "linux" even on a Windows host with use_wsl=true.
     """
     _rc, out, _err = await _ssh(
-        remote, "uname -s 2>/dev/null || ver", timeout=10,
+        remote,
+        "uname -s 2>/dev/null || ver",
+        timeout=10,
     )
     lower = out.lower()
     if "microsoft windows" in lower or lower.strip().startswith("windows"):
@@ -1228,9 +1253,9 @@ async def _preflight_remote_state(
         # The venv python is at .venv\Scripts\python.exe on Windows.
         venv_py = f"{cmd_rdir}\\.venv\\Scripts\\python.exe"
         probe = (
-            f'echo lock_file=0 & echo lock=free & echo tmux=dead & '
+            f"echo lock_file=0 & echo lock=free & echo tmux=dead & "
             f'"{venv_py}" -c "import torch" >nul 2>&1 '
-            f'&& echo venv=ok || echo venv=broken'
+            f"&& echo venv=ok || echo venv=broken"
         )
     else:
         probe = (
@@ -1289,7 +1314,10 @@ async def remote_finetune(
     # Import here to avoid circular imports and keep server deps optional.
     if hasattr(config, "_server_url") and config._server_url:
         result = await _remote_finetune_via_http(
-            profile, config._server_url, config, progress,
+            profile,
+            config._server_url,
+            config,
+            progress,
         )
         # HTTP path returns None — model lives on the server's Ollama.
         # Return a sentinel dir so callers that check .exists() don't crash.
@@ -1299,7 +1327,8 @@ async def remote_finetune(
 
     if not remote.host:
         raise RemoteTrainError(
-            "config", "No remote host configured. Set [finetune.remote] host in config.toml",
+            "config",
+            "No remote host configured. Set [finetune.remote] host in config.toml",
         )
 
     # Invalid combo: native Windows path cannot run through WSL bash.
@@ -1346,14 +1375,15 @@ async def remote_finetune(
     # via an SSH call, then use the absolute path everywhere (SSH + SCP).
     if platform == "windows":
         _rc, win_home_out, _err = await _ssh(
-            remote, "echo %USERPROFILE%", timeout=10,
+            remote,
+            "echo %USERPROFILE%",
+            timeout=10,
         )
         win_home = win_home_out.strip()
         if not win_home or win_home == "%USERPROFILE%":
             raise RemoteTrainError(
                 "config",
-                "Could not resolve %USERPROFILE% on Windows remote. "
-                "Is the SSH shell cmd.exe?",
+                "Could not resolve %USERPROFILE% on Windows remote. Is the SSH shell cmd.exe?",
             )
         # Rewrite remote_dir using the absolute home path (SCP-compatible).
         if scp_rdir.startswith("~/"):
@@ -1394,7 +1424,7 @@ async def remote_finetune(
         # Output is integer GB free; 0 on parse failure (check silently skipped).
         disk_cmd = (
             f'powershell -Command "'
-            f'$d = (Get-Item {_ps_quote(cmd_rdir)}).PSDrive; '
+            f"$d = (Get-Item {_ps_quote(cmd_rdir)}).PSDrive; "
             f'[int]($d.Free / 1GB)"'
         )
     else:
@@ -1480,7 +1510,8 @@ async def remote_finetune(
     profile_data["line_count"] = profile.line_count
     profile_json = Path(tempfile.mkdtemp()) / f"{slug}.json"
     profile_json.write_text(
-        json.dumps(profile_data, ensure_ascii=False, indent=2), encoding="utf-8",
+        json.dumps(profile_data, ensure_ascii=False, indent=2),
+        encoding="utf-8",
     )
 
     if local_hash != remote_hash:
@@ -1492,7 +1523,9 @@ async def remote_finetune(
 
         _progress("Pushing bundle to remote...")
         rc, err = await _run_scp(
-            remote, str(tarball), f"{scp_rdir}/bundle.tar.gz",
+            remote,
+            str(tarball),
+            f"{scp_rdir}/bundle.tar.gz",
         )
         if rc != 0:
             raise RemoteTrainError("push", f"SCP failed: {err[:200]}")
@@ -1504,20 +1537,15 @@ async def remote_finetune(
             # to sidestep the default Restricted policy without persistent changes.
             extract_cmd = (
                 f'cd /d "{cmd_rdir}" && tar xzf bundle.tar.gz && '
-                f'powershell -ExecutionPolicy Bypass -File install.ps1'
+                f"powershell -ExecutionPolicy Bypass -File install.ps1"
             )
         elif remote.use_wsl:
             # SCP landed on Windows filesystem. install.sh will self-relocate
             # from /mnt/c/... to ~/tokenpal-training/ automatically.
             win_mount = await _resolve_wsl_mount(remote)
-            extract_cmd = (
-                f'cd "{win_mount}" && tar xzf bundle.tar.gz && bash install.sh'
-            )
+            extract_cmd = f'cd "{win_mount}" && tar xzf bundle.tar.gz && bash install.sh'
         else:
-            extract_cmd = (
-                f"cd {cmd_rdir} && tar xzf bundle.tar.gz && "
-                f"bash install.sh"
-            )
+            extract_cmd = f"cd {cmd_rdir} && tar xzf bundle.tar.gz && bash install.sh"
         _progress("Installing training environment...")
         rc, out, err = await _ssh(remote, extract_cmd, progress, timeout=1800)
         if rc != 0:
@@ -1528,7 +1556,9 @@ async def remote_finetune(
         _progress("Training code unchanged, skipping bundle push.")
         # Still push the profile JSON (it's per-run data)
         rc, err = await _run_scp(
-            remote, str(profile_json), f"{scp_rdir}/{q_slug}.json",
+            remote,
+            str(profile_json),
+            f"{scp_rdir}/{q_slug}.json",
         )
         if rc != 0:
             raise RemoteTrainError("push", f"Profile SCP failed: {err[:200]}")
@@ -1548,11 +1578,21 @@ async def remote_finetune(
     _progress("Checking base model on remote...")
     if platform == "windows":
         await _ensure_base_model_windows(
-            remote, config.base_model, model_dir, venv_py, _ssh, _progress,
+            remote,
+            config.base_model,
+            model_dir,
+            venv_py,
+            _ssh,
+            _progress,
         )
     else:
         await _ensure_base_model(
-            remote, config.base_model, model_dir, venv_py, _ssh, _progress,
+            remote,
+            config.base_model,
+            model_dir,
+            venv_py,
+            _ssh,
+            _progress,
         )
 
     # -- Prepare training data (using installed entry point) --
@@ -1596,10 +1636,7 @@ async def remote_finetune(
     # intentionally skipped there. Worst case on Windows: two concurrent
     # trainings stomp each other, but that requires deliberate user action.)
     if platform != "windows":
-        lock_cmd = (
-            "flock -n /tmp/tokenpal-training.lock -c "
-            "'echo locked' 2>/dev/null || echo busy"
-        )
+        lock_cmd = "flock -n /tmp/tokenpal-training.lock -c 'echo locked' 2>/dev/null || echo busy"
         rc, lock_out, _ = await _ssh(remote, lock_cmd, timeout=10)
         if "busy" in lock_out:
             raise RemoteTrainError(
@@ -1621,12 +1658,12 @@ async def remote_finetune(
         # in the .ps1 pipes to both stdout and train.log).
         resume_arg = " -Resume" if has_checkpoint else ""
         windows_train_cmd = (
-            f'powershell -ExecutionPolicy Bypass -File '
+            f"powershell -ExecutionPolicy Bypass -File "
             f'"{cmd_rdir}\\run_train.ps1" '
             f'-VenvPy "{venv_py}" '
             f'-ModelDir "{raw_model_dir}" '
             f'-CmdRdir "{cmd_rdir}"'
-            f'{resume_arg}'
+            f"{resume_arg}"
         )
         _progress(
             "Training in progress (~10 min). Keep this SSH session open — "
@@ -1650,6 +1687,7 @@ async def remote_finetune(
         # Linux/WSL path: write a bash script, launch in tmux under flock,
         # poll for completion. Unchanged from the pre-Windows implementation.
         import base64
+
         script_content = (
             f"#!/bin/bash\nset -eo pipefail\n"
             f"{train_cmd} 2>&1 | tee {cmd_rdir}/train.log\n"
@@ -1680,8 +1718,7 @@ async def remote_finetune(
 
         b64 = base64.b64encode(script_content.encode()).decode()
         write_cmd = (
-            f"echo {b64} | base64 -d > {cmd_rdir}/run_train.sh && "
-            f"chmod +x {cmd_rdir}/run_train.sh"
+            f"echo {b64} | base64 -d > {cmd_rdir}/run_train.sh && chmod +x {cmd_rdir}/run_train.sh"
         )
         await _ssh(remote, write_cmd, timeout=10)
 
@@ -1711,14 +1748,16 @@ async def remote_finetune(
 
             # Stream last line of log for progress
             rc, log_tail, _ = await _ssh(
-                remote, f"tail -1 {cmd_rdir}/train.log 2>/dev/null", timeout=10,
+                remote,
+                f"tail -1 {cmd_rdir}/train.log 2>/dev/null",
+                timeout=10,
             )
             if rc == 0 and log_tail.strip():
                 _progress(log_tail.strip())
 
     # Check training result (common to both platforms — read from train.log)
     tail_cmd = (
-        f'powershell -Command "Get-Content \'{cmd_rdir}\\train.log\' -Tail 5"'
+        f"powershell -Command \"Get-Content '{cmd_rdir}\\train.log' -Tail 5\""
         if platform == "windows"
         else f"tail -5 {cmd_rdir}/train.log 2>/dev/null"
     )
@@ -1729,7 +1768,7 @@ async def remote_finetune(
         debug_hint = (
             f"To debug:\n"
             f"  ssh -p {remote.port} {target}\n"
-            f"  cd /d \"{cmd_rdir}\"\n"
+            f'  cd /d "{cmd_rdir}"\n'
             f"  .venv\\Scripts\\activate\n"
             f"  type train.log\n"
             f"\nTo retry:  /voice finetune {profile.character}"
@@ -1745,7 +1784,9 @@ async def remote_finetune(
     if "EXIT_CODE=0" not in log_text:
         # Check for checkpoints to suggest resume
         rc2, ckpt, _ = await _ssh(
-            remote, _build_checkpoint_check_cmd(platform, cmd_rdir), timeout=10,
+            remote,
+            _build_checkpoint_check_cmd(platform, cmd_rdir),
+            timeout=10,
         )
         ckpt_hint = ""
         if rc2 == 0 and ckpt.strip():
@@ -1755,8 +1796,7 @@ async def remote_finetune(
         if "OutOfMemoryError" in log_text or "CUDA out of memory" in log_text:
             raise RemoteTrainError(
                 "train",
-                "GPU out of memory. Try reducing batch_size in "
-                "[finetune] config.",
+                "GPU out of memory. Try reducing batch_size in [finetune] config.",
                 hint=f"{ckpt_hint}\n{debug_hint}",
             )
         raise RemoteTrainError(
@@ -1778,15 +1818,15 @@ async def remote_finetune(
 
     # Compute remote checksum for integrity verification
     rc, remote_hash_str, _ = await _ssh(
-        remote, _build_remote_sha256_cmd(platform, cmd_rdir), timeout=60,
+        remote,
+        _build_remote_sha256_cmd(platform, cmd_rdir),
+        timeout=60,
     )
     remote_model_hash = remote_hash_str.strip() if rc == 0 else ""
 
     # -- Download merged model directory --
     _progress("Downloading merged model...")
-    local_models_dir = (
-        Path(config.output_dir).expanduser() / "models"
-    )
+    local_models_dir = Path(config.output_dir).expanduser() / "models"
     local_model_dir = local_models_dir / f"tokenpal-{slug}"
     local_model_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1820,8 +1860,12 @@ async def remote_finetune(
         # existing local_model_dir intact until the transfer completes.
         scp_pull = pull_source.replace("\\", "/")
         rc, err = await _run_scp(
-            remote, str(local_model_dir.parent), scp_pull,
-            pull=True, recursive=True, timeout=3600,
+            remote,
+            str(local_model_dir.parent),
+            scp_pull,
+            pull=True,
+            recursive=True,
+            timeout=3600,
         )
         if rc == 0:
             scp_landed = local_model_dir.parent / Path(pull_source).name
@@ -1831,8 +1875,12 @@ async def remote_finetune(
                 scp_landed.rename(local_model_dir)
     else:
         rc, err = await _run_rsync(
-            remote, str(local_model_dir), pull_source,
-            pull=True, progress=progress, timeout=3600,
+            remote,
+            str(local_model_dir),
+            pull_source,
+            pull=True,
+            progress=progress,
+            timeout=3600,
         )
     if rc != 0:
         raise RemoteTrainError(
@@ -1969,7 +2017,8 @@ async def _remote_finetune_via_http(
             raise RemoteTrainError("server", data.get("error", "Training already in progress"))
         if resp.status_code != 202:
             raise RemoteTrainError(
-                "server", f"Server returned {resp.status_code}: {resp.text[:200]}",
+                "server",
+                f"Server returned {resp.status_code}: {resp.text[:200]}",
             )
 
         job_id = resp.json()["job_id"]
@@ -1982,7 +2031,8 @@ async def _remote_finetune_via_http(
             status_resp = await client.get(f"{base_url}/api/v1/train/{job_id}")
             if status_resp.status_code != 200:
                 raise RemoteTrainError(
-                    "server", f"Status poll failed: {status_resp.status_code}",
+                    "server",
+                    f"Status poll failed: {status_resp.status_code}",
                 )
 
             job = status_resp.json()
@@ -2024,8 +2074,10 @@ async def _ensure_wsl(
     # wsl --install requires admin privileges — can't run over SSH
     _progress("Installing WSL (needs admin)...")
     rc, out, err = await _run_ssh(
-        remote, "wsl --install -d Ubuntu",
-        progress, timeout=300,
+        remote,
+        "wsl --install -d Ubuntu",
+        progress,
+        timeout=300,
     )
     if rc != 0:
         msg = (
@@ -2037,10 +2089,7 @@ async def _ensure_wsl(
         _progress(msg)
         return False
 
-    _progress(
-        "WSL installed! Reboot the Windows machine, "
-        "then run /voice finetune-setup again."
-    )
+    _progress("WSL installed! Reboot the Windows machine, then run /voice finetune-setup again.")
     return False
 
 
@@ -2102,12 +2151,15 @@ async def remote_setup(
     scp_rdir = remote.remote_dir
     if platform == "windows":
         _rc, win_home_out, _err = await _ssh(
-            remote, "echo %USERPROFILE%", timeout=10,
+            remote,
+            "echo %USERPROFILE%",
+            timeout=10,
         )
         win_home = win_home_out.strip()
         if not win_home or win_home == "%USERPROFILE%":
             return _setup_fail(
-                "Could not resolve %USERPROFILE% on Windows remote.", _progress,
+                "Could not resolve %USERPROFILE% on Windows remote.",
+                _progress,
             )
         if scp_rdir.startswith("~/"):
             rel = scp_rdir[2:].replace("/", "\\")
@@ -2131,7 +2183,8 @@ async def remote_setup(
         rc, _, err = await _ssh(
             remote,
             "sudo apt-get update && sudo apt-get install -y python3-venv python3-pip",
-            progress, timeout=300,
+            progress,
+            timeout=300,
         )
         if rc != 0:
             return _setup_fail(f"apt install failed: {err[-200:]}", _progress)
@@ -2152,7 +2205,7 @@ async def remote_setup(
     if platform == "windows":
         extract_cmd = (
             f'cd /d "{scp_rdir}" && tar xzf bundle.tar.gz && '
-            f'powershell -ExecutionPolicy Bypass -File install.ps1'
+            f"powershell -ExecutionPolicy Bypass -File install.ps1"
         )
         rdir = scp_rdir
     elif remote.use_wsl:
@@ -2161,15 +2214,10 @@ async def remote_setup(
             win_mount = await _resolve_wsl_mount(remote)
         except RemoteTrainError:
             return _setup_fail("Failed to resolve Windows home dir", _progress)
-        extract_cmd = (
-            f'cd "{win_mount}" && tar xzf bundle.tar.gz && bash install.sh'
-        )
+        extract_cmd = f'cd "{win_mount}" && tar xzf bundle.tar.gz && bash install.sh'
     else:
         rdir = scp_rdir
-        extract_cmd = (
-            f"cd {shlex.quote(scp_rdir)} && tar xzf bundle.tar.gz && "
-            f"bash install.sh"
-        )
+        extract_cmd = f"cd {shlex.quote(scp_rdir)} && tar xzf bundle.tar.gz && bash install.sh"
     _progress("Installing training environment (this may take a while)...")
     rc, out, err = await _ssh(remote, extract_cmd, progress, timeout=1800)
     if rc != 0:

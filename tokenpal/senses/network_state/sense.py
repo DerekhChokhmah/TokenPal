@@ -35,6 +35,7 @@ def get_current_ssid_hash() -> str | None:
     or the platform shim is unavailable.
     """
     from tokenpal.senses.network_state.platform_impl import read_ssid
+
     raw = read_ssid()
     return hash_ssid(raw) if raw else None
 
@@ -57,9 +58,7 @@ class NetworkStateSense(AbstractSense):
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
         labels_cfg = config.get("ssid_labels") or {}
-        self._labels: dict[str, str] = {
-            str(k): str(v) for k, v in labels_cfg.items()
-        }
+        self._labels: dict[str, str] = {str(k): str(v) for k, v in labels_cfg.items()}
         self._prev: dict[str, Any] | None = None
 
     async def setup(self) -> None:
@@ -92,16 +91,12 @@ class NetworkStateSense(AbstractSense):
         if ssid_hash != prev["ssid_hash"]:
             prev_hash = prev["ssid_hash"]
             if prev_hash is None and ssid_hash is not None:
-                transitions.append(
-                    f"wifi joined: {_label_for(ssid_hash, self._labels)}"
-                )
+                transitions.append(f"wifi joined: {_label_for(ssid_hash, self._labels)}")
             elif ssid_hash is None:
                 transitions.append("wifi dropped")
                 changed_from_bits.append(_label_for(prev_hash, self._labels))
             else:
-                transitions.append(
-                    f"switched wifi to {_label_for(ssid_hash, self._labels)}"
-                )
+                transitions.append(f"switched wifi to {_label_for(ssid_hash, self._labels)}")
                 changed_from_bits.append(_label_for(prev_hash, self._labels))
 
         if vpn != prev["vpn"]:

@@ -85,14 +85,13 @@ class ChatDock(QWidget):
         layout.addWidget(self._input, 0)
 
         self._status = QLabel("ready", self)
-        self._status.setStyleSheet(
-            "color: #ffffff; background: transparent; padding: 0 4px;"
-        )
+        self._status.setStyleSheet("color: #ffffff; background: transparent; padding: 0 4px;")
         self._status.setAlignment(
             Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
         )
         self._status.setSizePolicy(
-            QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred,
+            QSizePolicy.Policy.Ignored,
+            QSizePolicy.Policy.Preferred,
         )
         self._status.setMinimumWidth(0)
         apply_drop_shadow(
@@ -216,21 +215,19 @@ class ChatHistoryWindow(TranslucentLogWindow):
         safe_author = escape(author)
         safe_text = escape(text).replace("\n", "<br>")
         if url is not None:
-            safe_text = (
-                f'{safe_text} <a href="{escape(url, quote=True)}">'
-                f"[link]</a>"
-            )
+            safe_text = f'{safe_text} <a href="{escape(url, quote=True)}">[link]</a>'
         line = (
             f'<div style="margin: 2px 0">'
             f'<span style="color:#bbbbbb">{escape(ts_str)}</span> '
-            f'<b>{safe_author}:</b> {safe_text}'
+            f"<b>{safe_author}:</b> {safe_text}"
             f"</div>"
         )
         self._log.append(line)
         self._trim_to_cap()
 
     def load_history(
-        self, entries: list[tuple[float, str, str, str | None]],
+        self,
+        entries: list[tuple[float, str, str, str | None]],
     ) -> None:
         for ts, author, text, url in entries:
             self.append_line(ts, author, text, url)

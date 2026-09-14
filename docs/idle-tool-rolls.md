@@ -181,19 +181,19 @@ the session, the other two are single-query reads.
 ```python
 @dataclass(frozen=True)
 class IdleToolRule:
-    name: str                       # stable id, used in config + logs
-    tool_name: str                  # matches AbstractAction.action_name
-    description: str                # surfaced by /idle_tools list
-    weight: float                   # weighted-pick base
-    cooldown_s: float               # per-rule min-gap
+    name: str  # stable id, used in config + logs
+    tool_name: str  # matches AbstractAction.action_name
+    description: str  # surfaced by /idle_tools list
+    weight: float  # weighted-pick base
+    cooldown_s: float  # per-rule min-gap
     predicate: Callable[[IdleToolContext], bool]
-    framing: str                    # running-bit: soft slot instruction;
-                                    # one-shot: riff framing
+    framing: str  # running-bit: soft slot instruction;
+    # one-shot: riff framing
     needs_web_fetches: bool = True
     enabled_default: bool = True
     running_bit: bool = False
     bit_decay_s: float = 0.0
-    opener_framing: str = ""        # only read when running_bit=True
+    opener_framing: str = ""  # only read when running_bit=True
     extra_tool_names: tuple[str, ...] = ()
 ```
 
@@ -226,10 +226,10 @@ bits are slotted into every observation + freeform prompt as a
 @dataclass
 class RunningBit:
     tag: str
-    payload: dict[str, str]         # e.g. {"output": "oxymoron: ..."}
-    framing: str                    # rendered soft instruction
-    added_at: float                 # monotonic
-    decay_at: float                 # monotonic
+    payload: dict[str, str]  # e.g. {"output": "oxymoron: ..."}
+    framing: str  # rendered soft instruction
+    added_at: float  # monotonic
+    decay_at: float  # monotonic
 ```
 
 **Cap:** 3 concurrent bits. Adding a fourth evicts oldest by

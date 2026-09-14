@@ -43,8 +43,7 @@ def _time_in_app(conn: sqlite3.Connection) -> str:
 def _switches_per_hour(conn: sqlite3.Connection) -> str:
     cutoff = time.time() - 86400
     row = conn.execute(
-        "SELECT COUNT(*) FROM observations "
-        "WHERE event_type = 'app_switch' AND timestamp >= ?",
+        "SELECT COUNT(*) FROM observations WHERE event_type = 'app_switch' AND timestamp >= ?",
         (cutoff,),
     ).fetchone()
     count = row[0] if row else 0

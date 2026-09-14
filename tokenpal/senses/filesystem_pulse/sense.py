@@ -13,7 +13,6 @@ never included in summaries, log lines, or reading data fields.
 from __future__ import annotations
 
 import logging
-import os
 import threading
 import time
 from collections import defaultdict, deque
@@ -25,16 +24,30 @@ from tokenpal.senses.registry import register_sense
 
 log = logging.getLogger(__name__)
 
-_BURST_WINDOW_S = 30.0    # events within this window count toward a burst
-_BURST_THRESHOLD = 5      # N events in the window -> burst reading
+_BURST_WINDOW_S = 30.0  # events within this window count toward a burst
+_BURST_THRESHOLD = 5  # N events in the window -> burst reading
 _BURST_COOLDOWN_S = 60.0  # minimum gap between burst readings for the same root
 
 # Directories we never descend into — generate high event volume with zero signal.
-_EXCLUDED_DIR_NAMES = frozenset({
-    "node_modules", ".venv", "venv", ".git", "__pycache__",
-    "build", "dist", "target", ".next", ".tox", ".pytest_cache",
-    ".mypy_cache", ".ruff_cache", "Pods", "DerivedData",
-})
+_EXCLUDED_DIR_NAMES = frozenset(
+    {
+        "node_modules",
+        ".venv",
+        "venv",
+        ".git",
+        "__pycache__",
+        "build",
+        "dist",
+        "target",
+        ".next",
+        ".tox",
+        ".pytest_cache",
+        ".mypy_cache",
+        ".ruff_cache",
+        "Pods",
+        "DerivedData",
+    }
+)
 
 
 def _is_excluded_path(path: str) -> bool:
@@ -127,8 +140,13 @@ class FilesystemPulse(AbstractSense):
         Compares with a path-separator boundary so `/foo/Downloads` does not
         match `/foo/Downloads2/x`.
         """
+
+        normalized_path = src_path.replace("\\", "/").rstrip("/")
         for root_key in self._root_leaf:
-            if src_path == root_key or src_path.startswith(root_key + os.sep):
+            normalized_root = root_key.replace("\\", "/").rstrip("/")
+            if normalized_path == normalized_root or normalized_path.startswith(
+                normalized_root + "/"
+            ):
                 return root_key
         return None
 

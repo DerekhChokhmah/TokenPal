@@ -72,7 +72,8 @@ def resolve_backend(config: dict[str, Any]) -> AbstractLLMBackend:
     if plat not in cls.platforms:
         log.warning(
             "Backend '%s' not officially supported on %s, trying anyway",
-            backend_name, plat,
+            backend_name,
+            plat,
         )
 
     log.info("Using LLM backend: %s (%s)", cls.__name__, backend_name)

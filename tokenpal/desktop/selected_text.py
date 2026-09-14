@@ -127,9 +127,7 @@ def read_selected_text(
             app,
         )
     if err == _ERR_CANNOT_COMPLETE:
-        return _failed(
-            "no_response", f"{app} didn't answer the accessibility request", app
-        )
+        return _failed("no_response", f"{app} didn't answer the accessibility request", app)
     if err != 0 or focused is None:
         return _failed(
             "nothing_focused",
@@ -151,9 +149,7 @@ def read_selected_text(
         text = _string(value)
         whole_field = True
     if not text:
-        return _failed(
-            "empty", f"Nothing selected and the focused field in {app} is empty.", app
-        )
+        return _failed("empty", f"Nothing selected and the focused field in {app} is empty.", app)
 
     truncated = len(text) > max_chars
     text = text[:max_chars]
@@ -183,8 +179,7 @@ def capture_selection(
     if current_platform() != "darwin":
         return ActionResult(
             output=(
-                "Selected-text reading is only available on macOS. "
-                "Try /proofread <text> instead."
+                "Selected-text reading is only available on macOS. Try /proofread <text> instead."
             ),
             success=False,
         )

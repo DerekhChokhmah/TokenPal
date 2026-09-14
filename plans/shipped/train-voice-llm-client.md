@@ -38,7 +38,10 @@ The voice trainer's LLM call goes through `HttpBackend`, so thinking controls, r
 - `tokenpal/llm/registry.py` — add next to `resolve_backend` (`:37-54`) a builder (proposed):
   ```python
   def backend_config(
-      config: TokenPalConfig, *, memory_store: MemoryStore | None = None, **overrides: Any,
+      config: TokenPalConfig,
+      *,
+      memory_store: MemoryStore | None = None,
+      **overrides: Any,
   ) -> dict[str, Any]:
       llm_config = dataclasses.asdict(config.llm)
       llm_config["server_mode"] = config.server.mode
@@ -66,7 +69,9 @@ The voice trainer's LLM call goes through `HttpBackend`, so thinking controls, r
           await backend.setup()
           try:
               response = await backend.generate(
-                  prompt, max_tokens=max_tokens, enable_thinking=False,
+                  prompt,
+                  max_tokens=max_tokens,
+                  enable_thinking=False,
               )
           finally:
               await backend.teardown()

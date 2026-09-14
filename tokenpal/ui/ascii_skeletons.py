@@ -269,26 +269,31 @@ SKELETONS: dict[str, str] = {
 # sheen, etc.) — existing body templates don't reference it directly yet
 # so older renders still work; it's additive.
 PALETTE_KEYS: tuple[str, ...] = (
-    "hair", "skin", "outfit", "accent", "shadow", "highlight",
+    "hair",
+    "skin",
+    "outfit",
+    "accent",
+    "shadow",
+    "highlight",
 )
 
 
 # Sample palettes for the __main__ preview. Tests also import this.
 _SAMPLE_PALETTES: dict[str, dict[str, str]] = {
     "humanoid_tall": {  # Finn-ish
-        "hair": "[#ffffff]",       # white hat
-        "skin": "[#f4d4a8]",       # pale skin
-        "outfit": "[#3da8e8]",     # blue shirt
-        "accent": "[#ffd700]",     # gold buttons
+        "hair": "[#ffffff]",  # white hat
+        "skin": "[#f4d4a8]",  # pale skin
+        "outfit": "[#3da8e8]",  # blue shirt
+        "accent": "[#ffd700]",  # gold buttons
         "shadow": "[#2a6fa5]",
         "highlight": "[#ffffff]",
         "eye": "●",
         "mouth": "▽",
     },
     "humanoid_stocky": {  # Dexter-ish
-        "hair": "[#ff8800]",       # orange hair
+        "hair": "[#ff8800]",  # orange hair
         "skin": "[#f4d4a8]",
-        "outfit": "[#ffffff]",     # lab coat
+        "outfit": "[#ffffff]",  # lab coat
         "accent": "[#cccccc]",
         "shadow": "[#888888]",
         "highlight": "[#ffffff]",
@@ -298,7 +303,7 @@ _SAMPLE_PALETTES: dict[str, dict[str, str]] = {
     "robot_boxy": {  # BMO-ish (less Bender)
         "hair": "[#aaaaaa]",
         "skin": "[#aaaaaa]",
-        "outfit": "[#6dbb5c]",     # BMO green
+        "outfit": "[#6dbb5c]",  # BMO green
         "accent": "[#ff5555]",
         "shadow": "[#2e5a26]",
         "highlight": "[#ffffff]",
@@ -306,7 +311,7 @@ _SAMPLE_PALETTES: dict[str, dict[str, str]] = {
         "mouth": "═",
     },
     "creature_small": {  # Nibbler-ish
-        "hair": "[#b87cd4]",       # purple ears
+        "hair": "[#b87cd4]",  # purple ears
         "skin": "[#b87cd4]",
         "outfit": "[#8a5aa6]",
         "accent": "[#ffd700]",
@@ -316,57 +321,57 @@ _SAMPLE_PALETTES: dict[str, dict[str, str]] = {
         "mouth": "ᗣ",
     },
     "mystical_cloaked": {  # Ice King-ish
-        "hair": "[#dddddd]",       # white beard
-        "skin": "[#c0dffb]",       # blue skin
-        "outfit": "[#4a3a7a]",     # purple robe
-        "accent": "[#ffd700]",     # gold trim
+        "hair": "[#dddddd]",  # white beard
+        "skin": "[#c0dffb]",  # blue skin
+        "outfit": "[#4a3a7a]",  # purple robe
+        "accent": "[#ffd700]",  # gold trim
         "shadow": "[#241a3a]",
         "highlight": "[#ffffff]",
         "eye": "●",
         "mouth": "▽",
     },
     "ghost_floating": {  # classic friendly ghost
-        "hair": "[#eeeeee]",       # white halo/top
-        "skin": "[#eeeeee]",       # white body
-        "outfit": "[#cccccc]",     # (unused)
-        "accent": "[#7ab8ff]",     # blue spooky accents
-        "shadow": "[#888888]",     # fading wisps
+        "hair": "[#eeeeee]",  # white halo/top
+        "skin": "[#eeeeee]",  # white body
+        "outfit": "[#cccccc]",  # (unused)
+        "accent": "[#7ab8ff]",  # blue spooky accents
+        "shadow": "[#888888]",  # fading wisps
         "eye": "●",
         "mouth": "◡",
     },
     "animal_quadruped": {  # Jake-in-dog-form
-        "hair": "[#ffb84d]",       # golden fur
-        "skin": "[#ffb84d]",       # same as fur (chibi)
-        "outfit": "[#e09638]",     # darker belly fur
-        "accent": "[#cc5500]",     # collar
+        "hair": "[#ffb84d]",  # golden fur
+        "skin": "[#ffb84d]",  # same as fur (chibi)
+        "outfit": "[#e09638]",  # darker belly fur
+        "accent": "[#cc5500]",  # collar
         "shadow": "[#804a1e]",
         "highlight": "[#ffffff]",
         "eye": "●",
         "mouth": "ᗣ",
     },
     "winged": {  # angel / Prismo-adjacent
-        "hair": "[#ffe89b]",       # golden halo
+        "hair": "[#ffe89b]",  # golden halo
         "skin": "[#f4d4a8]",
-        "outfit": "[#ffffff]",     # white robe
-        "accent": "[#e0e0ff]",     # silver-blue wing feathers
+        "outfit": "[#ffffff]",  # white robe
+        "accent": "[#e0e0ff]",  # silver-blue wing feathers
         "shadow": "[#888888]",
         "highlight": "[#ffffff]",
         "eye": "●",
         "mouth": "▽",
     },
     "blob_amorphous": {  # Lumpy Space Princess-ish
-        "hair": "[#a78bfa]",       # LSP purple body
-        "skin": "[#c9b3ff]",       # lighter purple belly for face contrast
-        "outfit": "[#7d5ed8]",     # shade below
-        "accent": "[#ffd700]",     # gold star (zone-overlay only)
+        "hair": "[#a78bfa]",  # LSP purple body
+        "skin": "[#c9b3ff]",  # lighter purple belly for face contrast
+        "outfit": "[#7d5ed8]",  # shade below
+        "accent": "[#ffd700]",  # gold star (zone-overlay only)
         "shadow": "[#4d3580]",
         "highlight": "[#e2d7ff]",
         "eye": "●",
         "mouth": "▽",
     },
     "hand_creature": {  # Hi Five Ghost-ish
-        "hair": "[#ffffff]",       # white body/fingers
-        "skin": "[#f2f2f2]",       # faint gray face for contrast
+        "hair": "[#ffffff]",  # white body/fingers
+        "skin": "[#f2f2f2]",  # faint gray face for contrast
         "outfit": "[#dddddd]",
         "accent": "[#aaaaaa]",
         "shadow": "[#888888]",
@@ -418,7 +423,9 @@ def render(
     normalized = normalize_zones(skeleton_name, zones or {})
     prefix_rows = headwear_prefix(normalized.get("headwear", "none"), slots)
     suffix_rows = trailing_suffix(
-        normalized.get("trailing", "none"), skeleton_name, slots,
+        normalized.get("trailing", "none"),
+        skeleton_name,
+        slots,
     )
     # splitlines preserves leading/trailing blanks (e.g. creature_small uses
     # blank rows as padding) where rstrip+split would drop the trailing one.

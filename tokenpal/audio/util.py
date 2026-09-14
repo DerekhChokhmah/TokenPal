@@ -13,8 +13,8 @@ from numpy.typing import NDArray
 # Common audio params. Spread across multiple modules previously, which
 # risked drift. Single source.
 SAMPLE_RATE_HZ = 16000
-WAKE_FRAME_SAMPLES = 1280   # 80ms @ 16kHz, openwakeword's recommended size
-VAD_CHUNK_SAMPLES = 512     # silero-vad's required chunk size at 16kHz
+WAKE_FRAME_SAMPLES = 1280  # 80ms @ 16kHz, openwakeword's recommended size
+VAD_CHUNK_SAMPLES = 512  # silero-vad's required chunk size at 16kHz
 
 
 def pcm_int16_to_float32(pcm: bytes) -> NDArray[np.float32]:

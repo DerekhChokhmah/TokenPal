@@ -82,8 +82,7 @@ class OpenWakeWordBackend(WakeWordBackend):
         ):
             if not required.exists():
                 raise FileNotFoundError(
-                    f"OpenWakeWord file missing: {required}. "
-                    f"Run /voice-io install to fetch it.",
+                    f"OpenWakeWord file missing: {required}. Run /voice-io install to fetch it.",
                 )
 
         from openwakeword.model import Model
@@ -111,7 +110,8 @@ class OpenWakeWordBackend(WakeWordBackend):
             )
         log.debug(
             "openwakeword: warmed up %s (threshold=%.2f)",
-            self._model_name, self._threshold,
+            self._model_name,
+            self._threshold,
         )
 
     def detect(self, frame: bytes) -> WakeEvent | None:

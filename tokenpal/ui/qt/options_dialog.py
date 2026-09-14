@@ -111,7 +111,8 @@ class OptionsDialog(QDialog, _OneShotCallback):
             fallback=DEFAULT_BACKGROUND_COLOR,
         )
         self._initial_font_color = normalize_hex_color(
-            state.chat_history_font_color, fallback=DEFAULT_FONT_COLOR,
+            state.chat_history_font_color,
+            fallback=DEFAULT_FONT_COLOR,
         )
         self._current_background_color = self._initial_background_color
         self._current_font_color = self._initial_font_color
@@ -133,10 +134,14 @@ class OptionsDialog(QDialog, _OneShotCallback):
 
         self._build_chat_history(body_layout)
         self._chat_font_widgets = self._build_font_group(
-            body_layout, "Chat font", state.chat_font,
+            body_layout,
+            "Chat font",
+            state.chat_font,
         )
         self._bubble_font_widgets = self._build_font_group(
-            body_layout, "Speech bubble font", state.bubble_font,
+            body_layout,
+            "Speech bubble font",
+            state.bubble_font,
         )
         self._build_server_model(body_layout)
         self._build_custom_server(body_layout)
@@ -150,8 +155,7 @@ class OptionsDialog(QDialog, _OneShotCallback):
         layout.addWidget(scroll, 1)
 
         buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Save
-            | QDialogButtonBox.StandardButton.Cancel,
+            QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel,
         )
         buttons.accepted.connect(self._on_save)
         buttons.rejected.connect(self._on_cancel)
@@ -162,13 +166,16 @@ class OptionsDialog(QDialog, _OneShotCallback):
     def _build_chat_history(self, parent: QVBoxLayout) -> None:
         parent.addWidget(_section_header("Chat history"))
         persist_line = (
-            "Persist enabled" if self._state.persist_enabled
+            "Persist enabled"
+            if self._state.persist_enabled
             else "Persist disabled (edit config.toml to re-enable)"
         )
-        parent.addWidget(_section_help(
-            f"How many chat entries to remember across restarts "
-            f"({MIN_PERSISTED}-{MAX_PERSISTED}). {persist_line}.",
-        ))
+        parent.addWidget(
+            _section_help(
+                f"How many chat entries to remember across restarts "
+                f"({MIN_PERSISTED}-{MAX_PERSISTED}). {persist_line}.",
+            )
+        )
         self._max_persisted_input = QLineEdit()
         self._max_persisted_input.setValidator(
             QIntValidator(MIN_PERSISTED, MAX_PERSISTED),
@@ -182,9 +189,11 @@ class OptionsDialog(QDialog, _OneShotCallback):
         self._clear_button.clicked.connect(self._on_clear_history)
         parent.addWidget(self._clear_button)
 
-        initial_pct = int(round(
-            clamp_background_opacity(self._state.chat_history_opacity) * 100,
-        ))
+        initial_pct = int(
+            round(
+                clamp_background_opacity(self._state.chat_history_opacity) * 100,
+            )
+        )
         self._opacity_label = QLabel(
             f"Background opacity: {initial_pct}%",
         )
@@ -223,16 +232,21 @@ class OptionsDialog(QDialog, _OneShotCallback):
         parent.addWidget(fg_widget)
 
     def _build_font_group(
-        self, parent: QVBoxLayout, title: str, initial: FontConfig,
+        self,
+        parent: QVBoxLayout,
+        title: str,
+        initial: FontConfig,
     ) -> _FontGroupWidgets:
         """Compose a font picker: family combo, size spinner, bold/italic/
         underline checkboxes, and a live preview. Returns the widget bundle
         so the save path can read back the values."""
         parent.addWidget(_section_header(title))
-        parent.addWidget(_section_help(
-            "Pick a family installed on this machine. Size 8 - 48. "
-            "Leave family empty for the default.",
-        ))
+        parent.addWidget(
+            _section_help(
+                "Pick a family installed on this machine. Size 8 - 48. "
+                "Leave family empty for the default.",
+            )
+        )
         family = QFontComboBox()
         if initial.family:
             family.setCurrentText(initial.family)
@@ -265,8 +279,13 @@ class OptionsDialog(QDialog, _OneShotCallback):
         parent.addWidget(preview)
 
         widgets = _FontGroupWidgets(
-            family=family, size=size, bold=bold, italic=italic,
-            underline=underline, preview=preview, initial=initial,
+            family=family,
+            size=size,
+            bold=bold,
+            italic=italic,
+            underline=underline,
+            preview=preview,
+            initial=initial,
         )
         # Snapshot the widget state AFTER Qt has populated combo boxes and
         # honored our .setValue calls. Comparing user-visible state against
@@ -277,6 +296,7 @@ class OptionsDialog(QDialog, _OneShotCallback):
 
         def refresh_preview() -> None:
             preview.setFont(qt_font_from_config(widgets.read()))
+
         family.currentFontChanged.connect(lambda _f: refresh_preview())
         size.valueChanged.connect(lambda _v: refresh_preview())
         for cb in (bold, italic, underline):
@@ -288,8 +308,7 @@ class OptionsDialog(QDialog, _OneShotCallback):
         parent.addWidget(_section_header("Server / Model"))
         status = (
             f"Active: {self._state.current_api_url}"
-            + (f"  —  {self._state.current_model}"
-               if self._state.current_model else "")
+            + (f"  —  {self._state.current_model}" if self._state.current_model else "")
             if self._state.current_api_url
             else "Pick a server, then a model."
         )
@@ -303,9 +322,14 @@ class OptionsDialog(QDialog, _OneShotCallback):
         )
         for entry in self._state.known_servers:
             model = entry.model or "(no model)"
-            marker = "● " if _same_server(
-                entry.url, self._state.current_api_url,
-            ) else ""
+            marker = (
+                "● "
+                if _same_server(
+                    entry.url,
+                    self._state.current_api_url,
+                )
+                else ""
+            )
             item = QListWidgetItem(f"{marker}{entry.label}\n  {model}")
             item.setData(Qt.ItemDataRole.UserRole, entry.url)
             self._server_list.addItem(item)
@@ -351,11 +375,13 @@ class OptionsDialog(QDialog, _OneShotCallback):
 
     def _build_weather(self, parent: QVBoxLayout) -> None:
         parent.addWidget(_section_header("Weather"))
-        parent.addWidget(_section_help(
-            f"Current: {self._state.weather_label}"
-            if self._state.weather_label
-            else "No location set. Enter a 5-digit US zip code.",
-        ))
+        parent.addWidget(
+            _section_help(
+                f"Current: {self._state.weather_label}"
+                if self._state.weather_label
+                else "No location set. Enter a 5-digit US zip code.",
+            )
+        )
         row = QHBoxLayout()
         self._zip_input = QLineEdit()
         self._zip_input.setPlaceholderText("90210")
@@ -374,12 +400,14 @@ class OptionsDialog(QDialog, _OneShotCallback):
         parent.addWidget(_section_header("Wifi label"))
         current = (
             f"Current network labeled '{self._state.current_wifi_label}'. "
-            if self._state.current_wifi_label else ""
+            if self._state.current_wifi_label
+            else ""
         )
-        parent.addWidget(_section_help(
-            current
-            + "Give the wifi you're on a friendly name (restart to apply).",
-        ))
+        parent.addWidget(
+            _section_help(
+                current + "Give the wifi you're on a friendly name (restart to apply).",
+            )
+        )
         row = QHBoxLayout()
         self._wifi_input = QLineEdit()
         self._wifi_input.setPlaceholderText("home / office / coffee-shop")
@@ -395,10 +423,12 @@ class OptionsDialog(QDialog, _OneShotCallback):
 
     def _build_audio(self, parent: QVBoxLayout) -> None:
         parent.addWidget(_section_header("Audio I/O"))
-        parent.addWidget(_section_help(
-            "Off by default. Voice conversation = mic + speakers. "
-            "Ambient narration = speakers only.",
-        ))
+        parent.addWidget(
+            _section_help(
+                "Off by default. Voice conversation = mic + speakers. "
+                "Ambient narration = speakers only.",
+            )
+        )
         self._voice_conversation_cb = QCheckBox(
             'Voice conversation ("hey tokenpal" wake word + voice replies)',
         )
@@ -421,10 +451,12 @@ class OptionsDialog(QDialog, _OneShotCallback):
 
     def _build_launchers(self, parent: QVBoxLayout) -> None:
         parent.addWidget(_section_header("Settings shortcuts"))
-        parent.addWidget(_section_help(
-            "Open another settings window alongside this one. "
-            "Pending picks here stay pending until you hit Save.",
-        ))
+        parent.addWidget(
+            _section_help(
+                "Open another settings window alongside this one. "
+                "Pending picks here stay pending until you hit Save.",
+            )
+        )
         row = QHBoxLayout()
         for label, target in (
             ("Cloud LLM…", "cloud"),
@@ -443,9 +475,11 @@ class OptionsDialog(QDialog, _OneShotCallback):
         self._model_list.clear()
         models = self._models_for_displayed_server()
         if models is None:
-            self._model_list.addItem(QListWidgetItem(
-                "(switch server to probe its models — save to connect)",
-            ))
+            self._model_list.addItem(
+                QListWidgetItem(
+                    "(switch server to probe its models — save to connect)",
+                )
+            )
             self._model_list.item(0).setFlags(Qt.ItemFlag.NoItemFlags)
             return
         if not models:
@@ -464,7 +498,8 @@ class OptionsDialog(QDialog, _OneShotCallback):
         other server returns None so we render the "probe on save"
         placeholder."""
         if _same_server(
-            self._displayed_server_url, self._state.current_api_url,
+            self._displayed_server_url,
+            self._state.current_api_url,
         ):
             return tuple(self._state.available_models)
         return None
@@ -576,7 +611,8 @@ class OptionsDialog(QDialog, _OneShotCallback):
 
     def _commit_background_color(self, hex_color: str) -> None:
         normalized = normalize_hex_color(
-            hex_color, fallback=self._current_background_color,
+            hex_color,
+            fallback=self._current_background_color,
         )
         self._current_background_color = normalized
         _paint_swatch(self._bg_color_swatch, normalized)
@@ -585,7 +621,8 @@ class OptionsDialog(QDialog, _OneShotCallback):
 
     def _commit_font_color(self, hex_color: str) -> None:
         normalized = normalize_hex_color(
-            hex_color, fallback=self._current_font_color,
+            hex_color,
+            fallback=self._current_font_color,
         )
         self._current_font_color = normalized
         _paint_swatch(self._font_color_swatch, normalized)
@@ -631,9 +668,12 @@ class OptionsDialog(QDialog, _OneShotCallback):
         raw = self._zip_input.text().strip()
         if not raw:
             return
-        self._deliver_partial(OptionsModalResult(
-            max_persisted=self._state.max_persisted, set_zip=raw,
-        ))
+        self._deliver_partial(
+            OptionsModalResult(
+                max_persisted=self._state.max_persisted,
+                set_zip=raw,
+            )
+        )
         self._zip_status.setText(f"Applied: {raw}")
         self._zip_input.clear()
 
@@ -641,9 +681,12 @@ class OptionsDialog(QDialog, _OneShotCallback):
         raw = self._wifi_input.text().strip()
         if not raw:
             return
-        self._deliver_partial(OptionsModalResult(
-            max_persisted=self._state.max_persisted, set_wifi_label=raw,
-        ))
+        self._deliver_partial(
+            OptionsModalResult(
+                max_persisted=self._state.max_persisted,
+                set_wifi_label=raw,
+            )
+        )
         self._wifi_status.setText(f"Applied: {raw}")
         self._wifi_input.clear()
 
@@ -690,7 +733,8 @@ class OptionsDialog(QDialog, _OneShotCallback):
         )
 
     def _read_font_if_changed(
-        self, w: _FontGroupWidgets,
+        self,
+        w: _FontGroupWidgets,
     ) -> FontConfig | None:
         """Return the current widget values only if they differ from the
         baseline captured at dialog construction time."""

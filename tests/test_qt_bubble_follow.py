@@ -46,9 +46,7 @@ def test_bubble_repositions_when_buddy_moves(qapp: QApplication) -> None:
         _pump(qapp, ms=120)
 
         after = (overlay._bubble.x(), overlay._bubble.y())
-        assert after != before, (
-            "bubble should have followed the buddy across the screen"
-        )
+        assert after != before, "bubble should have followed the buddy across the screen"
     finally:
         overlay.teardown()
         _pump(qapp, ms=20)
@@ -57,8 +55,10 @@ def test_bubble_repositions_when_buddy_moves(qapp: QApplication) -> None:
 def test_buddy_emits_position_changed_while_awake(qapp: QApplication) -> None:
     from tokenpal.ui.ascii_renderer import BUDDY_IDLE
     from tokenpal.ui.qt.buddy_window import BuddyWindow
+
     buddy = BuddyWindow(
-        frame_lines=BUDDY_IDLE, initial_anchor=(300.0, 300.0),
+        frame_lines=BUDDY_IDLE,
+        initial_anchor=(300.0, 300.0),
     )
     try:
         fires: list[int] = []
@@ -76,8 +76,10 @@ def test_buddy_emits_position_changed_while_awake(qapp: QApplication) -> None:
 def test_buddy_skips_emit_when_idle(qapp: QApplication) -> None:
     from tokenpal.ui.ascii_renderer import BUDDY_IDLE
     from tokenpal.ui.qt.buddy_window import BuddyWindow
+
     buddy = BuddyWindow(
-        frame_lines=BUDDY_IDLE, initial_anchor=(300.0, 300.0),
+        frame_lines=BUDDY_IDLE,
+        initial_anchor=(300.0, 300.0),
     )
     try:
         # Drive to fully-settled state.
@@ -88,8 +90,7 @@ def test_buddy_skips_emit_when_idle(qapp: QApplication) -> None:
         for _ in range(10):
             buddy.core._on_tick()
         assert fires == [], (
-            "position_changed should not fire on subsequent ticks after the "
-            "buddy has settled"
+            "position_changed should not fire on subsequent ticks after the buddy has settled"
         )
     finally:
         buddy.close()

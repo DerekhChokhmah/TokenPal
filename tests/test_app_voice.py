@@ -98,7 +98,10 @@ def _call(
     **kw: Any,
 ) -> Any:
     return _handle_voice_command(
-        args, personality, voices_dir, overlay,
+        args,
+        personality,
+        voices_dir,
+        overlay,
         brain=kw.get("brain"),
         llm=kw.get("llm"),
         config=kw.get("config"),
@@ -114,9 +117,7 @@ def test_list_empty(personality, voices_dir, overlay) -> None:
     assert "No voices saved yet" in r.message
 
 
-def test_list_with_profiles(
-    personality, voices_dir, overlay, saved_profile
-) -> None:
+def test_list_with_profiles(personality, voices_dir, overlay, saved_profile) -> None:
     r = _call("list", personality, voices_dir, overlay)
     assert "Finn" in r.message
     assert "3 lines" in r.message
@@ -135,9 +136,7 @@ def test_info_custom_voice(personality, voices_dir, overlay) -> None:
     assert r.message == "Voice: Finn"
 
 
-def test_info_custom_voice_finetuned(
-    personality, voices_dir, overlay
-) -> None:
+def test_info_custom_voice_finetuned(personality, voices_dir, overlay) -> None:
     personality.voice_name = "Jake"
     personality.is_finetuned = True
     r = _call("info", personality, voices_dir, overlay)
@@ -151,7 +150,12 @@ def test_off_from_plain_voice_leaves_server_model_alone(
     personality.is_finetuned = False
     with patch("tokenpal.tools.train_voice.activate_voice") as activate:
         r = _call(
-            "off", personality, voices_dir, overlay, llm=llm, config=config,
+            "off",
+            personality,
+            voices_dir,
+            overlay,
+            llm=llm,
+            config=config,
         )
     personality.set_voice.assert_called_once_with(None)
     llm.set_model.assert_not_called()
@@ -166,7 +170,12 @@ def test_off_from_finetuned_voice_reverts_to_base_model(
     personality.is_finetuned = True
     with patch("tokenpal.tools.train_voice.activate_voice"):
         _call(
-            "off", personality, voices_dir, overlay, llm=llm, config=config,
+            "off",
+            personality,
+            voices_dir,
+            overlay,
+            llm=llm,
+            config=config,
         )
     llm.set_model.assert_called_once_with("gemma4")
 
@@ -182,17 +191,28 @@ def test_switch_unknown_voice(personality, voices_dir, overlay) -> None:
 
 
 def test_switch_loads_profile_without_clobbering_server_model(
-    personality, voices_dir, overlay, llm, config, saved_profile,
+    personality,
+    voices_dir,
+    overlay,
+    llm,
+    config,
+    saved_profile,
 ) -> None:
     personality.is_finetuned = False
     loaded: dict[str, bool] = {"called": False}
+
     def _on_loaded() -> None:
         loaded["called"] = True
 
     with patch("tokenpal.tools.train_voice.activate_voice") as activate:
         r = _call(
-            "switch finn", personality, voices_dir, overlay,
-            llm=llm, config=config, on_voice_loaded=_on_loaded,
+            "switch finn",
+            personality,
+            voices_dir,
+            overlay,
+            llm=llm,
+            config=config,
+            on_voice_loaded=_on_loaded,
         )
     personality.set_voice.assert_called_once()
     called_profile = personality.set_voice.call_args.args[0]
@@ -206,25 +226,43 @@ def test_switch_loads_profile_without_clobbering_server_model(
 
 
 def test_switch_from_finetuned_to_plain_reverts_to_base_model(
-    personality, voices_dir, overlay, llm, config, saved_profile,
+    personality,
+    voices_dir,
+    overlay,
+    llm,
+    config,
+    saved_profile,
 ) -> None:
     personality.is_finetuned = True
     with patch("tokenpal.tools.train_voice.activate_voice"):
         _call(
-            "switch finn", personality, voices_dir, overlay,
-            llm=llm, config=config,
+            "switch finn",
+            personality,
+            voices_dir,
+            overlay,
+            llm=llm,
+            config=config,
         )
     llm.set_model.assert_called_once_with("gemma4")
 
 
 def test_switch_finetuned_profile_swaps_model(
-    personality, voices_dir, overlay, llm, config, finetuned_profile,
+    personality,
+    voices_dir,
+    overlay,
+    llm,
+    config,
+    finetuned_profile,
 ) -> None:
     personality.is_finetuned = False
     with patch("tokenpal.tools.train_voice.activate_voice"):
         _call(
-            "switch jake", personality, voices_dir, overlay,
-            llm=llm, config=config,
+            "switch jake",
+            personality,
+            voices_dir,
+            overlay,
+            llm=llm,
+            config=config,
         )
     llm.set_model.assert_called_once_with("tokenpal-jake")
 
@@ -243,16 +281,20 @@ def test_train_requires_two_args(personality, voices_dir, overlay) -> None:
 
 
 def test_train_kicks_off_thread(
-    personality, voices_dir, overlay,
+    personality,
+    voices_dir,
+    overlay,
 ) -> None:
-    with _patch_thread() as Thread:
+    with _patch_thread() as thread:
         r = _call(
             'train https://finn.fandom.com "Finn the Human"',
-            personality, voices_dir, overlay,
+            personality,
+            voices_dir,
+            overlay,
         )
-    Thread.assert_called_once()
-    assert Thread.call_args.kwargs.get("name") == "voice-train"
-    Thread.return_value.start.assert_called_once()
+    thread.assert_called_once()
+    assert thread.call_args.kwargs.get("name") == "voice-train"
+    thread.return_value.start.assert_called_once()
     assert r.message == ""
 
 
@@ -267,48 +309,76 @@ def test_finetune_unknown_voice(personality, voices_dir, overlay) -> None:
 
 
 def test_finetune_no_remote_host(
-    personality, voices_dir, overlay, saved_profile,
+    personality,
+    voices_dir,
+    overlay,
+    saved_profile,
 ) -> None:
     cfg = MagicMock()
     cfg.finetune.remote.host = ""
     r = _call(
-        "finetune finn", personality, voices_dir, overlay, config=cfg,
+        "finetune finn",
+        personality,
+        voices_dir,
+        overlay,
+        config=cfg,
     )
     assert "No remote GPU configured" in r.message
 
 
 def test_finetune_kicks_off_thread(
-    personality, voices_dir, overlay, config, saved_profile,
+    personality,
+    voices_dir,
+    overlay,
+    config,
+    saved_profile,
 ) -> None:
-    with _patch_thread() as Thread:
+    with _patch_thread() as thread:
         r = _call(
-            "finetune finn", personality, voices_dir, overlay, config=config,
+            "finetune finn",
+            personality,
+            voices_dir,
+            overlay,
+            config=config,
         )
-    Thread.assert_called_once()
-    assert Thread.call_args.kwargs.get("name") == "voice-finetune"
+    thread.assert_called_once()
+    assert thread.call_args.kwargs.get("name") == "voice-finetune"
     assert r.message == ""
 
 
 def test_finetune_setup_no_remote_host(
-    personality, voices_dir, overlay,
+    personality,
+    voices_dir,
+    overlay,
 ) -> None:
     cfg = MagicMock()
     cfg.finetune.remote.host = ""
     r = _call(
-        "finetune-setup", personality, voices_dir, overlay, config=cfg,
+        "finetune-setup",
+        personality,
+        voices_dir,
+        overlay,
+        config=cfg,
     )
     assert "No remote GPU configured" in r.message
 
 
 def test_finetune_setup_kicks_off_thread(
-    personality, voices_dir, overlay, config,
+    personality,
+    voices_dir,
+    overlay,
+    config,
 ) -> None:
-    with _patch_thread() as Thread:
+    with _patch_thread() as thread:
         r = _call(
-            "finetune-setup", personality, voices_dir, overlay, config=config,
+            "finetune-setup",
+            personality,
+            voices_dir,
+            overlay,
+            config=config,
         )
-    Thread.assert_called_once()
-    assert Thread.call_args.kwargs.get("name") == "finetune-setup"
+    thread.assert_called_once()
+    assert thread.call_args.kwargs.get("name") == "finetune-setup"
     assert r.message == ""
 
 
@@ -324,15 +394,21 @@ def test_regenerate_all_empty_dir(personality, voices_dir, overlay) -> None:
 
 
 def test_regenerate_kicks_off_thread(
-    personality, voices_dir, overlay, saved_profile,
+    personality,
+    voices_dir,
+    overlay,
+    saved_profile,
 ) -> None:
     personality.voice_name = "Finn"
-    with _patch_thread() as Thread:
+    with _patch_thread() as thread:
         r = _call(
-            "regenerate", personality, voices_dir, overlay,
+            "regenerate",
+            personality,
+            voices_dir,
+            overlay,
         )
-    Thread.assert_called_once()
-    assert Thread.call_args.kwargs.get("name") == "voice-regen"
+    thread.assert_called_once()
+    assert thread.call_args.kwargs.get("name") == "voice-regen"
     assert r.message == ""
 
 
@@ -348,13 +424,16 @@ def test_ascii_all_empty_dir(personality, voices_dir, overlay) -> None:
 
 
 def test_ascii_kicks_off_thread(
-    personality, voices_dir, overlay, saved_profile,
+    personality,
+    voices_dir,
+    overlay,
+    saved_profile,
 ) -> None:
     personality.voice_name = "Finn"
-    with _patch_thread() as Thread:
+    with _patch_thread() as thread:
         r = _call("ascii", personality, voices_dir, overlay)
-    Thread.assert_called_once()
-    assert Thread.call_args.kwargs.get("name") == "voice-ascii-regen"
+    thread.assert_called_once()
+    assert thread.call_args.kwargs.get("name") == "voice-ascii-regen"
     assert r.message == ""
 
 
@@ -367,49 +446,80 @@ def test_import_missing_arg(personality, voices_dir, overlay) -> None:
 
 
 def test_import_missing_file(
-    personality, voices_dir, overlay, tmp_path,
+    personality,
+    voices_dir,
+    overlay,
+    tmp_path,
 ) -> None:
     r = _call(
-        f"import {tmp_path}/nope.gguf", personality, voices_dir, overlay,
+        f"import {tmp_path}/nope.gguf",
+        personality,
+        voices_dir,
+        overlay,
     )
     assert "File not found" in r.message
 
 
 def test_import_wrong_extension(
-    personality, voices_dir, overlay, tmp_path,
+    personality,
+    voices_dir,
+    overlay,
+    tmp_path,
 ) -> None:
     bogus = tmp_path / "model.bin"
     bogus.write_bytes(b"x")
     r = _call(
-        f"import {bogus}", personality, voices_dir, overlay,
+        f"import {bogus}",
+        personality,
+        voices_dir,
+        overlay,
     )
     assert "Expected a .gguf" in r.message
 
 
 def test_import_no_matching_profile(
-    personality, voices_dir, overlay, tmp_path,
+    personality,
+    voices_dir,
+    overlay,
+    tmp_path,
 ) -> None:
     gguf = tmp_path / "mystery.gguf"
     gguf.write_bytes(b"x")
     r = _call(
-        f"import {gguf}", personality, voices_dir, overlay,
+        f"import {gguf}",
+        personality,
+        voices_dir,
+        overlay,
     )
     assert "No voice profile for 'mystery'" in r.message
 
 
 def test_import_happy_path(
-    personality, voices_dir, overlay, llm, tmp_path, saved_profile,
+    personality,
+    voices_dir,
+    overlay,
+    llm,
+    tmp_path,
+    saved_profile,
 ) -> None:
     gguf = tmp_path / "finn.gguf"
     gguf.write_bytes(b"x")
-    with patch(
-        "tokenpal.tools.finetune_voice.register_ollama", return_value=True,
-    ) as reg, patch(
-        "tokenpal.tools.dataset_prep.build_system_prompt",
-        return_value="sys",
+    with (
+        patch(
+            "tokenpal.tools.finetune_voice.register_ollama",
+            return_value=True,
+        ) as reg,
+        patch(
+            "tokenpal.tools.dataset_prep.build_system_prompt",
+            return_value="sys",
+        ),
     ):
         r = _call(
-            f"import {gguf}", personality, voices_dir, overlay, llm=llm,
+            f"import {gguf}",
+            personality,
+            voices_dir,
+            overlay,
+            llm=llm,
         )
     reg.assert_called_once()
     personality.set_voice.assert_called_once()
@@ -425,7 +535,9 @@ def test_import_happy_path(
 
 
 def test_unknown_subcommand_returns_usage(
-    personality, voices_dir, overlay,
+    personality,
+    voices_dir,
+    overlay,
 ) -> None:
     r = _call("", personality, voices_dir, overlay)
     assert "Usage: /voice" in r.message

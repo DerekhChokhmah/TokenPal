@@ -56,12 +56,16 @@ def _unload_llamaserver(progress: Callable[[str], None]) -> None:
         if sys.platform == "win32":
             subprocess.run(
                 ["taskkill", "/IM", "llama-server.exe", "/F"],
-                check=False, capture_output=True, timeout=10,
+                check=False,
+                capture_output=True,
+                timeout=10,
             )
         else:
             subprocess.run(
                 ["pkill", "-f", "llama-server"],
-                check=False, capture_output=True, timeout=10,
+                check=False,
+                capture_output=True,
+                timeout=10,
             )
     except Exception:
         pass  # kill is best-effort; training will OOM if VRAM wasn't freed
@@ -113,7 +117,9 @@ def _run_pipeline(
     job.status = TrainingStatus.FETCHING
     progress(f"Fetching {job.wiki} transcripts for {job.character}...")
     profile = train_from_wiki(
-        wiki=job.wiki, character=job.character, progress_callback=progress,
+        wiki=job.wiki,
+        character=job.character,
+        progress_callback=progress,
     )
     if profile is None:
         raise ValueError(
@@ -148,6 +154,7 @@ def _run_pipeline(
     del model, tokenizer
     try:
         import torch
+
         torch.cuda.empty_cache()
     except Exception:
         pass
@@ -208,7 +215,9 @@ async def submit_training_job(
 
 
 async def _run_training(
-    job: TrainingJob, store: AbstractJobStore, inference_engine: str = "ollama",
+    job: TrainingJob,
+    store: AbstractJobStore,
+    inference_engine: str = "ollama",
 ) -> None:
     """Acquire GPU lock, run pipeline in thread, update job on completion."""
     async with _training_lock:
@@ -217,7 +226,11 @@ async def _run_training(
 
         try:
             await asyncio.to_thread(
-                _run_pipeline, job, base_dir / "data", base_dir, inference_engine,
+                _run_pipeline,
+                job,
+                base_dir / "data",
+                base_dir,
+                inference_engine,
             )
             job.status = TrainingStatus.COMPLETE
         except Exception as exc:

@@ -86,8 +86,7 @@ class CloudDialog(QDialog, _OneShotCallback):
         layout.addWidget(scroll, 1)
 
         buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Save
-            | QDialogButtonBox.StandardButton.Cancel,
+            QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel,
         )
         buttons.accepted.connect(self._on_save)
         buttons.rejected.connect(self._on_cancel)
@@ -165,9 +164,11 @@ class CloudDialog(QDialog, _OneShotCallback):
         depth_row.addWidget(QLabel("Search depth:"))
         self._depth_basic = QRadioButton("basic (1 credit)")
         self._depth_advanced = QRadioButton("advanced (2 credits)")
-        (self._depth_advanced
-         if self._state.tavily_search_depth == "advanced"
-         else self._depth_basic).setChecked(True)
+        (
+            self._depth_advanced
+            if self._state.tavily_search_depth == "advanced"
+            else self._depth_basic
+        ).setChecked(True)
         depth_group = QButtonGroup(self)
         depth_group.addButton(self._depth_basic)
         depth_group.addButton(self._depth_advanced)
@@ -180,9 +181,11 @@ class CloudDialog(QDialog, _OneShotCallback):
     def _build_brave(self, parent: QVBoxLayout) -> None:
         parent.addWidget(_header("Brave (web search)"))
         fp = self._state.brave_key_fingerprint or "no key stored"
-        parent.addWidget(_help(
-            f"Current key: {fp}. Presence of a key = active (no enabled flag).",
-        ))
+        parent.addWidget(
+            _help(
+                f"Current key: {fp}. Presence of a key = active (no enabled flag).",
+            )
+        )
         key_row = QHBoxLayout()
         key_row.addWidget(QLabel("API key:"))
         self._brave_key = QLineEdit()
@@ -195,10 +198,12 @@ class CloudDialog(QDialog, _OneShotCallback):
 
     def _build_refine(self, parent: QVBoxLayout) -> None:
         parent.addWidget(_header("/refine supplemental cap"))
-        parent.addWidget(_help(
-            "0 disables supplemental search during /refine — it just "
-            "re-synthesizes the cached sources. Typical cap: 2.",
-        ))
+        parent.addWidget(
+            _help(
+                "0 disables supplemental search during /refine — it just "
+                "re-synthesizes the cached sources. Typical cap: 2.",
+            )
+        )
         row = QHBoxLayout()
         row.addWidget(QLabel("Max supplemental searches:"))
         self._refine_cap = QLineEdit(str(self._state.refine_max_supplemental))
@@ -241,9 +246,7 @@ class CloudDialog(QDialog, _OneShotCallback):
             model=model,
             new_api_key=self._api_key.text() or None,
             tavily_enabled=self._tavily_enabled.isChecked(),
-            tavily_search_depth=(
-                "advanced" if self._depth_advanced.isChecked() else "basic"
-            ),
+            tavily_search_depth=("advanced" if self._depth_advanced.isChecked() else "basic"),
             tavily_new_api_key=self._tavily_key.text() or None,
             brave_new_api_key=self._brave_key.text() or None,
             refine_max_supplemental=refine_cap,

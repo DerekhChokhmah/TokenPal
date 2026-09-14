@@ -26,7 +26,8 @@ PERSONA_LINE = "Fixed it up. It's in the log and nowhere else."
 
 
 def _brain(
-    tmp_path: Path, responses: list[Any],
+    tmp_path: Path,
+    responses: list[Any],
 ) -> tuple[Brain, list[str], ScriptedLLM, MemoryStore]:
     memory = MemoryStore(tmp_path / "m.db")
     memory.setup()
@@ -38,7 +39,8 @@ def _brain(
 
 def _patch_capture(monkeypatch: Any, result: Any) -> None:
     monkeypatch.setattr(
-        "tokenpal.brain.orchestrator.capture_selection", lambda **_kw: result,
+        "tokenpal.brain.orchestrator.capture_selection",
+        lambda **_kw: result,
     )
 
 
@@ -57,11 +59,14 @@ def _patch_consent(monkeypatch: Any, granted: bool) -> None:
 
 
 async def test_selection_is_read_prompted_and_delivered_unpersisted(
-    tmp_path: Path, monkeypatch: Any, caplog: Any,
+    tmp_path: Path,
+    monkeypatch: Any,
+    caplog: Any,
 ) -> None:
     caplog.set_level(logging.DEBUG)
     brain, buf, llm, memory = _brain(
-        tmp_path, [ok_response(REPLY), ok_response(PERSONA_LINE)],
+        tmp_path,
+        [ok_response(REPLY), ok_response(PERSONA_LINE)],
     )
     try:
         _patch_consent(monkeypatch, True)
@@ -89,11 +94,14 @@ async def test_selection_is_read_prompted_and_delivered_unpersisted(
 
 
 async def test_inline_text_skips_the_read_and_consent(
-    tmp_path: Path, monkeypatch: Any, caplog: Any,
+    tmp_path: Path,
+    monkeypatch: Any,
+    caplog: Any,
 ) -> None:
     caplog.set_level(logging.DEBUG)
     brain, buf, llm, memory = _brain(
-        tmp_path, [ok_response(REPLY), ok_response(PERSONA_LINE)],
+        tmp_path,
+        [ok_response(REPLY), ok_response(PERSONA_LINE)],
     )
     try:
         _patch_consent(monkeypatch, False)
@@ -111,7 +119,8 @@ async def test_inline_text_skips_the_read_and_consent(
 
 
 async def test_missing_consent_refuses_before_any_read(
-    tmp_path: Path, monkeypatch: Any,
+    tmp_path: Path,
+    monkeypatch: Any,
 ) -> None:
     brain, buf, llm, memory = _brain(tmp_path, [])
     try:
@@ -128,7 +137,8 @@ async def test_missing_consent_refuses_before_any_read(
 
 
 async def test_a_failed_read_shows_its_message_and_calls_no_llm(
-    tmp_path: Path, monkeypatch: Any,
+    tmp_path: Path,
+    monkeypatch: Any,
 ) -> None:
     brain, buf, llm, memory = _brain(tmp_path, [])
     try:
@@ -152,12 +162,15 @@ async def test_a_failed_read_shows_its_message_and_calls_no_llm(
 
 
 async def test_sensitive_window_refuses_before_the_read(
-    tmp_path: Path, monkeypatch: Any,
+    tmp_path: Path,
+    monkeypatch: Any,
 ) -> None:
     brain, buf, llm, memory = _brain(tmp_path, [])
     try:
         monkeypatch.setattr(
-            brain._personality, "check_sensitive_app", lambda _snapshot: True,
+            brain._personality,
+            "check_sensitive_app",
+            lambda _snapshot: True,
         )
         _forbid_capture(monkeypatch)
 
@@ -171,7 +184,8 @@ async def test_sensitive_window_refuses_before_the_read(
 
 
 async def test_empty_reply_aborts_without_promising_an_answer(
-    tmp_path: Path, monkeypatch: Any,
+    tmp_path: Path,
+    monkeypatch: Any,
 ) -> None:
     brain, buf, _llm, memory = _brain(tmp_path, [ok_response("   ")])
     try:
@@ -189,7 +203,8 @@ async def test_empty_reply_aborts_without_promising_an_answer(
 
 
 async def test_sensitive_window_opened_during_the_llm_call_withholds_the_reply(
-    tmp_path: Path, monkeypatch: Any,
+    tmp_path: Path,
+    monkeypatch: Any,
 ) -> None:
     brain, buf, llm, memory = _brain(tmp_path, [ok_response(REPLY)])
     try:
@@ -197,7 +212,9 @@ async def test_sensitive_window_opened_during_the_llm_call_withholds_the_reply(
         _patch_capture(monkeypatch, selected_text(FIXTURE))
         calls = iter([False, True])
         monkeypatch.setattr(
-            brain._personality, "check_sensitive_app", lambda _snapshot: next(calls),
+            brain._personality,
+            "check_sensitive_app",
+            lambda _snapshot: next(calls),
         )
 
         await brain._handle_desktop_task("proofread", None)
@@ -210,10 +227,15 @@ async def test_sensitive_window_opened_during_the_llm_call_withholds_the_reply(
 
 
 async def test_a_reply_that_hit_the_token_cap_is_marked(
-    tmp_path: Path, monkeypatch: Any,
+    tmp_path: Path,
+    monkeypatch: Any,
 ) -> None:
     capped = LLMResponse(
-        text=REPLY, tokens_used=1, model_name="t", latency_ms=0, finish_reason="length",
+        text=REPLY,
+        tokens_used=1,
+        model_name="t",
+        latency_ms=0,
+        finish_reason="length",
     )
     brain, buf, _llm, memory = _brain(tmp_path, [capped, ok_response(PERSONA_LINE)])
     try:
@@ -228,7 +250,8 @@ async def test_a_reply_that_hit_the_token_cap_is_marked(
 
 
 async def test_an_llm_failure_aborts_and_still_starts_the_cooldown(
-    tmp_path: Path, monkeypatch: Any,
+    tmp_path: Path,
+    monkeypatch: Any,
 ) -> None:
     brain, buf, llm, memory = _brain(tmp_path, [])
     try:
@@ -252,7 +275,8 @@ async def test_an_llm_failure_aborts_and_still_starts_the_cooldown(
 
 
 async def test_no_chat_log_means_no_read_at_all(
-    tmp_path: Path, monkeypatch: Any,
+    tmp_path: Path,
+    monkeypatch: Any,
 ) -> None:
     brain, _buf, llm, memory = _brain(tmp_path, [])
     try:

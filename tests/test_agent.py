@@ -82,11 +82,17 @@ def _echo_actions() -> dict[str, AbstractAction]:
 
 def _list_log(logs: list[str] | None):
     """LogFn over a plain list, tagging unpersisted lines like capture_logs."""
+
     def _log(
-        text: str, *, markup: bool = False, url: str | None = None, persist: bool = True,
+        text: str,
+        *,
+        markup: bool = False,
+        url: str | None = None,
+        persist: bool = True,
     ) -> None:
         if logs is not None:
             logs.append(text if persist else f"{text} [unpersisted]")
+
     return _log
 
 
@@ -126,9 +132,11 @@ def _call(name: str, args: dict[str, Any] | None = None, call_id: str = "") -> T
 
 @pytest.mark.asyncio
 async def test_completes_when_model_emits_no_tool_call() -> None:
-    llm = ScriptedLLM([
-        LLMResponse(text="all done", tokens_used=42, model_name="t", latency_ms=0),
-    ])
+    llm = ScriptedLLM(
+        [
+            LLMResponse(text="all done", tokens_used=42, model_name="t", latency_ms=0),
+        ]
+    )
     session = await _runner(llm).run("greet me")
 
     assert session.stopped_reason == "complete"
@@ -142,16 +150,18 @@ async def test_status_callback_reports_tool_name() -> None:
     """Each tool invoke should push a 'using <tool>...' label. The label
     persists through the follow-up LLM step so a fast gather isn't
     overwritten before the UI renders it."""
-    llm = ScriptedLLM([
-        LLMResponse(
-            text="",
-            tokens_used=10,
-            model_name="t",
-            latency_ms=0,
-            tool_calls=[_call("echo", {"text": "hi"}, "call_1")],
-        ),
-        LLMResponse(text="echoed hi", tokens_used=20, model_name="t", latency_ms=0),
-    ])
+    llm = ScriptedLLM(
+        [
+            LLMResponse(
+                text="",
+                tokens_used=10,
+                model_name="t",
+                latency_ms=0,
+                tool_calls=[_call("echo", {"text": "hi"}, "call_1")],
+            ),
+            LLMResponse(text="echoed hi", tokens_used=20, model_name="t", latency_ms=0),
+        ]
+    )
     statuses: list[str] = []
     runner = AgentRunner(
         llm=llm,
@@ -169,16 +179,18 @@ async def test_status_callback_reports_tool_name() -> None:
 
 @pytest.mark.asyncio
 async def test_executes_tool_then_returns_final_text() -> None:
-    llm = ScriptedLLM([
-        LLMResponse(
-            text="",
-            tokens_used=10,
-            model_name="t",
-            latency_ms=0,
-            tool_calls=[_call("echo", {"text": "hi"}, "call_1")],
-        ),
-        LLMResponse(text="echoed hi", tokens_used=20, model_name="t", latency_ms=0),
-    ])
+    llm = ScriptedLLM(
+        [
+            LLMResponse(
+                text="",
+                tokens_used=10,
+                model_name="t",
+                latency_ms=0,
+                tool_calls=[_call("echo", {"text": "hi"}, "call_1")],
+            ),
+            LLMResponse(text="echoed hi", tokens_used=20, model_name="t", latency_ms=0),
+        ]
+    )
     logs: list[str] = []
     session = await _runner(llm, logs=logs).run("echo hi")
 
@@ -197,16 +209,18 @@ async def test_executes_tool_then_returns_final_text() -> None:
 @pytest.mark.asyncio
 async def test_empty_tool_call_id_gets_fallback() -> None:
     """Ollama sometimes emits empty id strings — the agent must substitute."""
-    llm = ScriptedLLM([
-        LLMResponse(
-            text="",
-            tokens_used=0,
-            model_name="t",
-            latency_ms=0,
-            tool_calls=[_call("echo", {"text": "x"})],  # no id
-        ),
-        LLMResponse(text="ok", tokens_used=0, model_name="t", latency_ms=0),
-    ])
+    llm = ScriptedLLM(
+        [
+            LLMResponse(
+                text="",
+                tokens_used=0,
+                model_name="t",
+                latency_ms=0,
+                tool_calls=[_call("echo", {"text": "x"})],  # no id
+            ),
+            LLMResponse(text="ok", tokens_used=0, model_name="t", latency_ms=0),
+        ]
+    )
     session = await _runner(llm).run("go")
 
     # The tool message that went into the LLM must carry the synthesized id.
@@ -218,16 +232,18 @@ async def test_empty_tool_call_id_gets_fallback() -> None:
 
 @pytest.mark.asyncio
 async def test_unknown_tool_records_error_not_crash() -> None:
-    llm = ScriptedLLM([
-        LLMResponse(
-            text="",
-            tokens_used=0,
-            model_name="t",
-            latency_ms=0,
-            tool_calls=[_call("nope", {}, "call_1")],
-        ),
-        LLMResponse(text="gave up", tokens_used=0, model_name="t", latency_ms=0),
-    ])
+    llm = ScriptedLLM(
+        [
+            LLMResponse(
+                text="",
+                tokens_used=0,
+                model_name="t",
+                latency_ms=0,
+                tool_calls=[_call("nope", {}, "call_1")],
+            ),
+            LLMResponse(text="gave up", tokens_used=0, model_name="t", latency_ms=0),
+        ]
+    )
     session = await _runner(llm).run("call nope")
 
     assert session.steps[0].result == "Unknown tool 'nope'."
@@ -236,16 +252,18 @@ async def test_unknown_tool_records_error_not_crash() -> None:
 
 @pytest.mark.asyncio
 async def test_tool_exception_captured_as_step_result() -> None:
-    llm = ScriptedLLM([
-        LLMResponse(
-            text="",
-            tokens_used=0,
-            model_name="t",
-            latency_ms=0,
-            tool_calls=[_call("boom", {}, "c1")],
-        ),
-        LLMResponse(text="crashed tool", tokens_used=0, model_name="t", latency_ms=0),
-    ])
+    llm = ScriptedLLM(
+        [
+            LLMResponse(
+                text="",
+                tokens_used=0,
+                model_name="t",
+                latency_ms=0,
+                tool_calls=[_call("boom", {}, "c1")],
+            ),
+            LLMResponse(text="crashed tool", tokens_used=0, model_name="t", latency_ms=0),
+        ]
+    )
     session = await _runner(llm, actions={"boom": _Boom({})}).run("trigger boom")
 
     assert "kaboom" in session.steps[0].result
@@ -259,19 +277,21 @@ async def test_tool_exception_captured_as_step_result() -> None:
 
 @pytest.mark.asyncio
 async def test_denied_tool_aborts_with_forced_synthesis() -> None:
-    llm = ScriptedLLM([
-        LLMResponse(
-            text="",
-            tokens_used=0,
-            model_name="t",
-            latency_ms=0,
-            tool_calls=[_call("gated", {}, "c1")],
-        ),
-        LLMResponse(text="ok, I won't.", tokens_used=0, model_name="t", latency_ms=0),
-    ])
-    session = await _runner(
-        llm, actions={"gated": _Gated({})}, confirm=_always_deny
-    ).run("do the risky thing")
+    llm = ScriptedLLM(
+        [
+            LLMResponse(
+                text="",
+                tokens_used=0,
+                model_name="t",
+                latency_ms=0,
+                tool_calls=[_call("gated", {}, "c1")],
+            ),
+            LLMResponse(text="ok, I won't.", tokens_used=0, model_name="t", latency_ms=0),
+        ]
+    )
+    session = await _runner(llm, actions={"gated": _Gated({})}, confirm=_always_deny).run(
+        "do the risky thing"
+    )
 
     assert session.stopped_reason == "denied"
     assert session.steps[0].denied is True
@@ -286,19 +306,19 @@ async def test_confirmed_tool_executes() -> None:
         calls.append((name, args))
         return True
 
-    llm = ScriptedLLM([
-        LLMResponse(
-            text="",
-            tokens_used=0,
-            model_name="t",
-            latency_ms=0,
-            tool_calls=[_call("gated", {}, "c1")],
-        ),
-        LLMResponse(text="done", tokens_used=0, model_name="t", latency_ms=0),
-    ])
-    session = await _runner(
-        llm, actions={"gated": _Gated({})}, confirm=recording_confirm
-    ).run("go")
+    llm = ScriptedLLM(
+        [
+            LLMResponse(
+                text="",
+                tokens_used=0,
+                model_name="t",
+                latency_ms=0,
+                tool_calls=[_call("gated", {}, "c1")],
+            ),
+            LLMResponse(text="done", tokens_used=0, model_name="t", latency_ms=0),
+        ]
+    )
+    session = await _runner(llm, actions={"gated": _Gated({})}, confirm=recording_confirm).run("go")
 
     assert calls == [("gated", {})]
     assert session.steps[0].result == "gated-ran"
@@ -335,13 +355,18 @@ async def test_step_cap_stops_loop_and_forces_synthesis() -> None:
 
 @pytest.mark.asyncio
 async def test_forced_synthesis_uses_step_controls_and_counts_tokens() -> None:
-    llm = ScriptedLLM([
-        LLMResponse(
-            text="", tokens_used=5, model_name="t", latency_ms=0,
-            tool_calls=[_call("echo", {"text": "x"}, "c0")],
-        ),
-        LLMResponse(text="ran out", tokens_used=7, model_name="t", latency_ms=0),
-    ])
+    llm = ScriptedLLM(
+        [
+            LLMResponse(
+                text="",
+                tokens_used=5,
+                model_name="t",
+                latency_ms=0,
+                tool_calls=[_call("echo", {"text": "x"}, "c0")],
+            ),
+            LLMResponse(text="ran out", tokens_used=7, model_name="t", latency_ms=0),
+        ]
+    )
     session = await _runner(llm, max_steps=1, thinking=True).run("loop")
 
     assert session.stopped_reason == "step_cap"
@@ -349,22 +374,26 @@ async def test_forced_synthesis_uses_step_controls_and_counts_tokens() -> None:
     assert session.tokens_used == 12
     assert llm.calls[1][1] == []
     assert llm.call_kwargs[1] == {
-        "max_tokens": 2048, "enable_thinking": True, "thinking_effort": "low",
+        "max_tokens": 2048,
+        "enable_thinking": True,
+        "thinking_effort": "low",
     }
 
 
 @pytest.mark.asyncio
 async def test_token_budget_stops_loop() -> None:
-    llm = ScriptedLLM([
-        LLMResponse(
-            text="",
-            tokens_used=9999,
-            model_name="t",
-            latency_ms=0,
-            tool_calls=[_call("echo", {"text": "x"}, "c1")],
-        ),
-        LLMResponse(text="over budget", tokens_used=0, model_name="t", latency_ms=0),
-    ])
+    llm = ScriptedLLM(
+        [
+            LLMResponse(
+                text="",
+                tokens_used=9999,
+                model_name="t",
+                latency_ms=0,
+                tool_calls=[_call("echo", {"text": "x"}, "c1")],
+            ),
+            LLMResponse(text="over budget", tokens_used=0, model_name="t", latency_ms=0),
+        ]
+    )
     session = await _runner(llm, token_budget=500).run("heavy")
 
     assert session.stopped_reason == "token_budget"
@@ -381,22 +410,24 @@ async def test_sensitive_app_detected_mid_run_aborts() -> None:
         trigger["fired"] = True  # sensitive on the SECOND check
         return False
 
-    llm = ScriptedLLM([
-        LLMResponse(
-            text="",
-            tokens_used=5,
-            model_name="t",
-            latency_ms=0,
-            tool_calls=[_call("echo", {"text": "x"}, "c1")],
-        ),
-        LLMResponse(
-            text="",
-            tokens_used=5,
-            model_name="t",
-            latency_ms=0,
-            tool_calls=[_call("echo", {"text": "y"}, "c2")],
-        ),
-    ])
+    llm = ScriptedLLM(
+        [
+            LLMResponse(
+                text="",
+                tokens_used=5,
+                model_name="t",
+                latency_ms=0,
+                tool_calls=[_call("echo", {"text": "x"}, "c1")],
+            ),
+            LLMResponse(
+                text="",
+                tokens_used=5,
+                model_name="t",
+                latency_ms=0,
+                tool_calls=[_call("echo", {"text": "y"}, "c2")],
+            ),
+        ]
+    )
     session = await _runner(llm, is_sensitive=is_sensitive).run("keep going")
 
     assert session.stopped_reason == "sensitive"
@@ -404,19 +435,21 @@ async def test_sensitive_app_detected_mid_run_aborts() -> None:
 
 @pytest.mark.asyncio
 async def test_tool_timeout_does_not_crash_loop() -> None:
-    llm = ScriptedLLM([
-        LLMResponse(
-            text="",
-            tokens_used=0,
-            model_name="t",
-            latency_ms=0,
-            tool_calls=[_call("slow", {}, "c1")],
-        ),
-        LLMResponse(text="moved on", tokens_used=0, model_name="t", latency_ms=0),
-    ])
-    session = await _runner(
-        llm, actions={"slow": _Slow({})}, per_step_timeout_s=0.05
-    ).run("patience")
+    llm = ScriptedLLM(
+        [
+            LLMResponse(
+                text="",
+                tokens_used=0,
+                model_name="t",
+                latency_ms=0,
+                tool_calls=[_call("slow", {}, "c1")],
+            ),
+            LLMResponse(text="moved on", tokens_used=0, model_name="t", latency_ms=0),
+        ]
+    )
+    session = await _runner(llm, actions={"slow": _Slow({})}, per_step_timeout_s=0.05).run(
+        "patience"
+    )
 
     assert "timed out" in session.steps[0].result
     assert session.stopped_reason == "complete"
@@ -425,9 +458,7 @@ async def test_tool_timeout_does_not_crash_loop() -> None:
 @pytest.mark.asyncio
 async def test_llm_step_timeout_stops_run() -> None:
     class _HangLLM(ScriptedLLM):
-        async def generate_with_tools(
-            self, messages, tools, max_tokens=None, **kwargs
-        ):
+        async def generate_with_tools(self, messages, tools, max_tokens=None, **kwargs):
             await asyncio.sleep(5)
             raise AssertionError("should have timed out")
 
@@ -477,27 +508,27 @@ class _Counting(AbstractAction):
 @pytest.mark.asyncio
 async def test_identical_tool_call_returns_cached_result() -> None:
     _Counting.calls = 0
-    llm = ScriptedLLM([
-        LLMResponse(
-            text="",
-            tokens_used=0,
-            model_name="t",
-            latency_ms=0,
-            tool_calls=[_call("counting", {"x": "a"}, "call_1")],
-        ),
-        LLMResponse(
-            text="",
-            tokens_used=0,
-            model_name="t",
-            latency_ms=0,
-            tool_calls=[_call("counting", {"x": "a"}, "call_2")],
-        ),
-        LLMResponse(text="done", tokens_used=0, model_name="t", latency_ms=0),
-    ])
+    llm = ScriptedLLM(
+        [
+            LLMResponse(
+                text="",
+                tokens_used=0,
+                model_name="t",
+                latency_ms=0,
+                tool_calls=[_call("counting", {"x": "a"}, "call_1")],
+            ),
+            LLMResponse(
+                text="",
+                tokens_used=0,
+                model_name="t",
+                latency_ms=0,
+                tool_calls=[_call("counting", {"x": "a"}, "call_2")],
+            ),
+            LLMResponse(text="done", tokens_used=0, model_name="t", latency_ms=0),
+        ]
+    )
     logs: list[str] = []
-    session = await _runner(
-        llm, actions={"counting": _Counting({})}, logs=logs
-    ).run("call twice")
+    session = await _runner(llm, actions={"counting": _Counting({})}, logs=logs).run("call twice")
 
     assert len(session.steps) == 2
     assert session.steps[0].cached is False
@@ -512,23 +543,25 @@ async def test_identical_tool_call_returns_cached_result() -> None:
 @pytest.mark.asyncio
 async def test_cache_key_is_order_insensitive() -> None:
     _Counting.calls = 0
-    llm = ScriptedLLM([
-        LLMResponse(
-            text="",
-            tokens_used=0,
-            model_name="t",
-            latency_ms=0,
-            tool_calls=[_call("counting", {"x": "a", "y": "b"}, "c1")],
-        ),
-        LLMResponse(
-            text="",
-            tokens_used=0,
-            model_name="t",
-            latency_ms=0,
-            tool_calls=[_call("counting", {"y": "b", "x": "a"}, "c2")],
-        ),
-        LLMResponse(text="done", tokens_used=0, model_name="t", latency_ms=0),
-    ])
+    llm = ScriptedLLM(
+        [
+            LLMResponse(
+                text="",
+                tokens_used=0,
+                model_name="t",
+                latency_ms=0,
+                tool_calls=[_call("counting", {"x": "a", "y": "b"}, "c1")],
+            ),
+            LLMResponse(
+                text="",
+                tokens_used=0,
+                model_name="t",
+                latency_ms=0,
+                tool_calls=[_call("counting", {"y": "b", "x": "a"}, "c2")],
+            ),
+            LLMResponse(text="done", tokens_used=0, model_name="t", latency_ms=0),
+        ]
+    )
     session = await _runner(llm, actions={"counting": _Counting({})}).run("g")
 
     assert session.steps[1].cached is True
@@ -542,23 +575,25 @@ async def test_noncacheable_tool_never_hits_cache() -> None:
         cacheable = False
 
     _Counting.calls = 0
-    llm = ScriptedLLM([
-        LLMResponse(
-            text="",
-            tokens_used=0,
-            model_name="t",
-            latency_ms=0,
-            tool_calls=[_call("live", {"x": "a"}, "c1")],
-        ),
-        LLMResponse(
-            text="",
-            tokens_used=0,
-            model_name="t",
-            latency_ms=0,
-            tool_calls=[_call("live", {"x": "a"}, "c2")],
-        ),
-        LLMResponse(text="done", tokens_used=0, model_name="t", latency_ms=0),
-    ])
+    llm = ScriptedLLM(
+        [
+            LLMResponse(
+                text="",
+                tokens_used=0,
+                model_name="t",
+                latency_ms=0,
+                tool_calls=[_call("live", {"x": "a"}, "c1")],
+            ),
+            LLMResponse(
+                text="",
+                tokens_used=0,
+                model_name="t",
+                latency_ms=0,
+                tool_calls=[_call("live", {"x": "a"}, "c2")],
+            ),
+            LLMResponse(text="done", tokens_used=0, model_name="t", latency_ms=0),
+        ]
+    )
     session = await _runner(llm, actions={"live": _Live({})}).run("g")
     assert [s.cached for s in session.steps] == [False, False]
     assert _Counting.calls == 2
@@ -579,9 +614,11 @@ def test_agent_config_defaults() -> None:
 
 @pytest.mark.asyncio
 async def test_default_runner_sends_thinking_off_and_max_tokens() -> None:
-    llm = ScriptedLLM([
-        LLMResponse(text="done", tokens_used=5, model_name="t", latency_ms=0),
-    ])
+    llm = ScriptedLLM(
+        [
+            LLMResponse(text="done", tokens_used=5, model_name="t", latency_ms=0),
+        ]
+    )
     await _runner(llm).run("go")
 
     assert llm.call_kwargs == [
@@ -593,22 +630,26 @@ async def test_default_runner_sends_thinking_off_and_max_tokens() -> None:
 async def test_thinking_runner_sends_effort_and_logs_reasoning() -> None:
     reasoning = "First paragraph of thought.\n\nSecond paragraph, " + "x" * 600
     logs: list[str] = []
-    llm = ScriptedLLM([
-        LLMResponse(
-            text="",
-            tokens_used=50,
-            model_name="t",
-            latency_ms=0,
-            tool_calls=[_call("echo", {"text": "hi"}, "c1")],
-            reasoning=reasoning,
-        ),
-        LLMResponse(text="done", tokens_used=5, model_name="t", latency_ms=0),
-    ])
+    llm = ScriptedLLM(
+        [
+            LLMResponse(
+                text="",
+                tokens_used=50,
+                model_name="t",
+                latency_ms=0,
+                tool_calls=[_call("echo", {"text": "hi"}, "c1")],
+                reasoning=reasoning,
+            ),
+            LLMResponse(text="done", tokens_used=5, model_name="t", latency_ms=0),
+        ]
+    )
     session = await _runner(llm, logs=logs, thinking=True).run("go")
 
     assert session.stopped_reason == "complete"
     assert llm.call_kwargs[0] == {
-        "max_tokens": 2048, "enable_thinking": True, "thinking_effort": "low",
+        "max_tokens": 2048,
+        "enable_thinking": True,
+        "thinking_effort": "low",
     }
     assert logs[0] == f"\u2026 {reasoning}"
     assert logs[1].startswith("\u2192 echo(")
@@ -617,24 +658,32 @@ async def test_thinking_runner_sends_effort_and_logs_reasoning() -> None:
 @pytest.mark.asyncio
 async def test_thinking_truncation_falls_back_to_no_thinking_for_the_run() -> None:
     logs: list[str] = []
-    llm = ScriptedLLM([
-        LLMResponse(
-            text="",
-            tokens_used=2048,
-            model_name="t",
-            latency_ms=0,
-            finish_reason="length",
-            reasoning="still thinking...",
-        ),
-        LLMResponse(
-            text="", tokens_used=30, model_name="t", latency_ms=0,
-            tool_calls=[_call("echo", {"text": "hi"}, "c1")],
-        ),
-        LLMResponse(
-            text="answer", tokens_used=5, model_name="t", latency_ms=0,
-            finish_reason="stop",
-        ),
-    ])
+    llm = ScriptedLLM(
+        [
+            LLMResponse(
+                text="",
+                tokens_used=2048,
+                model_name="t",
+                latency_ms=0,
+                finish_reason="length",
+                reasoning="still thinking...",
+            ),
+            LLMResponse(
+                text="",
+                tokens_used=30,
+                model_name="t",
+                latency_ms=0,
+                tool_calls=[_call("echo", {"text": "hi"}, "c1")],
+            ),
+            LLMResponse(
+                text="answer",
+                tokens_used=5,
+                model_name="t",
+                latency_ms=0,
+                finish_reason="stop",
+            ),
+        ]
+    )
     session = await _runner(llm, logs=logs, thinking=True).run("go")
 
     assert [k["enable_thinking"] for k in llm.call_kwargs] == [True, False, False]
@@ -649,13 +698,19 @@ async def test_thinking_truncation_falls_back_to_no_thinking_for_the_run() -> No
 
 @pytest.mark.asyncio
 async def test_truncated_answer_is_kept_not_retried() -> None:
-    llm = ScriptedLLM([
-        LLMResponse(
-            text="a long answer that got cut", tokens_used=2048, model_name="t",
-            latency_ms=0, finish_reason="length", reasoning="done thinking",
-        ),
-        LLMResponse(text="never", tokens_used=1, model_name="t", latency_ms=0),
-    ])
+    llm = ScriptedLLM(
+        [
+            LLMResponse(
+                text="a long answer that got cut",
+                tokens_used=2048,
+                model_name="t",
+                latency_ms=0,
+                finish_reason="length",
+                reasoning="done thinking",
+            ),
+            LLMResponse(text="never", tokens_used=1, model_name="t", latency_ms=0),
+        ]
+    )
     session = await _runner(llm, thinking=True).run("go")
 
     assert len(llm.call_kwargs) == 1
@@ -664,13 +719,18 @@ async def test_truncated_answer_is_kept_not_retried() -> None:
 
 @pytest.mark.asyncio
 async def test_truncation_without_thinking_does_not_retry() -> None:
-    llm = ScriptedLLM([
-        LLMResponse(
-            text="cut off", tokens_used=2048, model_name="t", latency_ms=0,
-            finish_reason="length",
-        ),
-        LLMResponse(text="never", tokens_used=1, model_name="t", latency_ms=0),
-    ])
+    llm = ScriptedLLM(
+        [
+            LLMResponse(
+                text="cut off",
+                tokens_used=2048,
+                model_name="t",
+                latency_ms=0,
+                finish_reason="length",
+            ),
+            LLMResponse(text="never", tokens_used=1, model_name="t", latency_ms=0),
+        ]
+    )
     session = await _runner(llm).run("go")
 
     assert len(llm.call_kwargs) == 1
@@ -723,10 +783,12 @@ def _marked_actions() -> dict[str, AbstractAction]:
 async def test_marked_tool_result_is_redacted_in_trace(caplog) -> None:
     caplog.set_level(logging.DEBUG)
     _Reads.calls = 0
-    llm = ScriptedLLM([
-        tool_call_response(_call("reads", {}, "c1")),
-        LLMResponse(text="all done", tokens_used=0, model_name="t", latency_ms=0),
-    ])
+    llm = ScriptedLLM(
+        [
+            tool_call_response(_call("reads", {}, "c1")),
+            LLMResponse(text="all done", tokens_used=0, model_name="t", latency_ms=0),
+        ]
+    )
     logs: list[str] = []
     session = await _runner(llm, actions=_marked_actions(), logs=logs).run("read it")
 
@@ -741,13 +803,18 @@ async def test_marked_tool_result_is_redacted_in_trace(caplog) -> None:
 async def test_reasoning_is_hidden_after_a_marked_tool(caplog) -> None:
     caplog.set_level(logging.DEBUG)
     _Reads.calls = 0
-    llm = ScriptedLLM([
-        tool_call_response(_call("reads", {}, "c1")),
-        LLMResponse(
-            text="all done", tokens_used=0, model_name="t", latency_ms=0,
-            reasoning=f"mentions {FIXTURE}",
-        ),
-    ])
+    llm = ScriptedLLM(
+        [
+            tool_call_response(_call("reads", {}, "c1")),
+            LLMResponse(
+                text="all done",
+                tokens_used=0,
+                model_name="t",
+                latency_ms=0,
+                reasoning=f"mentions {FIXTURE}",
+            ),
+        ]
+    )
     logs: list[str] = []
     await _runner(llm, actions=_marked_actions(), logs=logs).run("read it")
 
@@ -758,10 +825,12 @@ async def test_reasoning_is_hidden_after_a_marked_tool(caplog) -> None:
 @pytest.mark.asyncio
 async def test_consent_gated_tools_are_dropped_after_a_marked_tool() -> None:
     _Reads.calls = 0
-    llm = ScriptedLLM([
-        tool_call_response(_call("reads", {}, "c1")),
-        LLMResponse(text="done", tokens_used=0, model_name="t", latency_ms=0),
-    ])
+    llm = ScriptedLLM(
+        [
+            tool_call_response(_call("reads", {}, "c1")),
+            LLMResponse(text="done", tokens_used=0, model_name="t", latency_ms=0),
+        ]
+    )
     await _runner(llm, actions=_marked_actions()).run("read it")
 
     first_tools = [t["function"]["name"] for t in llm.calls[0][1]]
@@ -775,11 +844,13 @@ async def test_consent_gated_tools_are_dropped_after_a_marked_tool() -> None:
 @pytest.mark.asyncio
 async def test_marked_tool_is_never_cached() -> None:
     _Reads.calls = 0
-    llm = ScriptedLLM([
-        tool_call_response(_call("reads", {}, "c1")),
-        tool_call_response(_call("reads", {}, "c2")),
-        LLMResponse(text="done", tokens_used=0, model_name="t", latency_ms=0),
-    ])
+    llm = ScriptedLLM(
+        [
+            tool_call_response(_call("reads", {}, "c1")),
+            tool_call_response(_call("reads", {}, "c2")),
+            LLMResponse(text="done", tokens_used=0, model_name="t", latency_ms=0),
+        ]
+    )
     session = await _runner(llm, actions=_marked_actions()).run("read twice")
 
     assert [s.cached for s in session.steps] == [False, False]
@@ -790,12 +861,15 @@ async def test_marked_tool_is_never_cached() -> None:
 async def test_gated_tool_in_the_same_batch_is_skipped() -> None:
     _Reads.calls = 0
     _Fact.calls = 0
-    llm = ScriptedLLM([
-        tool_call_response(
-            _call("reads", {}, "c1"), _call("random_fact", {}, "c2"),
-        ),
-        LLMResponse(text="done", tokens_used=0, model_name="t", latency_ms=0),
-    ])
+    llm = ScriptedLLM(
+        [
+            tool_call_response(
+                _call("reads", {}, "c1"),
+                _call("random_fact", {}, "c2"),
+            ),
+            LLMResponse(text="done", tokens_used=0, model_name="t", latency_ms=0),
+        ]
+    )
     logs: list[str] = []
     session = await _runner(llm, actions=_marked_actions(), logs=logs).run("both")
 
@@ -806,6 +880,7 @@ async def test_gated_tool_in_the_same_batch_is_skipped() -> None:
 
 class _Raises(AbstractAction):
     """Marked tool that reads content, then throws with it in the message."""
+
     action_name = "raises"
     description = "raises"
     parameters = {"type": "object", "properties": {}}
@@ -824,11 +899,13 @@ async def test_later_tool_arguments_are_never_persisted(caplog) -> None:
     must be unpersisted for the rest of the run instead."""
     caplog.set_level(logging.DEBUG)
     _Reads.calls = 0
-    llm = ScriptedLLM([
-        tool_call_response(_call("reads", {}, "c1")),
-        tool_call_response(_call("echo", {"text": FIXTURE}, "c2")),
-        LLMResponse(text="all done", tokens_used=0, model_name="t", latency_ms=0),
-    ])
+    llm = ScriptedLLM(
+        [
+            tool_call_response(_call("reads", {}, "c1")),
+            tool_call_response(_call("echo", {"text": FIXTURE}, "c2")),
+            LLMResponse(text="all done", tokens_used=0, model_name="t", latency_ms=0),
+        ]
+    )
     logs: list[str] = []
     await _runner(llm, actions=_marked_actions(), logs=logs).run("read it")
 
@@ -843,10 +920,12 @@ async def test_marked_tool_that_raises_redacts_and_still_sets_the_flag(caplog) -
     """An exception can quote the text the tool just read. If that branch
     leaked, it would also leave the flag off and disable every other guard."""
     caplog.set_level(logging.DEBUG)
-    llm = ScriptedLLM([
-        tool_call_response(_call("raises", {}, "c1")),
-        LLMResponse(text="all done", tokens_used=0, model_name="t", latency_ms=0),
-    ])
+    llm = ScriptedLLM(
+        [
+            tool_call_response(_call("raises", {}, "c1")),
+            LLMResponse(text="all done", tokens_used=0, model_name="t", latency_ms=0),
+        ]
+    )
     logs: list[str] = []
     actions: dict[str, AbstractAction] = {"raises": _Raises({}), "echo": _Echo({})}
     session = await _runner(llm, actions=actions, logs=logs).run("read it")

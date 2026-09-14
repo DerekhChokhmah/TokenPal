@@ -31,7 +31,11 @@ log = logging.getLogger(__name__)
 
 def _research_log(cloud_mode: str) -> LogFn:
     def _log(
-        text: str, *, markup: bool = False, url: str | None = None, persist: bool = True,
+        text: str,
+        *,
+        markup: bool = False,
+        url: str | None = None,
+        persist: bool = True,
     ) -> None:
         log.info(
             "research%s: %s%s",
@@ -39,6 +43,7 @@ def _research_log(cloud_mode: str) -> LogFn:
             text,
             f" ({url})" if url else "",
         )
+
     return _log
 
 
@@ -92,13 +97,15 @@ class ResearchAction(AbstractAction):
             )
         if self._llm is None:
             return ActionResult(
-                output="research: LLM backend not wired up", success=False,
+                output="research: LLM backend not wired up",
+                success=False,
             )
 
         cfg = self._research_config or ResearchConfig()
         cloud_backend = _build_cloud_backend(self._cloud_config)
         cloud_plan = bool(
-            cloud_backend and self._cloud_config
+            cloud_backend
+            and self._cloud_config
             and getattr(self._cloud_config, "research_plan", False)
         )
         cloud_mode: str = ""
@@ -151,7 +158,8 @@ class ResearchAction(AbstractAction):
         if not session.is_complete or not session.answer:
             reason = session.stopped_reason or ResearchStopReason.CRASHED
             return ActionResult(
-                output=f"research: incomplete ({reason})", success=False,
+                output=f"research: incomplete ({reason})",
+                success=False,
             )
 
         # Cache the completed session so /refine finds it when the agent
@@ -162,16 +170,19 @@ class ResearchAction(AbstractAction):
         # the user meant.
         if self._memory is not None and getattr(self._memory, "enabled", False):
             import json as _json
-            payload = _json.dumps([
-                {
-                    "number": s.number,
-                    "url": s.url,
-                    "title": s.title,
-                    "excerpt": s.excerpt,
-                    "backend": s.backend,
-                }
-                for s in session.sources
-            ])
+
+            payload = _json.dumps(
+                [
+                    {
+                        "number": s.number,
+                        "url": s.url,
+                        "title": s.title,
+                        "excerpt": s.excerpt,
+                        "backend": s.backend,
+                    }
+                    for s in session.sources
+                ]
+            )
             try:
                 self._memory.cache_research_answer(
                     self._memory.research_cache_key(question, mode=cloud_mode),
@@ -246,14 +257,12 @@ class ResearchFollowupAction(AbstractAction):
         question = (kwargs.get("question") or "").strip()
         if not question:
             return ActionResult(
-                output="research_followup: empty question", success=False,
+                output="research_followup: empty question",
+                success=False,
             )
         if not has_consent(Category.RESEARCH_MODE):
             return ActionResult(
-                output=(
-                    "research_followup: research_mode consent not granted. "
-                    "Run /consent."
-                ),
+                output=("research_followup: research_mode consent not granted. Run /consent."),
                 success=False,
             )
         if self._brain_ref is None:
@@ -273,6 +282,7 @@ class ResearchFollowupAction(AbstractAction):
             is_expired,
             over_cap,
         )
+
         session = getattr(self._brain_ref, "_active_followup_session", None)
         if session is None:
             return ActionResult(
@@ -304,8 +314,7 @@ class ResearchFollowupAction(AbstractAction):
         if not api_key:
             return ActionResult(
                 output=(
-                    "research_followup: cloud key no longer on disk. "
-                    "Re-run /cloud enable <key>."
+                    "research_followup: cloud key no longer on disk. Re-run /cloud enable <key>."
                 ),
                 success=False,
             )
@@ -321,6 +330,7 @@ class ResearchFollowupAction(AbstractAction):
             )
 
         import asyncio
+
         try:
             result = await asyncio.to_thread(
                 backend.followup,
@@ -344,9 +354,12 @@ class ResearchFollowupAction(AbstractAction):
         log.info(
             "research_followup: count=%d/%d cache_read=%d cache_creation=%d "
             "output=%d latency=%.1fs",
-            session.followup_count, session.max_followups,
-            result.cache_read_tokens, result.cache_creation_tokens,
-            result.tokens_used, result.latency_ms / 1000.0,
+            session.followup_count,
+            session.max_followups,
+            result.cache_read_tokens,
+            result.cache_creation_tokens,
+            result.tokens_used,
+            result.latency_ms / 1000.0,
         )
         if cfg.followup_cache_breakpoints and result.cache_read_tokens == 0:
             # Ephemeral cache has a ~5min lifetime; gap > 5min between the
@@ -370,11 +383,9 @@ class ResearchFollowupAction(AbstractAction):
 
 
 def _format_followup_result(result: Any, session: Any) -> str:
-    sources_lines = "\n".join(
-        f"[{s.number}] {s.url} - {s.title}" for s in session.sources
-    )
+    sources_lines = "\n".join(f"[{s.number}] {s.url} - {s.title}" for s in session.sources)
     return (
-        f"<tool_result tool=\"research_followup\" status=\"complete\">\n"
+        f'<tool_result tool="research_followup" status="complete">\n'
         f"<answer>\n{result.text}\n</answer>\n"
         f"<sources>\n{sources_lines}\n</sources>\n"
         f"<telemetry>\n"
@@ -419,15 +430,13 @@ def _build_cloud_backend(cfg: CloudLLMConfig | None) -> CloudBackend | None:
 
 
 def _format_result(session: ResearchSession) -> str:
-    sources_lines = "\n".join(
-        f"[{s.number}] {s.url} - {s.title}" for s in session.sources
-    )
+    sources_lines = "\n".join(f"[{s.number}] {s.url} - {s.title}" for s in session.sources)
     warnings_block = ""
     if session.warnings:
         inner = "\n".join(f"  <warning>{w}</warning>" for w in session.warnings)
         warnings_block = f"<warnings>\n{inner}\n</warnings>\n"
     return (
-        f"<tool_result tool=\"research\" status=\"complete\">\n"
+        f'<tool_result tool="research" status="complete">\n'
         f"{warnings_block}"
         f"<answer>\n{session.answer}\n</answer>\n"
         f"<sources>\n{sources_lines}\n</sources>\n"

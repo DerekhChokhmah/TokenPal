@@ -82,12 +82,12 @@ forcing duplicate observations through the near-duplicate guard.
 ```python
 @dataclass(frozen=True)
 class IdleToolContext:
-    now: datetime                       # local time (zoneinfo)
+    now: datetime  # local time (zoneinfo)
     session_minutes: int
-    first_session_of_day: bool          # memory lookup at session start
+    first_session_of_day: bool  # memory lookup at session start
     active_readings: Mapping[str, SenseReading]
-    mood: str                           # personality mood name
-    weather_summary: str                # cached from weather sense, may be ""
+    mood: str  # personality mood name
+    weather_summary: str  # cached from weather sense, may be ""
     last_fire_by_rule: Mapping[str, float]  # monotonic
     last_fire_any: float
     running_bits_active: int
@@ -99,15 +99,15 @@ class IdleToolContext:
 ```python
 @dataclass(frozen=True)
 class IdleToolRule:
-    name: str                           # stable id, used in config + logs
-    tool_name: str                      # matches AbstractAction.action_name
-    description: str                    # human-readable, surfaced by /idle_tools list
-    weight: float                       # base weight when predicate passes
-    cooldown_s: float                   # per-rule min-gap between fires
+    name: str  # stable id, used in config + logs
+    tool_name: str  # matches AbstractAction.action_name
+    description: str  # human-readable, surfaced by /idle_tools list
+    weight: float  # base weight when predicate passes
+    cooldown_s: float  # per-rule min-gap between fires
     predicate: Callable[[IdleToolContext], bool]
-    framing: str                        # prompt hint for the riff
-    running_bit: bool = False           # if True → add_running_bit instead of riff
-    bit_decay_s: float = 0.0            # only used when running_bit=True
+    framing: str  # prompt hint for the riff
+    running_bit: bool = False  # if True → add_running_bit instead of riff
+    bit_decay_s: float = 0.0  # only used when running_bit=True
 ```
 
 ### `RunningBit` — lives on `PersonalityEngine`
@@ -115,11 +115,11 @@ class IdleToolRule:
 ```python
 @dataclass
 class RunningBit:
-    tag: str                            # "word_of_the_day", "todays_joke", etc.
-    payload: dict[str, str]             # {"word": "oxymoron", "definition": "..."}
-    framing: str                        # soft instruction slotted into system prompt
-    added_at: float                     # monotonic
-    decay_at: float                     # monotonic
+    tag: str  # "word_of_the_day", "todays_joke", etc.
+    payload: dict[str, str]  # {"word": "oxymoron", "definition": "..."}
+    framing: str  # soft instruction slotted into system prompt
+    added_at: float  # monotonic
+    decay_at: float  # monotonic
 ```
 
 Active (non-expired) bits are appended to every `build_prompt()` /

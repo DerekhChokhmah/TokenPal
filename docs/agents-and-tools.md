@@ -75,6 +75,7 @@ Add a `rate_limit` ClassVar to enforce a rolling-window cap on any action:
 ```python
 from tokenpal.actions.base import AbstractAction, ActionResult, RateLimit
 
+
 @register_action
 class CryptoPrice(AbstractAction):
     action_name = "crypto_price"
@@ -92,6 +93,7 @@ Every invocation is logged to `memory.db` in the `tool_calls(ts, tool_name, dura
 
 ```python
 from tokenpal.brain.memory import MemoryStore
+
 m = MemoryStore(Path("~/.tokenpal/memory.db").expanduser())
 m.setup()
 print(m.tool_usage_counts(since_days=7))
@@ -132,9 +134,12 @@ A thin wrapper around `ResearchRunner` (the same pipeline `/research` uses), exp
 @register_action
 class ResearchAction(AbstractAction):
     action_name = "research"
-    parameters = {"type": "object", "properties": {"question": {"type": "string"}},
-                  "required": ["question"]}
-    rate_limit = RateLimit(max_calls=2, window_s=120.0)   # prevents loops
+    parameters = {
+        "type": "object",
+        "properties": {"question": {"type": "string"}},
+        "required": ["question"],
+    }
+    rate_limit = RateLimit(max_calls=2, window_s=120.0)  # prevents loops
 ```
 
 When called, it runs the full plan → search → fetch → synthesize pipeline and returns:
@@ -373,6 +378,7 @@ Drop a file under `tokenpal/actions/<your_tool>.py` or under one of the subpacka
 from tokenpal.actions.base import AbstractAction, ActionResult, RateLimit
 from tokenpal.actions.registry import register_action
 
+
 @register_action
 class WhatsForDinner(AbstractAction):
     action_name = "whats_for_dinner"
@@ -384,6 +390,7 @@ class WhatsForDinner(AbstractAction):
 
     async def execute(self, **_kwargs) -> ActionResult:
         import random
+
         meals = ["tacos", "ramen", "fried rice", "big salad"]
         return ActionResult(output=random.choice(meals))
 ```

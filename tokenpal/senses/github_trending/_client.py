@@ -33,9 +33,7 @@ class GHRepo:
 
 def _trending_url(today: dt.date, per_page: int) -> str:
     cutoff = (today - dt.timedelta(days=7)).isoformat()
-    return (
-        f"{_SEARCH_URL}?q=created:>{cutoff}&sort=stars&order=desc&per_page={per_page}"
-    )
+    return f"{_SEARCH_URL}?q=created:>{cutoff}&sort=stars&order=desc&per_page={per_page}"
 
 
 def _parse_repo(item: dict[str, Any]) -> GHRepo | None:
@@ -59,7 +57,8 @@ def _parse_repo(item: dict[str, Any]) -> GHRepo | None:
 
 
 def fetch_top_repos(
-    limit: int, today: dt.date | None = None,
+    limit: int,
+    today: dt.date | None = None,
 ) -> list[GHRepo]:
     """Return up to *limit* most-starred repos created in the last 7 days."""
     raw = http_json(_trending_url(today or dt.date.today(), per_page=limit))

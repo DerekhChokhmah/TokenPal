@@ -27,10 +27,7 @@ def buddy_overlay_flags(*, focusable: bool = False) -> Qt.WindowType:
     ``focusable=False`` (default) blocks focus-stealing; pass ``True``
     for interactive surfaces (chat input, dock buttons).
     """
-    flags = (
-        Qt.WindowType.FramelessWindowHint
-        | Qt.WindowType.WindowStaysOnTopHint
-    )
+    flags = Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint
     if not focusable:
         flags |= Qt.WindowType.WindowDoesNotAcceptFocus
     if sys.platform != "darwin":
@@ -66,8 +63,7 @@ def apply_macos_accessory_mode() -> None:
         )
     except ImportError:
         log.debug(
-            "pyobjc not installed — Dock icon will show; install the "
-            "'macos' extra to suppress it.",
+            "pyobjc not installed — Dock icon will show; install the 'macos' extra to suppress it.",
         )
         return
     try:

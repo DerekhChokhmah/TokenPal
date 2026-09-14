@@ -166,9 +166,7 @@ def test_wikipedia_returns_none_on_empty_extract():
 
 
 def test_wikipedia_returns_none_on_network_failure():
-    with patch.object(
-        client_mod.urllib.request, "urlopen", side_effect=OSError("down")
-    ):
+    with patch.object(client_mod.urllib.request, "urlopen", side_effect=OSError("down")):
         assert WikipediaBackend().search("python") is None
 
 
@@ -386,19 +384,27 @@ def test_search_brave_backend_returns_none_without_key(monkeypatch: pytest.Monke
 # ---------------------------------------------------------------------------
 
 
-_DDG_LITE_MULTI_HTML = b"""
+_DDG_LITE_MULTI_HTML = (
+    b"""
 <html><body>
 <table>
 <tr><td class="result-link"></td></tr>
-<tr><td><a href="/l/?uddg=https%3A%2F%2Fsite-a.com%2Fpage" class="result-link">Site A Title</a></td></tr>
-<tr><td class="result-snippet">Snippet about site A.</td></tr>
-<tr><td><a href="/l/?uddg=https%3A%2F%2Fsite-b.com%2Fpage" class="result-link">Site B Title</a></td></tr>
-<tr><td class="result-snippet">Snippet about site B.</td></tr>
-<tr><td><a href="/l/?uddg=https%3A%2F%2Fsite-c.com%2Fpage" class="result-link">Site C Title</a></td></tr>
-<tr><td class="result-snippet">Snippet about site C.</td></tr>
+"""
+    b'<tr><td><a href="/l/?uddg=https%3A%2F%2Fsite-a.com%2Fpage" '
+    b'class="result-link">Site A Title</a></td></tr>\n'
+    b"""<tr><td class="result-snippet">Snippet about site A.</td></tr>
+"""
+    b'<tr><td><a href="/l/?uddg=https%3A%2F%2Fsite-b.com%2Fpage" '
+    b'class="result-link">Site B Title</a></td></tr>\n'
+    b"""<tr><td class="result-snippet">Snippet about site B.</td></tr>
+"""
+    b'<tr><td><a href="/l/?uddg=https%3A%2F%2Fsite-c.com%2Fpage" '
+    b'class="result-link">Site C Title</a></td></tr>\n'
+    b"""<tr><td class="result-snippet">Snippet about site C.</td></tr>
 </table>
 </body></html>
 """
+)
 
 
 def _urlopen_returning_body(body: bytes) -> MagicMock:
@@ -414,7 +420,8 @@ def test_search_many_ddg_returns_multiple_results():
     from tokenpal.senses.web_search.client import search_many
 
     with patch.object(
-        client_mod.urllib.request, "urlopen",
+        client_mod.urllib.request,
+        "urlopen",
         _urlopen_returning_body(_DDG_LITE_MULTI_HTML),
     ):
         results = search_many("best widgets", backend="duckduckgo", limit=5)
@@ -431,7 +438,8 @@ def test_search_many_ddg_honors_limit():
     from tokenpal.senses.web_search.client import search_many
 
     with patch.object(
-        client_mod.urllib.request, "urlopen",
+        client_mod.urllib.request,
+        "urlopen",
         _urlopen_returning_body(_DDG_LITE_MULTI_HTML),
     ):
         results = search_many("best widgets", backend="duckduckgo", limit=2)
@@ -450,8 +458,11 @@ def test_search_many_wikipedia_wraps_single_result():
     from tokenpal.senses.web_search.client import search_many
 
     wiki_result = SearchResult(
-        query="q", backend="wikipedia",
-        title="Wiki", text="body", source_url="https://wiki",
+        query="q",
+        backend="wikipedia",
+        title="Wiki",
+        text="body",
+        source_url="https://wiki",
     )
     with patch.object(WikipediaBackend, "search", return_value=wiki_result):
         results = search_many("q", backend="wikipedia")
@@ -481,12 +492,14 @@ def _mock_tavily_response(results: list[dict[str, Any]]) -> MagicMock:
 def test_tavily_populates_preloaded_content():
     from tokenpal.senses.web_search.client import TavilyBackend
 
-    tav_body = [{
-        "url": "https://example.com/a",
-        "title": "Article A",
-        "content": "A" * 2000,  # simulate a long extracted body
-        "score": 0.92,
-    }]
+    tav_body = [
+        {
+            "url": "https://example.com/a",
+            "title": "Article A",
+            "content": "A" * 2000,  # simulate a long extracted body
+            "score": 0.92,
+        }
+    ]
     mocked = _mock_tavily_response(tav_body)
     with patch("urllib.request.urlopen", mocked):
         be = TavilyBackend(api_key="tvly-abcdefghijklmnop")
@@ -507,11 +520,13 @@ def test_tavily_populates_preloaded_content():
 def test_tavily_skips_results_without_url_or_content():
     from tokenpal.senses.web_search.client import TavilyBackend
 
-    mocked = _mock_tavily_response([
-        {"url": "https://good", "title": "Good", "content": "body here", "score": 1.0},
-        {"url": "", "title": "No URL", "content": "body", "score": 0.5},
-        {"url": "https://empty", "title": "No content", "content": "", "score": 0.5},
-    ])
+    mocked = _mock_tavily_response(
+        [
+            {"url": "https://good", "title": "Good", "content": "body here", "score": 1.0},
+            {"url": "", "title": "No URL", "content": "body", "score": 0.5},
+            {"url": "https://empty", "title": "No content", "content": "", "score": 0.5},
+        ]
+    )
     with patch("urllib.request.urlopen", mocked):
         be = TavilyBackend(api_key="tvly-keykeykeykeykey123")
         hits = be._search_all("q", limit=5)
@@ -526,6 +541,7 @@ def test_tavily_no_key_returns_empty():
     be = TavilyBackend(api_key="")  # no key, no env var
     with patch.dict("os.environ", {}, clear=False):
         import os
+
         os.environ.pop("TOKENPAL_TAVILY_KEY", None)
         assert be._search_all("q", limit=5) == []
 
@@ -554,9 +570,11 @@ def test_tavily_malformed_response_returns_empty():
 def test_search_many_routes_to_tavily_backend():
     from tokenpal.senses.web_search.client import search_many
 
-    mocked = _mock_tavily_response([
-        {"url": "https://x", "title": "X", "content": "body", "score": 1.0},
-    ])
+    mocked = _mock_tavily_response(
+        [
+            {"url": "https://x", "title": "X", "content": "body", "score": 1.0},
+        ]
+    )
     with patch("urllib.request.urlopen", mocked):
         hits = search_many("q", backend="tavily", limit=3, tavily_api_key="tvly-keykeykeykeykey")
 
@@ -572,6 +590,7 @@ def test_search_route_tavily_no_key_returns_empty():
     import os
 
     from tokenpal.senses.web_search.client import search_many
+
     with patch.dict(os.environ, {}, clear=False):
         os.environ.pop("TOKENPAL_TAVILY_KEY", None)
         hits = search_many("q", backend="tavily", limit=3, tavily_api_key="")
@@ -771,7 +790,10 @@ def test_preloaded_content_default_is_empty_string():
     preloaded_content as the empty string default, signalling to the
     research pipeline that it must fall back to its own fetch."""
     sr = SearchResult(
-        query="q", backend="duckduckgo",
-        title="t", text="snippet", source_url="https://u",
+        query="q",
+        backend="duckduckgo",
+        title="t",
+        text="snippet",
+        source_url="https://u",
     )
     assert sr.preloaded_content == ""

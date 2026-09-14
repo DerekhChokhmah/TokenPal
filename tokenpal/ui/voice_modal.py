@@ -141,9 +141,7 @@ class VoiceModal(ModalScreen["VoiceModalResult | None"]):
     }
     """
 
-    BINDINGS: ClassVar[
-        list[Binding | tuple[str, str] | tuple[str, str, str]]
-    ] = [
+    BINDINGS: ClassVar[list[Binding | tuple[str, str] | tuple[str, str, str]]] = [
         Binding("escape", "cancel", "Cancel", show=False),
     ]
 
@@ -181,15 +179,14 @@ class VoiceModal(ModalScreen["VoiceModalResult | None"]):
                     classes="section-help",
                 )
                 yield OptionList(
-                    *[
-                        Option(_format_saved_row(v), id=v.slug)
-                        for v in s.saved
-                    ],
+                    *[Option(_format_saved_row(v), id=v.slug) for v in s.saved],
                     id="saved-list",
                 )
                 with Horizontal(classes="action-row"):
                     yield Button(
-                        "Switch", id="switch-btn", variant="primary",
+                        "Switch",
+                        id="switch-btn",
+                        variant="primary",
                     )
             else:
                 yield Label(
@@ -247,8 +244,7 @@ class VoiceModal(ModalScreen["VoiceModalResult | None"]):
                     )
             else:
                 yield Label(
-                    "Switch to a custom voice first — fine-tuning "
-                    "targets the active voice.",
+                    "Switch to a custom voice first — fine-tuning targets the active voice.",
                     classes="section-disabled",
                 )
 
@@ -258,8 +254,7 @@ class VoiceModal(ModalScreen["VoiceModalResult | None"]):
             yield Label("Regenerate assets", classes="section-header")
             if has_active:
                 yield Label(
-                    "Refresh LLM-backed persona + ASCII art. 'All' takes "
-                    "about a minute.",
+                    "Refresh LLM-backed persona + ASCII art. 'All' takes about a minute.",
                     classes="section-help",
                 )
                 with Horizontal(classes="action-row"):
@@ -269,12 +264,12 @@ class VoiceModal(ModalScreen["VoiceModalResult | None"]):
                         variant="warning",
                     )
                     yield Button(
-                        "Regenerate ASCII art only", id="ascii-btn",
+                        "Regenerate ASCII art only",
+                        id="ascii-btn",
                     )
             else:
                 yield Label(
-                    "Switch to a custom voice first — regenerate "
-                    "operates on the active voice.",
+                    "Switch to a custom voice first — regenerate operates on the active voice.",
                     classes="section-disabled",
                 )
 
@@ -317,9 +312,7 @@ class VoiceModal(ModalScreen["VoiceModalResult | None"]):
         elif btn_id == "switch-btn":
             slug = self._selected_saved_slug()
             if slug:
-                self.dismiss(
-                    VoiceModalResult(action="switch", payload={"name": slug})
-                )
+                self.dismiss(VoiceModalResult(action="switch", payload={"name": slug}))
         elif btn_id == "train-btn":
             wiki = self._input_value("#train-wiki-input")
             character = self._input_value("#train-character-input")
@@ -335,7 +328,8 @@ class VoiceModal(ModalScreen["VoiceModalResult | None"]):
             if active:
                 self.dismiss(
                     VoiceModalResult(
-                        action="finetune", payload={"name": active.slug},
+                        action="finetune",
+                        payload={"name": active.slug},
                     )
                 )
         elif btn_id == "finetune-setup-btn":
@@ -349,7 +343,8 @@ class VoiceModal(ModalScreen["VoiceModalResult | None"]):
             if path:
                 self.dismiss(
                     VoiceModalResult(
-                        action="import", payload={"path": path},
+                        action="import",
+                        payload={"path": path},
                     )
                 )
 

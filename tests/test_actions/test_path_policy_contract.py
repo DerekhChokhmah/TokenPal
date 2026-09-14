@@ -58,9 +58,7 @@ def _path_shaped(cls: type[AbstractAction]) -> list[str]:
     props = _schema(cls).get("properties", {})
     if not isinstance(props, dict):
         return []
-    return sorted(
-        name for name in props if any(word in name.lower() for word in _PATH_WORDS)
-    )
+    return sorted(name for name in props if any(word in name.lower() for word in _PATH_WORDS))
 
 
 def _required(cls: type[AbstractAction]) -> set[str]:
@@ -72,8 +70,12 @@ def _dummy_args(cls: type[AbstractAction]) -> dict[str, Any]:
     """Plausible values for the tool's declared required arguments."""
     props = _schema(cls).get("properties", {})
     by_type: dict[str, Any] = {
-        "string": "x", "integer": 1, "number": 1.0, "boolean": True,
-        "array": [], "object": {},
+        "string": "x",
+        "integer": 1,
+        "number": 1.0,
+        "boolean": True,
+        "array": [],
+        "object": {},
     }
     out: dict[str, Any] = {}
     for name in _required(cls):
@@ -91,8 +93,7 @@ def _instantiate(cls: type[AbstractAction]) -> AbstractAction:
         plat = current_platform()
         if plat in cls.platforms:
             pytest.fail(
-                f"{cls.action_name} declares support for {plat} but its "
-                f"constructor raised {exc!r}"
+                f"{cls.action_name} declares support for {plat} but its constructor raised {exc!r}"
             )
         pytest.skip(f"{cls.action_name} does not support {plat}")
 
@@ -120,8 +121,7 @@ def test_the_known_path_tools_are_registered_and_declare_a_policy() -> None:
         importlib.import_module(module)
     declared = {cls.action_name for cls in _DECLARING}
     assert set(_KNOWN_PATH_TOOLS) <= declared, (
-        f"path tools missing a declared policy: "
-        f"{sorted(set(_KNOWN_PATH_TOOLS) - declared)}"
+        f"path tools missing a declared policy: {sorted(set(_KNOWN_PATH_TOOLS) - declared)}"
     )
 
 
@@ -212,9 +212,7 @@ async def test_a_declared_path_outside_every_root_is_refused(
 
     action = _instantiate(cls)
     for name in cls.path_params:
-        result = await ToolInvoker().invoke(
-            action, {**_dummy_args(cls), name: str(secret)}
-        )
+        result = await ToolInvoker().invoke(action, {**_dummy_args(cls), name: str(secret)})
         assert result.success is False, (
             f"{cls.action_name} accepted {name} outside every declared root"
         )
@@ -259,9 +257,7 @@ async def test_a_declared_path_inside_a_root_arrives_contained(
             return ActionResult(output="ok")
 
         monkeypatch.setattr(action, "execute", _capture)
-        await ToolInvoker().invoke(
-            action, {**_dummy_args(cls), name: "inside.txt"}
-        )
+        await ToolInvoker().invoke(action, {**_dummy_args(cls), name: "inside.txt"})
         assert isinstance(seen.get(name), ResolvedPath), (
             f"{cls.action_name} received {name} as {type(seen.get(name)).__name__}, "
             "not a ResolvedPath -- containment did not run"

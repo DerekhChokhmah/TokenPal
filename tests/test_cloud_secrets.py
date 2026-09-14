@@ -38,6 +38,7 @@ def test_set_and_get_roundtrip(secrets_path: Path) -> None:
     assert get_cloud_key(secrets_path) == key
 
 
+@pytest.mark.skipif(os.name == "nt", reason="Unix file permissions are not enforced on Windows")
 def test_set_cloud_key_chmods_0o600(secrets_path: Path) -> None:
     set_cloud_key("sk-ant-api03-" + "x" * 40, secrets_path)
     mode = stat.S_IMODE(os.stat(secrets_path).st_mode)
@@ -126,10 +127,14 @@ def test_legacy_read_wins_when_both_fields_present(secrets_path: Path) -> None:
     explicit /cloud anthropic enable overrides a stale legacy entry."""
     new_key = "sk-ant-api03-" + "p" * 40
     secrets_path.parent.mkdir(parents=True, exist_ok=True)
-    secrets_path.write_text(json.dumps({
-        "cloud_key": "sk-ant-api03-" + "q" * 40,
-        "anthropic_key": new_key,
-    }))
+    secrets_path.write_text(
+        json.dumps(
+            {
+                "cloud_key": "sk-ant-api03-" + "q" * 40,
+                "anthropic_key": new_key,
+            }
+        )
+    )
     assert get_cloud_key(secrets_path) == new_key
 
 

@@ -26,9 +26,7 @@ async def test_pomodoro_transitions_through_phases() -> None:
 
     bubbles: list[str] = []
     # Use 1-minute settings but monkey-patch asyncio.sleep to speed it up.
-    action = PomodoroAction(
-        {"ui_callback": bubbles.append, "phase_message": phase_msg}
-    )
+    action = PomodoroAction({"ui_callback": bubbles.append, "phase_message": phase_msg})
 
     original_sleep = asyncio.sleep
 

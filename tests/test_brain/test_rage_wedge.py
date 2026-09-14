@@ -44,11 +44,13 @@ def config() -> RageDetectConfig:
 
 
 def _trigger_pattern(
-    wedge: RageWedge, monkeypatch: pytest.MonkeyPatch,
+    wedge: RageWedge,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     clock = {"now": 1000.0}
     monkeypatch.setattr(
-        "tokenpal.brain.rage_detector.time.monotonic", lambda: clock["now"],
+        "tokenpal.brain.rage_detector.time.monotonic",
+        lambda: clock["now"],
     )
     wedge.ingest([_typing("rapid")])
     clock["now"] += 0.5
@@ -64,7 +66,8 @@ def test_propose_returns_none_without_pattern(config: RageDetectConfig) -> None:
 
 
 def test_propose_returns_candidate_after_pattern(
-    config: RageDetectConfig, monkeypatch: pytest.MonkeyPatch,
+    config: RageDetectConfig,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     w = RageWedge(config=config)
     _trigger_pattern(w, monkeypatch)
@@ -76,7 +79,8 @@ def test_propose_returns_candidate_after_pattern(
 
 
 def test_on_emitted_clears_pending_and_arms_cooldown(
-    config: RageDetectConfig, monkeypatch: pytest.MonkeyPatch,
+    config: RageDetectConfig,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     w = RageWedge(config=config)
     _trigger_pattern(w, monkeypatch)

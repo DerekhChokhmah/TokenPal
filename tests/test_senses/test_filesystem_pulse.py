@@ -102,6 +102,7 @@ def test_privacy_no_full_path_in_summary() -> None:
     for i in range(_BURST_THRESHOLD):
         sense._record_event(f"/Users/alice/Secret/Projects/internal/file{i}.py")
     import asyncio
+
     reading = asyncio.run(sense.poll())
     assert reading is not None
     assert "/Users/alice" not in reading.summary

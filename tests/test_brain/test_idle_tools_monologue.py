@@ -20,7 +20,9 @@ class _StubAction(AbstractAction):
     requires_confirm = False
 
     def __init__(
-        self, output: str = "OUT", success: bool = True,
+        self,
+        output: str = "OUT",
+        success: bool = True,
     ) -> None:
         super().__init__({})
         self._output = output
@@ -115,10 +117,12 @@ async def test_running_bit_rule_populates_flags() -> None:
         rules=(rule_by_name("morning_word"),),  # type: ignore[arg-type]
         rng=random.Random(0),
     )
-    result = await roller.maybe_fire(_ctx(
-        now=datetime(2026, 4, 20, 8, 0),
-        first_session_of_day=True,
-    ))
+    result = await roller.maybe_fire(
+        _ctx(
+            now=datetime(2026, 4, 20, 8, 0),
+            first_session_of_day=True,
+        )
+    )
     assert result is not None
     assert result.running_bit is True
     assert result.bit_decay_s == 8 * 3600
@@ -136,11 +140,13 @@ async def test_silent_running_bit_has_empty_opener() -> None:
         rules=(rule,),
         rng=random.Random(0),
     )
-    result = await roller.maybe_fire(_ctx(
-        now=datetime(2026, 4, 20, 12, 0),
-        session_minutes=20,
-        time_since_last_comment_s=400.0,
-    ))
+    result = await roller.maybe_fire(
+        _ctx(
+            now=datetime(2026, 4, 20, 12, 0),
+            session_minutes=20,
+            time_since_last_comment_s=400.0,
+        )
+    )
     assert result is not None
     assert result.running_bit is True
     assert result.opener_framing == ""
@@ -160,11 +166,13 @@ async def test_non_chain_rule_has_empty_extra_outputs() -> None:
         rules=(rule_by_name("memory_recall"),),  # type: ignore[arg-type]
         rng=random.Random(0),
     )
-    result = await roller.maybe_fire(_ctx(
-        session_minutes=20,
-        time_since_last_comment_s=700.0,
-        consent_web_fetches=False,
-    ))
+    result = await roller.maybe_fire(
+        _ctx(
+            session_minutes=20,
+            time_since_last_comment_s=700.0,
+            consent_web_fetches=False,
+        )
+    )
     assert result is not None
     assert result.extra_outputs == {}
     assert result.running_bit is False

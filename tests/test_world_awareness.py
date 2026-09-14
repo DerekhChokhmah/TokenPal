@@ -30,7 +30,8 @@ def test_hn_client_parses_front_page_response():
         ]
     }
     with patch(
-        "tokenpal.senses.world_awareness.hn_client.http_json", return_value=payload,
+        "tokenpal.senses.world_awareness.hn_client.http_json",
+        return_value=payload,
     ):
         stories = fetch_top_stories(limit=3)
 
@@ -47,7 +48,8 @@ def test_hn_client_parses_front_page_response():
 @pytest.mark.parametrize("payload", [None, {}, {"hits": []}, "not json"])
 def test_hn_client_returns_empty_on_bad_response(payload: Any):
     with patch(
-        "tokenpal.senses.world_awareness.hn_client.http_json", return_value=payload,
+        "tokenpal.senses.world_awareness.hn_client.http_json",
+        return_value=payload,
     ):
         assert fetch_top_stories(limit=3) == []
 
@@ -65,7 +67,8 @@ def test_hn_client_unescapes_html_entities_in_title():
         ]
     }
     with patch(
-        "tokenpal.senses.world_awareness.hn_client.http_json", return_value=payload,
+        "tokenpal.senses.world_awareness.hn_client.http_json",
+        return_value=payload,
     ):
         stories = fetch_top_stories(limit=3)
 
@@ -91,7 +94,8 @@ async def test_poll_emits_summary_with_all_headlines(enabled_config: dict[str, A
     sense = WorldAwarenessSense(enabled_config)
     await sense.setup()
     with patch(
-        "tokenpal.senses.world_awareness.sense.fetch_top_stories", return_value=stories,
+        "tokenpal.senses.world_awareness.sense.fetch_top_stories",
+        return_value=stories,
     ):
         reading = await sense.poll()
     assert reading is not None
@@ -104,7 +108,8 @@ async def test_poll_truncates_long_title_in_summary(enabled_config: dict[str, An
     sense = WorldAwarenessSense(enabled_config)
     await sense.setup()
     with patch(
-        "tokenpal.senses.world_awareness.sense.fetch_top_stories", return_value=stories,
+        "tokenpal.senses.world_awareness.sense.fetch_top_stories",
+        return_value=stories,
     ):
         reading = await sense.poll()
     assert reading is not None
@@ -118,7 +123,8 @@ async def test_poll_puts_url_in_data_not_summary(enabled_config: dict[str, Any])
     sense = WorldAwarenessSense(enabled_config)
     await sense.setup()
     with patch(
-        "tokenpal.senses.world_awareness.sense.fetch_top_stories", return_value=stories,
+        "tokenpal.senses.world_awareness.sense.fetch_top_stories",
+        return_value=stories,
     ):
         reading = await sense.poll()
     assert reading is not None
@@ -134,7 +140,8 @@ async def test_poll_filters_sensitive_terms_in_title(enabled_config: dict[str, A
     sense = WorldAwarenessSense(enabled_config)
     await sense.setup()
     with patch(
-        "tokenpal.senses.world_awareness.sense.fetch_top_stories", return_value=stories,
+        "tokenpal.senses.world_awareness.sense.fetch_top_stories",
+        return_value=stories,
     ):
         reading = await sense.poll()
     assert reading is not None
@@ -146,6 +153,7 @@ async def test_poll_silent_on_fetch_failure(enabled_config: dict[str, Any]):
     sense = WorldAwarenessSense(enabled_config)
     await sense.setup()
     with patch(
-        "tokenpal.senses.world_awareness.sense.fetch_top_stories", return_value=[],
+        "tokenpal.senses.world_awareness.sense.fetch_top_stories",
+        return_value=[],
     ):
         assert await sense.poll() is None

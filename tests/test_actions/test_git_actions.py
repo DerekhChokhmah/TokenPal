@@ -120,9 +120,7 @@ async def test_git_status_dirty(tmp_path: Path, monkeypatch: pytest.MonkeyPatch)
     assert "b.txt" in result.output
 
 
-async def test_git_status_not_a_repo(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+async def test_git_status_not_a_repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
     result = await GitStatusAction({}).execute()
     assert result.success is False

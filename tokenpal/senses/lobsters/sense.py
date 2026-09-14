@@ -37,16 +37,15 @@ class LobstersSense(AbstractSense):
             return None
 
         stories = [
-            s for s in fetch_top_stories(limit=_HEADLINE_LIMIT)
-            if is_latin_script(s.title)
-            and not contains_sensitive_content_term(s.title)
+            s
+            for s in fetch_top_stories(limit=_HEADLINE_LIMIT)
+            if is_latin_script(s.title) and not contains_sensitive_content_term(s.title)
         ]
         if not stories:
             return None
 
         formatted = [
-            f"'{truncate_ellipsis(s.title, _TITLE_MAX_CHARS)}' — {s.score} pts"
-            for s in stories
+            f"'{truncate_ellipsis(s.title, _TITLE_MAX_CHARS)}' — {s.score} pts" for s in stories
         ]
         summary = "Top Lobsters: " + " | ".join(formatted)
         if summary == self._prev_summary:
@@ -54,10 +53,7 @@ class LobstersSense(AbstractSense):
         self._prev_summary = summary
 
         data: dict[str, Any] = {
-            "stories": [
-                {"title": s.title, "score": s.score, "url": s.url}
-                for s in stories
-            ],
+            "stories": [{"title": s.title, "score": s.score, "url": s.url} for s in stories],
         }
         return self._reading(data=data, summary=summary, confidence=1.0)
 

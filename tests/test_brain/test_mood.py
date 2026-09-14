@@ -59,6 +59,7 @@ def _make_old_style_profile() -> VoiceProfile:
 # ENUM_TO_ROLE mapping
 # ---------------------------------------------------------------
 
+
 def test_enum_to_role_covers_all_moods():
     """Every Mood enum member has a role mapping."""
     for mood in Mood:
@@ -68,6 +69,7 @@ def test_enum_to_role_covers_all_moods():
 # ---------------------------------------------------------------
 # update_mood() heuristic triggers (default TokenPal, no voice)
 # ---------------------------------------------------------------
+
 
 def test_update_mood_default_is_snarky():
     engine = _make_engine()
@@ -142,6 +144,7 @@ def test_update_mood_reverts_to_snarky():
 # Custom mood display names
 # ---------------------------------------------------------------
 
+
 def test_custom_mood_default_display():
     engine = _make_engine()
     engine.set_voice(_make_custom_mood_profile())
@@ -169,6 +172,7 @@ def test_custom_mood_no_voice_returns_enum_value():
 # ---------------------------------------------------------------
 # _mood_line() 3-tier fallback
 # ---------------------------------------------------------------
+
 
 def test_mood_line_tier1_role_keyed():
     engine = _make_engine()
@@ -202,6 +206,7 @@ def test_mood_line_custom_after_transition():
 # Voice hot-swap and mood state
 # ---------------------------------------------------------------
 
+
 def test_hot_swap_to_custom_voice():
     engine = _make_engine()
     engine.set_voice(_make_custom_mood_profile())
@@ -229,7 +234,10 @@ def test_hot_swap_custom_to_custom():
         created="2026-01-01",
         lines=[f"Line {i}" for i in range(15)],
         mood_roles={"default": "SMUG", "bored": "DISGUSTED"},
-        mood_prompts={"default": "Your current mood: SMUG.", "bored": "Your current mood: DISGUSTED."},
+        mood_prompts={
+            "default": "Your current mood: SMUG.",
+            "bored": "Your current mood: DISGUSTED.",
+        },
         default_mood="SMUG",
     )
     engine.set_voice(other)
@@ -239,6 +247,7 @@ def test_hot_swap_custom_to_custom():
 # ---------------------------------------------------------------
 # Late-night override
 # ---------------------------------------------------------------
+
 
 def test_late_night_override_with_custom_moods():
     engine = _make_engine()
@@ -252,6 +261,7 @@ def test_late_night_override_with_custom_moods():
 # ---------------------------------------------------------------
 # Prompt builders include custom mood
 # ---------------------------------------------------------------
+
 
 def test_build_prompt_contains_custom_mood():
     engine = _make_engine()

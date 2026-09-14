@@ -10,12 +10,12 @@ from tokenpal.actions.utilities.convert import ConvertAction
 @pytest.mark.parametrize(
     "value,from_unit,to_unit,expected_sub",
     [
-        (10, "mi", "km", "16"),          # 10 miles = 16.09 km
-        (1, "kg", "lb", "2.2"),          # 1 kg = 2.20462 lb
-        (32, "degF", "degC", "0"),       # 32 F = 0 C
-        (100, "degC", "degF", "212"),    # 100 C = 212 F
-        (1, "hour", "minute", "60"),     # 1 h = 60 min
-        (2.5, "meter", "cm", "250"),     # 2.5 m = 250 cm
+        (10, "mi", "km", "16"),  # 10 miles = 16.09 km
+        (1, "kg", "lb", "2.2"),  # 1 kg = 2.20462 lb
+        (32, "degF", "degC", "0"),  # 32 F = 0 C
+        (100, "degC", "degF", "212"),  # 100 C = 212 F
+        (1, "hour", "minute", "60"),  # 1 h = 60 min
+        (2.5, "meter", "cm", "250"),  # 2.5 m = 250 cm
     ],
 )
 async def test_convert_success(

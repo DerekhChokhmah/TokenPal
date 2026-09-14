@@ -64,7 +64,9 @@ def test_install_models_idempotent_when_present(tmp_path: Path) -> None:
     (audio / "voices-v1.0.bin").write_bytes(b"already-here")
     # urlopen would raise if called — proves no network hit on the happy path.
     with mock.patch.object(
-        deps.urllib.request, "urlopen", side_effect=AssertionError("no fetch"),
+        deps.urllib.request,
+        "urlopen",
+        side_effect=AssertionError("no fetch"),
     ):
         result = deps.install_models(tmp_path, quantization="fp16")
     assert result.ok
@@ -105,7 +107,9 @@ def test_install_input_models_idempotent(tmp_path: Path) -> None:
     for name in ("hey_jarvis_v0.1.onnx", "melspectrogram.onnx", "embedding_model.onnx"):
         (audio / "wakeword" / name).write_bytes(b"x")
     with mock.patch.object(
-        deps.urllib.request, "urlopen", side_effect=AssertionError("no fetch"),
+        deps.urllib.request,
+        "urlopen",
+        side_effect=AssertionError("no fetch"),
     ):
         result = deps.install_input_models(tmp_path)
     assert result.ok

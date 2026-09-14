@@ -29,8 +29,7 @@ def _get_ureg() -> Any:
 class ConvertAction(AbstractAction):
     action_name = "convert"
     description = (
-        "Convert a numeric value between units "
-        "(e.g. '10 miles to km', '32 fahrenheit to celsius')."
+        "Convert a numeric value between units (e.g. '10 miles to km', '32 fahrenheit to celsius')."
     )
     parameters: ClassVar[dict[str, Any]] = {
         "type": "object",

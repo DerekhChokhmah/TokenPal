@@ -24,10 +24,14 @@ def _make_backend(
 def _mock_transport(models: list[str]):
     def handler(request: httpx.Request) -> httpx.Response:
         if "/models" in str(request.url):
-            return httpx.Response(200, json={
-                "data": [{"id": m} for m in models],
-            })
+            return httpx.Response(
+                200,
+                json={
+                    "data": [{"id": m} for m in models],
+                },
+            )
         return httpx.Response(404)
+
     return httpx.MockTransport(handler)
 
 
@@ -89,7 +93,8 @@ async def test_no_adopt_on_fallback_path():
     )
 
     await backend._try_connect(
-        "http://localhost:11434/v1", allow_adopt=False,
+        "http://localhost:11434/v1",
+        allow_adopt=False,
     )
 
     assert backend._model_name == "gemma4"

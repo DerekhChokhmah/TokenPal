@@ -26,10 +26,12 @@ log = logging.getLogger(__name__)
 # web_fetch_20260209 tools used by /research deep mode. Haiku 4.5 falls
 # back to the older web_search_20250305 (full-results-into-context,
 # token cost explodes) so we gate deep mode off it entirely.
-DEEP_MODE_MODELS: frozenset[str] = frozenset({
-    "claude-sonnet-4-6",
-    "claude-opus-4-7",
-})
+DEEP_MODE_MODELS: frozenset[str] = frozenset(
+    {
+        "claude-sonnet-4-6",
+        "claude-opus-4-7",
+    }
+)
 
 # Hard cap on pause_turn continuations. Server-side tool loops hit a
 # default ~10-iteration stop and return stop_reason="pause_turn"; we
@@ -59,10 +61,12 @@ ALLOWED_MODELS: tuple[str, ...] = (
 # params; Sonnet 4.6 and Opus 4.7 both support it and benefit from it on
 # synthesis tasks (deeper reasoning, better pick justifications, more
 # nuanced verdicts). See shared/models.md in the claude-api skill.
-_THINKING_MODELS: frozenset[str] = frozenset({
-    "claude-sonnet-4-6",
-    "claude-opus-4-7",
-})
+_THINKING_MODELS: frozenset[str] = frozenset(
+    {
+        "claude-sonnet-4-6",
+        "claude-opus-4-7",
+    }
+)
 
 
 class CloudBackendError(Exception):
@@ -142,7 +146,10 @@ class _LoopResult(NamedTuple):
 
 
 def _to_cloud_error(
-    exc: Exception, *, timeout_s: float, label: str,
+    exc: Exception,
+    *,
+    timeout_s: float,
+    label: str,
 ) -> CloudBackendError:
     """Translate an Anthropic SDK exception into our CloudBackendError.
 
@@ -160,10 +167,10 @@ def _to_cloud_error(
         PermissionDeniedError,
         RateLimitError,
     )
+
     if isinstance(exc, AuthenticationError):
         return CloudBackendError(
-            "Anthropic rejected the API key (401). Run /cloud enable "
-            "with a valid key.",
+            "Anthropic rejected the API key (401). Run /cloud enable with a valid key.",
             kind="auth",
         )
     if isinstance(exc, PermissionDeniedError):
@@ -174,14 +181,13 @@ def _to_cloud_error(
                 kind="no_credit",
             )
         return CloudBackendError(
-            f"Anthropic denied the request (403): {exc}", kind="permission",
+            f"Anthropic denied the request (403): {exc}",
+            kind="permission",
         )
     if isinstance(exc, RateLimitError):
         retry_after = None
         try:
-            retry_after = (
-                float(exc.response.headers.get("retry-after", "") or 0) or None
-            )
+            retry_after = float(exc.response.headers.get("retry-after", "") or 0) or None
         except (AttributeError, ValueError):
             pass
         return CloudBackendError(
@@ -191,11 +197,13 @@ def _to_cloud_error(
         )
     if isinstance(exc, APITimeoutError):
         return CloudBackendError(
-            f"{label} timed out after {timeout_s}s.", kind="timeout",
+            f"{label} timed out after {timeout_s}s.",
+            kind="timeout",
         )
     if isinstance(exc, APIConnectionError):
         return CloudBackendError(
-            f"Could not reach Anthropic: {exc}", kind="network",
+            f"Could not reach Anthropic: {exc}",
+            kind="network",
         )
     if isinstance(exc, BadRequestError):
         return CloudBackendError(
@@ -205,7 +213,8 @@ def _to_cloud_error(
     if isinstance(exc, APIStatusError):
         status_code = getattr(exc, "status_code", "?")
         return CloudBackendError(
-            f"Anthropic returned {status_code}: {exc}", kind="api_status",
+            f"Anthropic returned {status_code}: {exc}",
+            kind="api_status",
         )
     return CloudBackendError(str(exc), kind="unknown")
 
@@ -246,14 +255,10 @@ def _run_messages_loop(
         if usage is not None:
             total_output += int(getattr(usage, "output_tokens", 0) or 0)
             cache_read += int(getattr(usage, "cache_read_input_tokens", 0) or 0)
-            cache_creation += int(
-                getattr(usage, "cache_creation_input_tokens", 0) or 0
-            )
+            cache_creation += int(getattr(usage, "cache_creation_input_tokens", 0) or 0)
 
         last_stop_reason = getattr(msg, "stop_reason", None)
-        assistant_content = _content_to_serializable(
-            getattr(msg, "content", []) or []
-        )
+        assistant_content = _content_to_serializable(getattr(msg, "content", []) or [])
         messages.append({"role": "assistant", "content": assistant_content})
 
         if last_stop_reason != "pause_turn":
@@ -261,7 +266,8 @@ def _run_messages_loop(
         if iterations >= max_continuations:
             log.warning(
                 "%s hit max continuations (%d); stopping",
-                label, max_continuations,
+                label,
+                max_continuations,
             )
             break
         iterations += 1
@@ -297,9 +303,7 @@ class CloudBackend:
 
     def __post_init__(self) -> None:
         if self.model not in ALLOWED_MODELS:
-            raise ValueError(
-                f"cloud model {self.model!r} not in allowlist {ALLOWED_MODELS}"
-            )
+            raise ValueError(f"cloud model {self.model!r} not in allowlist {ALLOWED_MODELS}")
         try:
             import anthropic  # noqa: F401
         except ImportError as e:
@@ -351,7 +355,9 @@ class CloudBackend:
             msg = client.messages.create(**kwargs)
         except APIError as e:
             raise _to_cloud_error(
-                e, timeout_s=self.timeout_s, label="research",
+                e,
+                timeout_s=self.timeout_s,
+                label="research",
             ) from e
 
         latency_ms = (time.monotonic() - start) * 1000.0
@@ -402,7 +408,8 @@ class CloudBackend:
         import anthropic
 
         client = anthropic.Anthropic(
-            api_key=self.api_key, timeout=self.deep_timeout_s,
+            api_key=self.api_key,
+            timeout=self.deep_timeout_s,
         )
         tools: list[dict[str, Any]] = [
             {
@@ -412,11 +419,13 @@ class CloudBackend:
             },
         ]
         if include_fetch:
-            tools.append({
-                "type": "web_fetch_20260209",
-                "name": "web_fetch",
-                "max_uses": _DEEP_MAX_FETCHES,
-            })
+            tools.append(
+                {
+                    "type": "web_fetch_20260209",
+                    "name": "web_fetch",
+                    "max_uses": _DEEP_MAX_FETCHES,
+                }
+            )
         base_kwargs: dict[str, Any] = {
             "model": self.model,
             "max_tokens": max_tokens,
@@ -477,10 +486,7 @@ class CloudBackend:
         timeout = self.deep_timeout_s if tools else self.timeout_s
         client = anthropic.Anthropic(api_key=self.api_key, timeout=timeout)
 
-        base = (
-            _apply_cache_breakpoint(prior_messages)
-            if enable_cache else list(prior_messages)
-        )
+        base = _apply_cache_breakpoint(prior_messages) if enable_cache else list(prior_messages)
         messages: list[dict[str, Any]] = [
             *base,
             {"role": "user", "content": new_user_turn},
@@ -548,11 +554,13 @@ def _apply_cache_breakpoint(
             continue
         content = out[idx]["content"]
         if isinstance(content, str):
-            out[idx]["content"] = [{
-                "type": "text",
-                "text": content,
-                "cache_control": {"type": "ephemeral"},
-            }]
+            out[idx]["content"] = [
+                {
+                    "type": "text",
+                    "text": content,
+                    "cache_control": {"type": "ephemeral"},
+                }
+            ]
             break
         if isinstance(content, list) and content:
             new_content = list(content)
@@ -589,9 +597,7 @@ def _strip_cache_control(message: dict[str, Any]) -> dict[str, Any]:
         if hasattr(block, "model_dump"):
             dumped = block.model_dump()
             if "cache_control" in dumped:
-                dumped = {
-                    k: v for k, v in dumped.items() if k != "cache_control"
-                }
+                dumped = {k: v for k, v in dumped.items() if k != "cache_control"}
             new_content.append(dumped)
             continue
         new_content.append(block)
@@ -614,9 +620,7 @@ def _harden_schema_for_anthropic(schema: dict[str, Any]) -> dict[str, Any]:
         out.setdefault("additionalProperties", False)
         props = out.get("properties")
         if isinstance(props, dict):
-            out["properties"] = {
-                k: _harden_schema_for_anthropic(v) for k, v in props.items()
-            }
+            out["properties"] = {k: _harden_schema_for_anthropic(v) for k, v in props.items()}
     items = out.get("items")
     if isinstance(items, dict):
         out["items"] = _harden_schema_for_anthropic(items)

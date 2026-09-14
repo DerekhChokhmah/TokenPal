@@ -69,9 +69,7 @@ class DragHandle(QLabel):
         win = self.window()
         if win is None:
             return
-        self._drag_offset = (
-            event.globalPosition().toPoint() - win.frameGeometry().topLeft()
-        )
+        self._drag_offset = event.globalPosition().toPoint() - win.frameGeometry().topLeft()
         event.accept()
 
     def mouseMoveEvent(self, event: QMouseEvent) -> None:
@@ -266,7 +264,8 @@ class GlassSizeGrip(QSizeGrip):
 
 
 def install_zoom_shortcuts(
-    widget: QWidget, on_zoom: Callable[[int], None] | None,
+    widget: QWidget,
+    on_zoom: Callable[[int], None] | None,
 ) -> None:
     """Wire Cmd/Ctrl +/-/0 shortcuts that call ``on_zoom`` with +1, -1, 0.
 

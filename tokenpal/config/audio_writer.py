@@ -18,6 +18,7 @@ def set_audio_field(field_name: str, enabled: bool) -> Path:
     Mirrors tokenpal.config.senses_writer.set_sense_enabled. The named
     wrappers below are thin aliases retained for tests / explicit callers.
     """
+
     def mutate(data: dict[str, Any]) -> None:
         data.setdefault("audio", {})[field_name] = enabled
 

@@ -80,16 +80,12 @@ def _format_transcript(history: list[dict[str, str]]) -> str:
 
 
 def _format_digest(digest: dict[str, Any], window_minutes: float) -> str:
-    apps = (
-        ", ".join(f"{name} ({count})" for name, count in digest.get("apps", []))
-        or "none"
-    )
+    apps = ", ".join(f"{name} ({count})" for name, count in digest.get("apps", [])) or "none"
     sense_counts = json.dumps(digest.get("sense_counts", {}), sort_keys=True)
     events = digest.get("events", [])
     if events:
         event_lines = "\n".join(
-            f"  - {sense}/{event}: {summary}"
-            for _ts, sense, event, summary in events
+            f"  - {sense}/{event}: {summary}" for _ts, sense, event, summary in events
         )
     else:
         event_lines = "  (no events)"
@@ -133,9 +129,7 @@ class SessionSummarizer:
         try:
             while not self._stopped.is_set():
                 try:
-                    await asyncio.wait_for(
-                        self._stopped.wait(), timeout=self._interval_s
-                    )
+                    await asyncio.wait_for(self._stopped.wait(), timeout=self._interval_s)
                     break  # stop was signalled
                 except TimeoutError:
                     pass
@@ -150,7 +144,11 @@ class SessionSummarizer:
         self._stopped.set()
 
     async def summarize_conversation(
-        self, history: list[dict[str, str]], *, started_at: float, ended_at: float,
+        self,
+        history: list[dict[str, str]],
+        *,
+        started_at: float,
+        ended_at: float,
     ) -> None:
         """Compress an expired chat into a recap row. Never raises on LLM failure."""
         transcript = _format_transcript(history)
@@ -180,9 +178,7 @@ class SessionSummarizer:
             return
 
         self._memory.record_conversation_summary(text, started_at, ended_at, turns)
-        log.info(
-            "Conversation summary recorded (%d turns, %d chars)", turns, len(text)
-        )
+        log.info("Conversation summary recorded (%d turns, %d chars)", turns, len(text))
 
     async def _tick(self) -> None:
         """One summarization cycle. Always advances the window on success."""
@@ -196,13 +192,9 @@ class SessionSummarizer:
             self._window_start = window_end
             return
 
-        obs_count = self._memory.count_observations_in_window(
-            window_start, window_end
-        )
+        obs_count = self._memory.count_observations_in_window(window_start, window_end)
         if obs_count == 0:
-            log.debug(
-                "Skip-if-idle: no observations in last %.1fm window", elapsed_min
-            )
+            log.debug("Skip-if-idle: no observations in last %.1fm window", elapsed_min)
             self._window_start = window_end
             return
 

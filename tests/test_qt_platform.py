@@ -49,6 +49,7 @@ def test_accessory_mode_handles_missing_pyobjc(
     we should log at DEBUG and keep going — not crash the UI boot."""
     monkeypatch.setattr("tokenpal.ui.qt.platform.sys.platform", "darwin")
     import builtins
+
     orig_import = builtins.__import__
 
     def _fake_import(name: str, *args: object, **kwargs: object) -> object:
@@ -177,8 +178,10 @@ def test_tray_click_does_not_toggle_buddy(qapp: QApplication) -> None:
         on_toggle_buddy=lambda: calls.append(1),
         windows=[
             TrayWindow(
-                name="chat", show_label="Show chat log",
-                hide_label="Hide chat log", on_toggle=lambda: None,
+                name="chat",
+                show_label="Show chat log",
+                hide_label="Hide chat log",
+                on_toggle=lambda: None,
             ),
         ],
         on_options=lambda: None,
@@ -203,12 +206,16 @@ def test_tray_chat_toggle_label_flips_with_visibility(
         on_toggle_buddy=lambda: None,
         windows=[
             TrayWindow(
-                name="chat", show_label="Show chat log",
-                hide_label="Hide chat log", on_toggle=lambda: None,
+                name="chat",
+                show_label="Show chat log",
+                hide_label="Hide chat log",
+                on_toggle=lambda: None,
             ),
             TrayWindow(
-                name="news", show_label="Show news",
-                hide_label="Hide news", on_toggle=lambda: None,
+                name="news",
+                show_label="Show news",
+                hide_label="Hide news",
+                on_toggle=lambda: None,
             ),
         ],
         on_options=lambda: None,
@@ -220,5 +227,3 @@ def test_tray_chat_toggle_label_flips_with_visibility(
     assert tray._window_actions["chat"].text() == "Show chat log"
     tray.set_window_visible("news", True)
     assert tray._window_actions["news"].text() == "Hide news"
-
-

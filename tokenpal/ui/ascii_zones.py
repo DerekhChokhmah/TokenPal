@@ -74,30 +74,12 @@ HEADWEAR = ZoneSpec(
     mode="prepend",
     overlays={
         "none": "",
-        "crown": (
-            "{accent}▃▅█▅▃{c}\n"
-            "{accent}▀▀▀▀▀{c}\n"
-        ),
-        "hood_with_ears": (
-            "{hair}▄▄        ▄▄{c}\n"
-            "{hair}██        ██{c}\n"
-        ),
-        "antenna": (
-            "{shadow}│{c}\n"
-            "{accent}◉{c}\n"
-        ),
-        "halo": (
-            "{accent}◯{c}\n"
-        ),
-        "wizard_hat": (
-            "{accent}▲{c}\n"
-            "{accent}▞▚{c}\n"
-            "{accent}▓▓▓{c}\n"
-        ),
-        "spikes": (
-            "{hair}▲ ▲ ▲ ▲ ▲{c}\n"
-            "{hair}█ █ █ █ █{c}\n"
-        ),
+        "crown": ("{accent}▃▅█▅▃{c}\n{accent}▀▀▀▀▀{c}\n"),
+        "hood_with_ears": ("{hair}▄▄        ▄▄{c}\n{hair}██        ██{c}\n"),
+        "antenna": ("{shadow}│{c}\n{accent}◉{c}\n"),
+        "halo": ("{accent}◯{c}\n"),
+        "wizard_hat": ("{accent}▲{c}\n{accent}▞▚{c}\n{accent}▓▓▓{c}\n"),
+        "spikes": ("{hair}▲ ▲ ▲ ▲ ▲{c}\n{hair}█ █ █ █ █{c}\n"),
     },
     rubric={
         "none": (
@@ -106,8 +88,7 @@ HEADWEAR = ZoneSpec(
         ),
         "crown": "gold/jeweled crown (Ice King, Princess Bubblegum)",
         "hood_with_ears": (
-            "rounded hood with two ear stubs on top (Finn the Human, "
-            "bear-ear hoods)"
+            "rounded hood with two ear stubs on top (Finn the Human, bear-ear hoods)"
         ),
         "antenna": "thin wire + ball on top of a robot head (Bender)",
         "halo": "floating ring above the head (angels, Prismo-ish)",
@@ -116,14 +97,29 @@ HEADWEAR = ZoneSpec(
     },
     compat={
         "humanoid_tall": {
-            "none", "crown", "hood_with_ears", "halo", "wizard_hat", "spikes",
+            "none",
+            "crown",
+            "hood_with_ears",
+            "halo",
+            "wizard_hat",
+            "spikes",
         },
         "humanoid_stocky": {
-            "none", "crown", "hood_with_ears", "halo", "wizard_hat", "spikes",
+            "none",
+            "crown",
+            "hood_with_ears",
+            "halo",
+            "wizard_hat",
+            "spikes",
         },
         "robot_boxy": {"none", "antenna", "halo", "crown", "spikes"},
         "creature_small": {
-            "none", "hood_with_ears", "antenna", "halo", "crown", "spikes",
+            "none",
+            "hood_with_ears",
+            "antenna",
+            "halo",
+            "crown",
+            "spikes",
         },
         "mystical_cloaked": {"none", "wizard_hat", "crown", "halo"},
         "ghost_floating": {"none", "halo", "crown"},
@@ -165,12 +161,8 @@ FACIAL_HAIR = ZoneSpec(
             ),
         },
         "beard_stubble": {
-            "humanoid_tall": (
-                "{skin}▀▄{c}{shadow}▄▄▄▄▄▄▄▄▄{c}{skin}▄▀{c}\n"
-            ),
-            "mystical_cloaked": (
-                "{hair}▀▄{c}{shadow}▄▄▄▄▄▄▄▄▄{c}{hair}▄▀{c}\n"
-            ),
+            "humanoid_tall": ("{skin}▀▄{c}{shadow}▄▄▄▄▄▄▄▄▄{c}{skin}▄▀{c}\n"),
+            "mystical_cloaked": ("{hair}▀▄{c}{shadow}▄▄▄▄▄▄▄▄▄{c}{hair}▄▀{c}\n"),
         },
         "beard_goatee": {
             "humanoid_tall": (
@@ -183,12 +175,8 @@ FACIAL_HAIR = ZoneSpec(
             ),
         },
         "mustache_thick": {
-            "humanoid_tall": (
-                "{skin}█▓▓▓{c}{hair}▄▄▄▄▄▄▄▄▄{c}{skin}▓▓▓█{c}\n"
-            ),
-            "mystical_cloaked": (
-                "{skin}█▓▓▓{c}{hair}▄▄▄▄▄▄▄▄▄{c}{skin}▓▓▓█{c}\n"
-            ),
+            "humanoid_tall": ("{skin}█▓▓▓{c}{hair}▄▄▄▄▄▄▄▄▄{c}{skin}▓▓▓█{c}\n"),
+            "mystical_cloaked": ("{skin}█▓▓▓{c}{hair}▄▄▄▄▄▄▄▄▄{c}{skin}▓▓▓█{c}\n"),
         },
         "beard_wide": {
             "humanoid_tall": (
@@ -209,8 +197,7 @@ FACIAL_HAIR = ZoneSpec(
     },
     rubric={
         "none": (
-            "clean-shaven (DEFAULT — most characters, anyone whose chin is "
-            "visible on screen)"
+            "clean-shaven (DEFAULT — most characters, anyone whose chin is visible on screen)"
         ),
         "beard_long": (
             "long full beard reaching from chin down past the chest, "
@@ -220,8 +207,7 @@ FACIAL_HAIR = ZoneSpec(
             "this is almost always the right pick."
         ),
         "beard_stubble": (
-            "short stubble or short beard just under the mouth (Hank Hill, "
-            "Pops, 5-o-clock shadow)"
+            "short stubble or short beard just under the mouth (Hank Hill, Pops, 5-o-clock shadow)"
         ),
         "beard_goatee": (
             "pointy chin beard that doesn't connect to the cheeks — a tuft "
@@ -239,15 +225,23 @@ FACIAL_HAIR = ZoneSpec(
     },
     compat={
         "humanoid_tall": {
-            "none", "beard_long", "beard_stubble",
-            "beard_goatee", "mustache_thick", "beard_wide",
+            "none",
+            "beard_long",
+            "beard_stubble",
+            "beard_goatee",
+            "mustache_thick",
+            "beard_wide",
         },
         "humanoid_stocky": {"none"},
         "robot_boxy": {"none"},
         "creature_small": {"none"},
         "mystical_cloaked": {
-            "none", "beard_long", "beard_stubble",
-            "beard_goatee", "mustache_thick", "beard_wide",
+            "none",
+            "beard_long",
+            "beard_stubble",
+            "beard_goatee",
+            "mustache_thick",
+            "beard_wide",
         },
         "ghost_floating": {"none"},
         "animal_quadruped": {"none"},
@@ -304,8 +298,7 @@ BODY_MOTIF = ZoneSpec(
     },
     rubric={
         "none": (
-            "no chest/body detail (DEFAULT — most characters have plain "
-            "torsos at this resolution)"
+            "no chest/body detail (DEFAULT — most characters have plain torsos at this resolution)"
         ),
         "screen_dpad": (
             "wide recessed display panel taking up most of the chest, "
@@ -350,21 +343,17 @@ EYE_REGION = ZoneSpec(
         },
         "single_cyclops": {
             "humanoid_tall": (
-                "{skin}█▓▓▓{c}{highlight}███{c}{shadow}███{c}"
-                "{highlight}███{c}{skin}▓▓▓█{c}\n"
+                "{skin}█▓▓▓{c}{highlight}███{c}{shadow}███{c}{highlight}███{c}{skin}▓▓▓█{c}\n"
             ),
         },
         "oversized_spiral": {
             "animal_quadruped": (
-                "{skin}█▓▓{c}{accent}◉◎◉{c}{skin}▓▓▓▓▓{c}"
-                "{accent}◉◎◉{c}{skin}▓▓█{c}\n"
+                "{skin}█▓▓{c}{accent}◉◎◉{c}{skin}▓▓▓▓▓{c}{accent}◉◎◉{c}{skin}▓▓█{c}\n"
             ),
         },
     },
     rubric={
-        "none": (
-            "standard two dot eyes (DEFAULT — almost every character)"
-        ),
+        "none": ("standard two dot eyes (DEFAULT — almost every character)"),
         "single_cyclops": (
             "one huge centered eye instead of two (Leela from Futurama, "
             "Kyubey-style single-eye creatures)"
@@ -407,23 +396,16 @@ TRAILING = ZoneSpec(
             "ghost_floating": "",
         },
         "tail_curly": {
-            "animal_quadruped": (
-                "{hair}   ∿∿∿∿{c}\n"
-            ),
+            "animal_quadruped": ("{hair}   ∿∿∿∿{c}\n"),
         },
         "hair_drift": {
-            "ghost_floating": (
-                "{hair}  ░  ░  ░  ░  {c}\n"
-            ),
+            "ghost_floating": ("{hair}  ░  ░  ░  ░  {c}\n"),
         },
     },
     rubric={
-        "none": (
-            "no trailing element (DEFAULT — almost every character)"
-        ),
+        "none": ("no trailing element (DEFAULT — almost every character)"),
         "tail_curly": (
-            "ringed/striped tail curling behind the body (Rigby, raccoon "
-            "and squirrel characters)"
+            "ringed/striped tail curling behind the body (Rigby, raccoon and squirrel characters)"
         ),
         "hair_drift": (
             "floating hair/wisps drifting down from a hovering body "
@@ -493,7 +475,8 @@ _APPEND_OVERLAYS: dict[str, dict[str, dict[str, str]]] = {
 
 _REPLACE_TARGETS: dict[tuple[str, str, str], tuple[int, int]] = {
     (z.name, opt, skel): rng
-    for z in _ZONES if z.mode == "replace"
+    for z in _ZONES
+    if z.mode == "replace"
     for (opt, skel), rng in z.targets.items()
 }
 
@@ -521,7 +504,8 @@ def normalize_zones(skeleton: str, zones: dict[str, str]) -> dict[str, str]:
 
 
 def headwear_prefix(
-    headwear: str, slots: dict[str, str],
+    headwear: str,
+    slots: dict[str, str],
 ) -> list[str]:
     """Return the rendered headwear rows for a skeleton prefix.
 
@@ -536,7 +520,9 @@ def headwear_prefix(
 
 
 def trailing_suffix(
-    trailing: str, skeleton: str, slots: dict[str, str],
+    trailing: str,
+    skeleton: str,
+    slots: dict[str, str],
 ) -> list[str]:
     """Return rendered rows appended BELOW a skeleton's body.
 
@@ -567,7 +553,8 @@ def apply_replace_zones(
     silently instead of crashing.
     """
     active = [
-        (name, value) for name, value in zones.items()
+        (name, value)
+        for name, value in zones.items()
         if _ZONE_MODES.get(name) == "replace" and value != "none"
     ]
     if not active:
@@ -577,9 +564,7 @@ def apply_replace_zones(
         target = _REPLACE_TARGETS.get((zone_name, value, skeleton))
         if target is None:
             continue
-        overlay_tmpl = (
-            _REPLACE_OVERLAYS.get(zone_name, {}).get(value, {}).get(skeleton, "")
-        )
+        overlay_tmpl = _REPLACE_OVERLAYS.get(zone_name, {}).get(value, {}).get(skeleton, "")
         if not overlay_tmpl:
             continue
         overlay_rows = overlay_tmpl.format(**slots).splitlines()

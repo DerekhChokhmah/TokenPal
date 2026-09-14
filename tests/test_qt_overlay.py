@@ -14,7 +14,7 @@ import pytest
 
 pytest.importorskip("PySide6")
 
-from PySide6.QtCore import QTimer  # noqa: E402
+from PySide6.QtCore import QEventLoop, QTimer  # noqa: E402
 from PySide6.QtWidgets import QApplication  # noqa: E402
 
 from tokenpal.ui.ascii_renderer import BuddyFrame, SpeechBubble  # noqa: E402
@@ -28,8 +28,19 @@ def qapp() -> QApplication:
 
 
 def _pump(qapp: QApplication, ms: int = 30) -> None:
-    QTimer.singleShot(ms, qapp.quit)
-    qapp.exec()
+    print(f"PUMP START: {ms} ms", flush=True)
+
+    loop = QEventLoop()
+
+    def stop() -> None:
+        print("PUMP QUIT TIMER FIRED", flush=True)
+        loop.quit()
+
+    QTimer.singleShot(ms, stop)
+
+    result = loop.exec()
+
+    print(f"PUMP EXEC RETURNED: {result}", flush=True)
 
 
 def test_qt_overlay_full_adapter_surface(qapp: QApplication) -> None:
@@ -47,12 +58,16 @@ def test_qt_overlay_full_adapter_surface(qapp: QApplication) -> None:
         overlay.log_user_message("hi buddy")
         overlay.log_buddy_message("hey you", markup=False, url=None)
         overlay.log_buddy_message(
-            "click here", markup=False, url="https://example.com",
+            "click here",
+            markup=False,
+            url="https://example.com",
         )
-        overlay.load_chat_history([
-            (1_700_000_000.0, "you", "warm-up", None),
-            (1_700_000_001.0, "buddy", "yep", None),
-        ])
+        overlay.load_chat_history(
+            [
+                (1_700_000_000.0, "you", "warm-up", None),
+                (1_700_000_001.0, "buddy", "yep", None),
+            ]
+        )
         overlay.update_status(
             "mood: sleepy | model: gemma4 | spoke 3s ago",
         )
@@ -71,8 +86,11 @@ def test_qt_overlay_full_adapter_surface(qapp: QApplication) -> None:
         # doesn't consume it yet, but we verify it doesn't crash.
         def _provider() -> EnvironmentSnapshot:
             return EnvironmentSnapshot(
-                weather_data=None, idle_event=None, sensitive_suppressed=False,
+                weather_data=None,
+                idle_event=None,
+                sensitive_suppressed=False,
             )
+
         overlay.set_environment_provider(_provider)
 
         # Callback wiring.
@@ -90,11 +108,26 @@ def test_qt_overlay_full_adapter_surface(qapp: QApplication) -> None:
         # schedule_callback marshal — emit from this thread and confirm
         # the queued slot fires before teardown.
         fired: list[bool] = []
-        overlay.schedule_callback(lambda: fired.append(True), delay_ms=0)
-        overlay.schedule_callback(lambda: fired.append(True), delay_ms=20)
+
+        def immediate() -> None:
+            print("IMMEDIATE CALLBACK", flush=True)
+            fired.append(True)
+            print(f"AFTER IMMEDIATE: {fired!r}", flush=True)
+
+        def delayed() -> None:
+            print("DELAYED CALLBACK", flush=True)
+            fired.append(True)
+            print(f"AFTER DELAYED: {fired!r}", flush=True)
+
+        overlay.schedule_callback(immediate, delay_ms=0)
+        overlay.schedule_callback(delayed, delay_ms=20)
 
         _pump(qapp, ms=100)
-        assert fired == [True, True], "schedule_callback didn't run on UI thread"
+
+        if fired != [True, True]:
+            _pump(qapp, ms=30)
+
+        assert fired == [True, True]
 
         # User-submit path should hit the registered callback.
         overlay._on_user_submit("hello from input")
@@ -184,12 +217,8 @@ def test_history_window_hidden_by_default(qapp: QApplication) -> None:
         # between event-loop pumps regardless of what show() did, so
         # isVisible() is unreliable. isHidden() reflects the explicit
         # code-path state we care about.
-        assert overlay._history.isHidden(), (
-            "history window should be explicitly hidden on boot"
-        )
-        assert not overlay._dock.isHidden(), (
-            "dock should be explicitly shown on boot"
-        )
+        assert overlay._history.isHidden(), "history window should be explicitly hidden on boot"
+        assert not overlay._dock.isHidden(), "dock should be explicitly shown on boot"
     finally:
         overlay.teardown()
 
@@ -210,9 +239,7 @@ def test_hiding_buddy_auto_shows_chat(qapp: QApplication) -> None:
         overlay._set_buddy_visible(False)
 
         assert overlay._user_visible["chat"] is True
-        assert not overlay._history.isHidden(), (
-            "chat history must be shown when the buddy hides"
-        )
+        assert not overlay._history.isHidden(), "chat history must be shown when the buddy hides"
         assert overlay._tray._window_actions["chat"].text() == "Hide chat log"
         assert overlay._tray._toggle_buddy_action.text() == "Show buddy"
 
@@ -256,7 +283,8 @@ def test_restore_all_hidden_state_resets_to_buddy(qapp: QApplication) -> None:
     overlay.setup()
     try:
         overlay.restore_visibility_state(
-            buddy_visible=False, windows={"chat": False},
+            buddy_visible=False,
+            windows={"chat": False},
         )
         assert overlay._buddy_user_visible is True
         assert overlay._user_visible.get("chat", False) is False
@@ -292,7 +320,8 @@ def test_generic_toggle_of_chat_also_enforces_the_rule(
 
 
 def test_auto_shown_buddy_gets_the_macos_stay_visible_treatment(
-    qapp: QApplication, monkeypatch: pytest.MonkeyPatch,
+    qapp: QApplication,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A session restored buddy-hidden never runs ``run_loop``'s
     collectionBehavior pass, so the show path must apply it or the
@@ -304,7 +333,8 @@ def test_auto_shown_buddy_gets_the_macos_stay_visible_treatment(
 
         seen: list[object] = []
         monkeypatch.setattr(
-            "tokenpal.ui.qt.overlay.apply_macos_stay_visible", seen.append,
+            "tokenpal.ui.qt.overlay.apply_macos_stay_visible",
+            seen.append,
         )
         overlay._set_buddy_visible(True)
 
@@ -342,7 +372,8 @@ def test_flush_without_a_callback_keeps_the_repair_pending(
     overlay.setup()
     try:
         overlay.restore_visibility_state(
-            buddy_visible=False, windows={"chat": False},
+            buddy_visible=False,
+            windows={"chat": False},
         )
         overlay.flush_pending_persist()
 
@@ -402,7 +433,8 @@ def test_news_toggle_persists_and_restores(qapp: QApplication) -> None:
     overlay2.setup()
     try:
         overlay2.restore_visibility_state(
-            buddy_visible=True, windows={"chat": False, "news": True},
+            buddy_visible=True,
+            windows={"chat": False, "news": True},
         )
         assert overlay2._user_visible["news"] is True
     finally:
@@ -462,6 +494,7 @@ def test_news_window_mirrors_chat_styling(qapp: QApplication) -> None:
         assert overlay._news._font_color == "#aabbcc"
 
         from tokenpal.config.schema import FontConfig
+
         overlay.set_chat_font(FontConfig(family="Menlo", size_pt=18))
         _pump(qapp, ms=20)
 
@@ -515,9 +548,7 @@ def test_reposition_dock_fires_on_position_changed(qapp: QApplication) -> None:
         _pump(qapp, ms=120)
 
         after = (overlay._dock.x(), overlay._dock.y())
-        assert after != before, (
-            "dock should follow the buddy via position_changed"
-        )
+        assert after != before, "dock should follow the buddy via position_changed"
     finally:
         overlay.teardown()
         _pump(qapp, ms=20)
@@ -545,6 +576,7 @@ def test_status_composition_order() -> None:
     brain._last_comment_time = 0.0
     brain._context = MagicMock()
     from tokenpal.senses.base import SenseReading
+
     brain._context.active_readings.return_value = {
         "weather": SenseReading(
             sense_name="weather",

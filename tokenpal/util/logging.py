@@ -25,7 +25,7 @@ def setup_logging(
     Stderr is only used as a fallback if the log file can't be created,
     or when verbose=True for pre-overlay terminal output.
     """
-    log_path = (log_dir or _DEFAULT_LOG_DIR)
+    log_path = log_dir or _DEFAULT_LOG_DIR
     log_file = log_path / "tokenpal.log"
 
     fmt = logging.Formatter(fmt=LOG_FORMAT, datefmt=LOG_DATEFMT)

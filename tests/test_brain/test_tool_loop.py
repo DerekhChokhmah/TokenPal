@@ -68,9 +68,7 @@ class _MockLLM(AbstractLLMBackend):
     async def setup(self) -> None:
         pass
 
-    async def generate(
-        self, prompt: str, max_tokens: int = 256, **_: Any
-    ) -> LLMResponse:
+    async def generate(self, prompt: str, max_tokens: int = 256, **_: Any) -> LLMResponse:
         self.prompts.append(prompt)
         return self._responses.pop(0)
 
@@ -94,9 +92,7 @@ def _make_brain(
     status_callback: Any = None,
     agent_bridge: AgentBridge | None = None,
 ) -> Brain:
-    personality = PersonalityEngine(
-        "You are a test bot. Say 'ok' or [SILENT]."
-    )
+    personality = PersonalityEngine("You are a test bot. Say 'ok' or [SILENT].")
     return Brain(
         senses=[],
         llm=llm,
@@ -158,9 +154,7 @@ async def test_unknown_tool_handled():
         latency_ms=5.0,
         tool_calls=[ToolCall(id="call_1", name="nonexistent", arguments={})],
     )
-    final_response = LLMResponse(
-        text="Oops.", tokens_used=10, model_name="mock", latency_ms=5.0
-    )
+    final_response = LLMResponse(text="Oops.", tokens_used=10, model_name="mock", latency_ms=5.0)
     llm = _MockLLM([tool_response, final_response])
     brain = _make_brain(llm, actions=[_StubAction()])
 
@@ -206,9 +200,7 @@ async def test_max_rounds_forces_text():
         )
         for i in range(Brain._MAX_TOOL_ROUNDS)
     ]
-    final = LLMResponse(
-        text="Gave up.", tokens_used=10, model_name="mock", latency_ms=5.0
-    )
+    final = LLMResponse(text="Gave up.", tokens_used=10, model_name="mock", latency_ms=5.0)
     llm = _MockLLM(tool_responses + [final])
     brain = _make_brain(llm, actions=[_StubAction()])
 
@@ -231,9 +223,7 @@ async def test_multiple_tool_calls_parallel():
             ToolCall(id="call_2", name="stub", arguments={}),
         ],
     )
-    final = LLMResponse(
-        text="Both done.", tokens_used=10, model_name="mock", latency_ms=5.0
-    )
+    final = LLMResponse(text="Both done.", tokens_used=10, model_name="mock", latency_ms=5.0)
     llm = _MockLLM([tool_response, final])
     stub = _StubAction()
     brain = _make_brain(llm, actions=[stub])
@@ -268,7 +258,9 @@ async def test_deadline_propagates_remaining_wallclock():
     brain = _make_brain(llm, actions=[_StubAction()])
 
     await brain._generate_with_tools(
-        "test", target_latency_s=8.0, min_tokens=60,
+        "test",
+        target_latency_s=8.0,
+        min_tokens=60,
     )
     # Three calls: two tool rounds + final text. Each saw a budget.
     budgets = [c.get("target_latency_s") for c in llm.calls]
@@ -309,7 +301,9 @@ async def test_tool_call_surfaces_to_status_bar():
     llm = _MockLLM([tool_response, final])
     statuses: list[str] = []
     brain = _make_brain(
-        llm, actions=[_StubAction()], status_callback=statuses.append,
+        llm,
+        actions=[_StubAction()],
+        status_callback=statuses.append,
     )
 
     await brain._generate_with_tools("test")
@@ -327,9 +321,7 @@ async def test_assistant_message_has_tool_calls_json():
         latency_ms=5.0,
         tool_calls=[ToolCall(id="call_1", name="stub", arguments={"key": "val"})],
     )
-    final = LLMResponse(
-        text="Done.", tokens_used=10, model_name="mock", latency_ms=5.0
-    )
+    final = LLMResponse(text="Done.", tokens_used=10, model_name="mock", latency_ms=5.0)
     llm = _MockLLM([tool_response, final])
     brain = _make_brain(llm, actions=[_StubAction()])
 
@@ -397,9 +389,7 @@ async def test_conversation_specs_exclude_desktop_content_tools() -> None:
 
 
 async def test_conversation_executor_refuses_a_desktop_content_tool() -> None:
-    final = LLMResponse(
-        text="ok then", tokens_used=5, model_name="mock", latency_ms=0.0
-    )
+    final = LLMResponse(text="ok then", tokens_used=5, model_name="mock", latency_ms=0.0)
     llm = _MockLLM([_reads_call(), final])
     reads = _ReadsAction()
     brain = _make_brain(llm, actions=[reads, _EchoAction()])
@@ -412,29 +402,39 @@ async def test_conversation_executor_refuses_a_desktop_content_tool() -> None:
 
 
 def _agent_brain(
-    llm: _MockLLM, reads: _ReadsAction, memory: MemoryStore,
+    llm: _MockLLM,
+    reads: _ReadsAction,
+    memory: MemoryStore,
 ) -> tuple[Brain, list[str]]:
     return agent_brain(llm, [reads, _EchoAction()], memory)
 
 
 async def test_agent_run_with_desktop_content_delivers_unpersisted(
-    tmp_path: Path, caplog: Any,
+    tmp_path: Path,
+    caplog: Any,
 ) -> None:
     caplog.set_level(logging.DEBUG)
     memory = MemoryStore(tmp_path / "m.db")
     memory.setup()
     memory.set_chat_log_max_persisted(50)
     try:
-        llm = _MockLLM([
-            _reads_call(),
-            LLMResponse(
-                text=f"The screen says {FIXTURE}.",
-                tokens_used=5, model_name="mock", latency_ms=0.0,
-            ),
-            LLMResponse(
-                text=PERSONA_LINE, tokens_used=5, model_name="mock", latency_ms=0.0,
-            ),
-        ])
+        llm = _MockLLM(
+            [
+                _reads_call(),
+                LLMResponse(
+                    text=f"The screen says {FIXTURE}.",
+                    tokens_used=5,
+                    model_name="mock",
+                    latency_ms=0.0,
+                ),
+                LLMResponse(
+                    text=PERSONA_LINE,
+                    tokens_used=5,
+                    model_name="mock",
+                    latency_ms=0.0,
+                ),
+            ]
+        )
         reads = _ReadsAction()
         brain, buf = _agent_brain(llm, reads, memory)
 
@@ -456,7 +456,10 @@ async def test_agent_run_with_desktop_content_delivers_unpersisted(
 
         # The pane shows the answer; every line that reaches a sink is clean.
         assert_no_leak(
-            FIXTURE, lines=buf, caplog_text=caplog.text, memory=memory,
+            FIXTURE,
+            lines=buf,
+            caplog_text=caplog.text,
+            memory=memory,
         )
     finally:
         memory.teardown()
@@ -469,14 +472,18 @@ async def test_desktop_done_line_falls_back_when_persona_is_filtered(
     memory.setup()
     memory.set_chat_log_max_persisted(50)
     try:
-        llm = _MockLLM([
-            _reads_call(),
-            LLMResponse(
-                text=f"The screen says {FIXTURE}.",
-                tokens_used=5, model_name="mock", latency_ms=0.0,
-            ),
-            LLMResponse(text="", tokens_used=0, model_name="mock", latency_ms=0.0),
-        ])
+        llm = _MockLLM(
+            [
+                _reads_call(),
+                LLMResponse(
+                    text=f"The screen says {FIXTURE}.",
+                    tokens_used=5,
+                    model_name="mock",
+                    latency_ms=0.0,
+                ),
+                LLMResponse(text="", tokens_used=0, model_name="mock", latency_ms=0.0),
+            ]
+        )
         brain, _buf = _agent_brain(llm, _ReadsAction(), memory)
 
         await brain._handle_agent_goal(GOAL)
@@ -498,15 +505,19 @@ async def test_desktop_done_line_falls_back_when_persona_text_is_rejected(
     memory.setup()
     memory.set_chat_log_max_persisted(50)
     try:
-        llm = _MockLLM([
-            _reads_call(),
-            LLMResponse(
-                text=f"The screen says {FIXTURE}.",
-                tokens_used=5, model_name="mock", latency_ms=0.0,
-            ),
-            # Non-empty, but filter_response drops replies under 15 chars.
-            LLMResponse(text="ok", tokens_used=1, model_name="mock", latency_ms=0.0),
-        ])
+        llm = _MockLLM(
+            [
+                _reads_call(),
+                LLMResponse(
+                    text=f"The screen says {FIXTURE}.",
+                    tokens_used=5,
+                    model_name="mock",
+                    latency_ms=0.0,
+                ),
+                # Non-empty, but filter_response drops replies under 15 chars.
+                LLMResponse(text="ok", tokens_used=1, model_name="mock", latency_ms=0.0),
+            ]
+        )
         brain, _buf = _agent_brain(llm, _ReadsAction(), memory)
 
         await brain._handle_agent_goal(GOAL)
@@ -527,10 +538,12 @@ async def test_aborted_desktop_run_does_not_promise_an_answer(
     memory.setup()
     memory.set_chat_log_max_persisted(50)
     try:
-        llm = _MockLLM([
-            _reads_call(),
-            LLMResponse(text="", tokens_used=0, model_name="mock", latency_ms=0.0),
-        ])
+        llm = _MockLLM(
+            [
+                _reads_call(),
+                LLMResponse(text="", tokens_used=0, model_name="mock", latency_ms=0.0),
+            ]
+        )
         brain, _buf = _agent_brain(llm, _ReadsAction(), memory)
 
         session = await brain._handle_agent_goal(GOAL)
@@ -569,7 +582,9 @@ async def test_reenabling_tool_calling_keeps_desktop_tools_out_of_conversation(
     llm._responses = [
         LLMResponse(
             text="something long enough to survive the response filter",
-            tokens_used=5, model_name="mock", latency_ms=0.0,
+            tokens_used=5,
+            model_name="mock",
+            latency_ms=0.0,
         ),
     ]
     await brain._generate_comment("snapshot")
@@ -700,12 +715,15 @@ async def test_chat_refuses_a_gated_tool_with_no_confirm_callback() -> None:
 async def test_chat_confirm_prompts_never_overlap() -> None:
     """Tool calls in a round run under gather; two stacked modals would be
     unanswerable, so the lock must serialize them."""
-    llm = _MockLLM([
-        tool_call_response(
-            tool_call("gated_a", call_id="c1"), tool_call("gated_b", call_id="c2"),
-        ),
-        ok_response("done"),
-    ])
+    llm = _MockLLM(
+        [
+            tool_call_response(
+                tool_call("gated_a", call_id="c1"),
+                tool_call("gated_b", call_id="c2"),
+            ),
+            ok_response("done"),
+        ]
+    )
     a, b = _GatedAction("gated_a"), _GatedAction("gated_b")
     events: list[tuple[str, str]] = []
 
@@ -912,9 +930,7 @@ def test_the_ambient_eligible_set_is_exactly_the_signed_off_list() -> None:
 
     # The production predicate itself, not a copy of it: a clause added to
     # `_is_ambient_eligible` must move this set, not slip past a retyped twin.
-    eligible = {
-        name for name, cls in _ACTION_REGISTRY.items() if Brain._is_ambient_eligible(cls)
-    }
+    eligible = {name for name, cls in _ACTION_REGISTRY.items() if Brain._is_ambient_eligible(cls)}
 
     assert eligible == set(EXPECTED_AMBIENT)
     assert registered - eligible == set(EXPECTED_EXCLUDED), (
@@ -980,7 +996,7 @@ def test_tool_dispatch_happens_only_inside_the_invoker() -> None:
     for path in sorted(root.rglob("*.py")):
         if path.name == "invoker.py" and path.parent.name == "actions":
             continue
-        receivers = _execute_receivers(path.read_text())
+        receivers = _execute_receivers(path.read_text(encoding="utf-8"))
         if receivers:
             found[path.relative_to(root).as_posix()] = receivers
 

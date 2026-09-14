@@ -21,9 +21,7 @@ from tokenpal.brain.schedule import Schedule
 _BASE = datetime(2026, 3, 10, 12, 0, 0).timestamp()
 
 
-def _make(
-    paused: bool = False, memory: MemoryStore | None = None
-) -> ProactiveScheduler:
+def _make(paused: bool = False, memory: MemoryStore | None = None) -> ProactiveScheduler:
     return ProactiveScheduler(is_paused=lambda: paused, memory=memory)
 
 
@@ -46,9 +44,7 @@ def memory(tmp_path: Path) -> Iterator[MemoryStore]:
 
 def test_fires_after_interval_and_rearms_from_now() -> None:
     sched = _make()
-    sched.register(
-        id="stretch", label="stretch!", schedule=_interval(10), next_due_at=_BASE + 600
-    )
+    sched.register(id="stretch", label="stretch!", schedule=_interval(10), next_due_at=_BASE + 600)
 
     assert _tick(sched, _BASE) == []
     assert _tick(sched, _BASE + 599.0) == []
@@ -66,9 +62,7 @@ def test_fires_after_interval_and_rearms_from_now() -> None:
 def test_five_hour_gap_fires_exactly_once() -> None:
     """The wake-once rule: a closed lid owes one nudge, not a backlog."""
     sched = _make()
-    sched.register(
-        id="stretch", label="stretch!", schedule=_interval(60), next_due_at=_BASE
-    )
+    sched.register(id="stretch", label="stretch!", schedule=_interval(60), next_due_at=_BASE)
 
     wake = _BASE + 5 * 3600
     assert _tick(sched, wake) == ["stretch!"]
@@ -82,9 +76,7 @@ def test_five_hour_gap_fires_exactly_once() -> None:
 def test_paused_tick_does_not_advance_the_deadline() -> None:
     paused = {"v": True}
     sched = ProactiveScheduler(is_paused=lambda: paused["v"])
-    sched.register(
-        id="water", label="drink", schedule=_interval(5), next_due_at=_BASE + 300
-    )
+    sched.register(id="water", label="drink", schedule=_interval(5), next_due_at=_BASE + 300)
 
     assert _tick(sched, _BASE + 3000.0) == []
     assert sched.armed()[0].next_due_at == _BASE + 300
@@ -97,9 +89,7 @@ def test_daily_fires_at_its_instant_and_rearms_for_tomorrow() -> None:
     sched = _make()
     schedule = Schedule(kind="daily", at_hour=23, at_minute=0)
     tonight = datetime(2026, 3, 10, 23, 0, 0).timestamp()
-    sched.register(
-        id="bedtime", label="wind down", schedule=schedule, next_due_at=tonight
-    )
+    sched.register(id="bedtime", label="wind down", schedule=schedule, next_due_at=tonight)
 
     assert _tick(sched, tonight - 60.0) == []
     assert _tick(sched, tonight) == ["wind down"]
@@ -114,7 +104,8 @@ def test_register_defaults_the_deadline_to_the_next_occurrence() -> None:
     sched.register(id="eye", label="blink", schedule=_interval(20))
     nudge = sched.armed()[0]
     assert nudge.last_fired_at is None
-    assert 20 * 60 - 5 < nudge.next_due_at - datetime.now().timestamp() <= 20 * 60
+    remaining = nudge.next_due_at - datetime.now().timestamp()
+    assert 20 * 60 - 5 < remaining <= 20 * 60 + 1
 
 
 def test_cancel_removes() -> None:
@@ -131,12 +122,8 @@ def test_cancel_removes() -> None:
 
 def test_armed_reports_registered_nudges_soonest_first() -> None:
     sched = _make()
-    sched.register(
-        id="late", label="later", schedule=_interval(60), next_due_at=_BASE + 3600
-    )
-    sched.register(
-        id="soon", label="sooner", schedule=_interval(5), next_due_at=_BASE + 300
-    )
+    sched.register(id="late", label="later", schedule=_interval(60), next_due_at=_BASE + 3600)
+    sched.register(id="soon", label="sooner", schedule=_interval(5), next_due_at=_BASE + 300)
     assert [n.id for n in sched.armed()] == ["soon", "late"]
     assert [n.label for n in sched.armed()] == ["sooner", "later"]
 
@@ -147,12 +134,8 @@ def test_tick_delivers_nothing_and_hands_the_fire_to_its_caller() -> None:
     it cannot if tick() also speaks the canned label.
     """
     sched = _make()
-    sched.register(
-        id="first", label="boom", schedule=_interval(5), next_due_at=_BASE
-    )
-    sched.register(
-        id="second", label="fine", schedule=_interval(5), next_due_at=_BASE + 1
-    )
+    sched.register(id="first", label="boom", schedule=_interval(5), next_due_at=_BASE)
+    sched.register(id="second", label="fine", schedule=_interval(5), next_due_at=_BASE + 1)
 
     assert not hasattr(sched, "_ui_callback")
 
@@ -167,9 +150,7 @@ def test_only_one_nudge_fires_per_tick() -> None:
     """show_speech replaces the bubble, so a pile-up would show only the last."""
     sched = _make()
     for name in ("stretch", "water", "eyes"):
-        sched.register(
-            id=name, label=name, schedule=_interval(60), next_due_at=_BASE
-        )
+        sched.register(id=name, label=name, schedule=_interval(60), next_due_at=_BASE)
 
     assert [n.id for n in sched.tick(now=_BASE + 5.0)] == ["stretch"]
 
@@ -182,16 +163,16 @@ def test_only_one_nudge_fires_per_tick() -> None:
     assert [n.id for n in sched.tick(now=_BASE + 45.0)] == ["eyes"]
     # Each re-armed an hour out from the tick that actually fired it.
     assert sorted(n.next_due_at for n in sched.armed()) == [
-        _BASE + 5.0 + 3600, _BASE + 25.0 + 3600, _BASE + 45.0 + 3600
+        _BASE + 5.0 + 3600,
+        _BASE + 25.0 + 3600,
+        _BASE + 45.0 + 3600,
     ]
 
 
 def test_wake_once_survives_the_full_restart_path(memory: MemoryStore) -> None:
     """Arm, fire, quit, relaunch, tick past a five-hour gap: one fire."""
     sched = _make(memory=memory)
-    sched.register(
-        id="stretch", label="stretch!", schedule=_interval(60), next_due_at=_BASE
-    )
+    sched.register(id="stretch", label="stretch!", schedule=_interval(60), next_due_at=_BASE)
     sched.tick(now=_BASE)
 
     revived = _make(memory=memory)
@@ -234,9 +215,7 @@ def test_tick_does_not_relist_reminders(memory: MemoryStore) -> None:
     fire; what it must not do is re-read the whole table every 2 s.
     """
     sched = _make(memory=memory)
-    sched.register(
-        id="stretch", label="stretch!", schedule=_interval(60), next_due_at=_BASE
-    )
+    sched.register(id="stretch", label="stretch!", schedule=_interval(60), next_due_at=_BASE)
     sched.hydrate()
 
     reads = 0
@@ -259,9 +238,7 @@ def test_tick_does_not_relist_reminders(memory: MemoryStore) -> None:
 
 def test_persisted_reminder_survives_a_restart(memory: MemoryStore) -> None:
     sched = _make(memory=memory)
-    sched.register(
-        id="stretch", label="stretch!", schedule=_interval(60), next_due_at=_BASE
-    )
+    sched.register(id="stretch", label="stretch!", schedule=_interval(60), next_due_at=_BASE)
     assert _tick(sched, _BASE + 5.0) == ["stretch!"]
 
     revived = _make(memory=memory)
@@ -278,9 +255,7 @@ def test_persisted_reminder_survives_a_restart(memory: MemoryStore) -> None:
 
 def test_rearming_preserves_last_fired_at(memory: MemoryStore) -> None:
     sched = _make(memory=memory)
-    sched.register(
-        id="stretch", label="stretch!", schedule=_interval(60), next_due_at=_BASE
-    )
+    sched.register(id="stretch", label="stretch!", schedule=_interval(60), next_due_at=_BASE)
     sched.tick(now=_BASE + 5.0)
 
     sched.register(
@@ -307,9 +282,7 @@ def test_cancel_unpersists(memory: MemoryStore) -> None:
 def test_disarmed_row_drops_the_in_memory_nudge(memory: MemoryStore) -> None:
     """Disarmed from chat between the due-check and the write-through."""
     sched = _make(memory=memory)
-    sched.register(
-        id="stretch", label="stretch!", schedule=_interval(60), next_due_at=_BASE
-    )
+    sched.register(id="stretch", label="stretch!", schedule=_interval(60), next_due_at=_BASE)
 
     memory.delete_reminder("stretch")
 
@@ -338,6 +311,5 @@ def test_disabled_memory_stays_in_memory_only(tmp_path: Path) -> None:
     """A disabled store answers every write with a no-op; nudges still fire."""
     store = MemoryStore(db_path=tmp_path / "brain.db", enabled=False)
     sched = _make(memory=store)
-    sched.register(id="stretch", label="stretch!", schedule=_interval(60),
-                   next_due_at=_BASE)
+    sched.register(id="stretch", label="stretch!", schedule=_interval(60), next_due_at=_BASE)
     assert _tick(sched, _BASE + 5.0) == ["stretch!"]

@@ -37,7 +37,8 @@ class TokenPalServerError(Exception):
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Startup: shared httpx client, job store, inference-engine health check."""
     inference_url = getattr(
-        app.state, "inference_url",
+        app.state,
+        "inference_url",
         getattr(app.state, "ollama_url", "http://localhost:11434"),
     )
     engine = getattr(app.state, "inference_engine", "ollama")
@@ -63,7 +64,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.ollama_healthy = False
         hint = "ollama serve" if engine == "ollama" else "start-llamaserver.bat"
         log.warning(
-            "%s not reachable at %s — start with: %s", engine, inference_url, hint,
+            "%s not reachable at %s — start with: %s",
+            engine,
+            inference_url,
+            hint,
         )
 
     yield
@@ -110,7 +114,8 @@ def create_app(
     # Error handlers
     @app.exception_handler(TokenPalServerError)
     async def _handle_server_error(
-        request: Request, exc: TokenPalServerError,
+        request: Request,
+        exc: TokenPalServerError,
     ) -> JSONResponse:
         body: dict[str, str | None] = {"error": exc.message}
         if exc.hint:
@@ -119,7 +124,8 @@ def create_app(
 
     @app.exception_handler(ValueError)
     async def _handle_value_error(
-        request: Request, exc: ValueError,
+        request: Request,
+        exc: ValueError,
     ) -> JSONResponse:
         return JSONResponse(status_code=400, content={"error": str(exc)})
 

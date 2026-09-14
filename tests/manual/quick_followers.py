@@ -12,6 +12,7 @@ Drag the buddy or the grip dots to put the scene in motion.
 Env:
     TOKENPAL_QUICK_FOLLOWERS_SECONDS=0   auto-quit after N seconds
 """
+
 from __future__ import annotations
 
 import os
@@ -25,7 +26,6 @@ from PySide6.QtWidgets import QApplication
 
 from tokenpal.ui.ascii_renderer import BUDDY_IDLE
 from tokenpal.ui.quick.buddy_window import BuddyQuickWindow
-
 
 _SAMPLE_LINES = [
     "hi there. just watching the cursor.",

@@ -275,9 +275,7 @@ class MemoryStore:
         # Prime the in-memory chat_log counter once so record_chat_entry
         # doesn't run SELECT COUNT(*) on every insert.
         with self._lock:
-            row = self._conn.execute(
-                "SELECT COUNT(*) FROM chat_log"
-            ).fetchone()
+            row = self._conn.execute("SELECT COUNT(*) FROM chat_log").fetchone()
         self._chat_log_count = int(row[0]) if row else 0
         log.info("MemoryStore ready — session %s, db at %s", self._session_id, self._db_path)
 
@@ -337,7 +335,11 @@ class MemoryStore:
                 "(timestamp, sense_name, event_type, summary, data_json, session_id) "
                 "VALUES (?, ?, ?, ?, ?, ?)",
                 (
-                    time.time(), sense_name, event_type, summary, data_json,
+                    time.time(),
+                    sense_name,
+                    event_type,
+                    summary,
+                    data_json,
                     self._session_id,
                 ),
             )
@@ -372,8 +374,7 @@ class MemoryStore:
             return
         with self._lock:
             self._conn.execute(
-                "INSERT INTO chat_log (timestamp, speaker, text, url) "
-                "VALUES (?, ?, ?, ?)",
+                "INSERT INTO chat_log (timestamp, speaker, text, url) VALUES (?, ?, ?, ?)",
                 (time.time(), speaker, text, url),
             )
             self._chat_log_count += 1
@@ -388,9 +389,7 @@ class MemoryStore:
                 self._chat_log_count = cap
             self._conn.commit()
 
-    def get_recent_chat_entries(
-        self, limit: int
-    ) -> list[tuple[float, str, str, str | None]]:
+    def get_recent_chat_entries(self, limit: int) -> list[tuple[float, str, str, str | None]]:
         """Return up to *limit* most recent chat-log rows in chronological
         order (oldest first) as (timestamp, speaker, text, url) tuples.
         """
@@ -398,8 +397,7 @@ class MemoryStore:
             return []
         with self._lock:
             rows = self._conn.execute(
-                "SELECT timestamp, speaker, text, url FROM chat_log "
-                "ORDER BY id DESC LIMIT ?",
+                "SELECT timestamp, speaker, text, url FROM chat_log ORDER BY id DESC LIMIT ?",
                 (int(limit),),
             ).fetchall()
         return [
@@ -420,9 +418,7 @@ class MemoryStore:
     # Session summaries — see plans/buddy-utility-wedges.md
     # ------------------------------------------------------------------
 
-    def record_summary(
-        self, summary: str, window_start: float, window_end: float
-    ) -> None:
+    def record_summary(self, summary: str, window_start: float, window_end: float) -> None:
         """Insert a periodic session summary row."""
         if not self._enabled or not self._conn:
             return
@@ -435,9 +431,7 @@ class MemoryStore:
             )
             self._conn.commit()
 
-    def get_latest_summary(
-        self, max_lookback_s: float
-    ) -> tuple[float, str] | None:
+    def get_latest_summary(self, max_lookback_s: float) -> tuple[float, str] | None:
         """Return (timestamp, summary) of the most recent summary within
         max_lookback_s seconds, or None.
         """
@@ -469,9 +463,7 @@ class MemoryStore:
             )
             self._conn.commit()
 
-    def get_latest_conversation_summary(
-        self, max_lookback_s: float
-    ) -> tuple[float, str] | None:
+    def get_latest_conversation_summary(self, max_lookback_s: float) -> tuple[float, str] | None:
         """Return (timestamp, summary) of the most recent conversation summary
         within max_lookback_s seconds, or None.
         """
@@ -496,9 +488,7 @@ class MemoryStore:
             self._conn.execute("DELETE FROM conversation_summaries")
             self._conn.commit()
 
-    def get_recent_summaries(
-        self, since_ts: float, limit: int = 5
-    ) -> list[tuple[float, str]]:
+    def get_recent_summaries(self, since_ts: float, limit: int = 5) -> list[tuple[float, str]]:
         """Return [(timestamp, summary)] newer than since_ts, newest first."""
         if not self._enabled or not self._conn:
             return []
@@ -510,9 +500,7 @@ class MemoryStore:
             ).fetchall()
         return [(float(r[0]), str(r[1])) for r in rows]
 
-    def count_observations_in_window(
-        self, window_start: float, window_end: float
-    ) -> int:
+    def count_observations_in_window(self, window_start: float, window_end: float) -> int:
         """How many observations landed in [window_start, window_end)?
 
         Used as the skip-if-idle guard for the session summarizer — zero
@@ -522,8 +510,7 @@ class MemoryStore:
             return 0
         with self._lock:
             row = self._conn.execute(
-                "SELECT COUNT(*) FROM observations "
-                "WHERE timestamp >= ? AND timestamp < ?",
+                "SELECT COUNT(*) FROM observations WHERE timestamp >= ? AND timestamp < ?",
                 (window_start, window_end),
             ).fetchone()
         return int(row[0]) if row else 0
@@ -567,9 +554,7 @@ class MemoryStore:
         return {
             "apps": [(str(r[0]), int(r[1])) for r in app_rows],
             "sense_counts": {str(r[0]): int(r[1]) for r in sense_rows},
-            "events": [
-                (float(r[0]), str(r[1]), str(r[2]), str(r[3])) for r in event_rows
-            ],
+            "events": [(float(r[0]), str(r[1]), str(r[2]), str(r[3])) for r in event_rows],
         }
 
     # ------------------------------------------------------------------
@@ -661,9 +646,7 @@ class MemoryStore:
         if not self._enabled or not self._conn:
             return False
         with self._lock:
-            result = self._conn.execute(
-                "DELETE FROM reminders WHERE id = ?", (reminder_id,)
-            )
+            result = self._conn.execute("DELETE FROM reminders WHERE id = ?", (reminder_id,))
             self._conn.commit()
             return result.rowcount > 0
 
@@ -674,14 +657,10 @@ class MemoryStore:
         with self._lock:
             cursor = self._conn.cursor()
             cursor.row_factory = sqlite3.Row
-            rows = cursor.execute(
-                "SELECT * FROM reminders ORDER BY next_due_at ASC"
-            ).fetchall()
+            rows = cursor.execute("SELECT * FROM reminders ORDER BY next_due_at ASC").fetchall()
         return [dict(r) for r in rows]
 
-    def mark_reminder_fired(
-        self, reminder_id: str, fired_at: float, next_due_at: float
-    ) -> bool:
+    def mark_reminder_fired(self, reminder_id: str, fired_at: float, next_due_at: float) -> bool:
         """Record a fire and re-arm the row. False when the id no longer exists.
 
         A caller holding the reminder in memory needs that answer: the row can
@@ -766,9 +745,7 @@ class MemoryStore:
                 "ORDER BY timestamp DESC LIMIT 1",
                 (date_str,),
             ).fetchone()
-        active_min = int(
-            sum((end - start) / 60 for _, start, end in session_rows if end > start)
-        )
+        active_min = int(sum((end - start) / 60 for _, start, end in session_rows if end > start))
         return {
             "date": date_str,
             "apps": [(str(r[0]), int(r[1])) for r in app_rows],
@@ -823,8 +800,13 @@ class MemoryStore:
                 "updated_at = excluded.updated_at, "
                 "schema_version = excluded.schema_version",
                 (
-                    server_url, model, decode_tps, ttft_s, sample_count,
-                    time.time(), LLM_ESTIMATOR_SCHEMA_VERSION,
+                    server_url,
+                    model,
+                    decode_tps,
+                    ttft_s,
+                    sample_count,
+                    time.time(),
+                    LLM_ESTIMATOR_SCHEMA_VERSION,
                 ),
             )
             self._conn.commit()
@@ -871,9 +853,7 @@ class MemoryStore:
                 lines.append(f"{len(session_rows)} sessions totaling ~{total_hours:.1f} hours")
 
             # Last session summary (skip current session)
-            prev_sessions = [
-                r for r in session_rows if r[0] != self._session_id
-            ]
+            prev_sessions = [r for r in session_rows if r[0] != self._session_id]
             if prev_sessions:
                 last = max(prev_sessions, key=lambda r: r[2])
                 last_id, last_start, last_end = last
@@ -910,8 +890,7 @@ class MemoryStore:
             return 0
         with self._lock:
             row = self._conn.execute(
-                "SELECT COUNT(*) FROM observations "
-                "WHERE event_type = 'app_switch' AND summary = ?",
+                "SELECT COUNT(*) FROM observations WHERE event_type = 'app_switch' AND summary = ?",
                 (app_name,),
             ).fetchone()
             return row[0] if row else 0
@@ -926,9 +905,7 @@ class MemoryStore:
             return
         cutoff = time.time() - self._retention_days * 86400
         with self._lock:
-            result = self._conn.execute(
-                "DELETE FROM observations WHERE timestamp < ?", (cutoff,)
-            )
+            result = self._conn.execute("DELETE FROM observations WHERE timestamp < ?", (cutoff,))
             if result.rowcount > 0:
                 log.info("Pruned %d old observations", result.rowcount)
             result = self._conn.execute(
@@ -962,9 +939,7 @@ class MemoryStore:
             obs_dates = {r[0] for r in rows}
 
             # Find dates already summarized
-            existing = self._conn.execute(
-                "SELECT date FROM daily_summaries"
-            ).fetchall()
+            existing = self._conn.execute("SELECT date FROM daily_summaries").fetchall()
             existing_dates = {r[0] for r in existing}
 
             missing = obs_dates - existing_dates
@@ -1082,9 +1057,7 @@ class MemoryStore:
         if not self._enabled or not self._conn:
             return 0
         with self._lock:
-            row = self._conn.execute(
-                "SELECT MIN(timestamp) FROM observations"
-            ).fetchone()
+            row = self._conn.execute("SELECT MIN(timestamp) FROM observations").fetchone()
         age = 0
         if row and row[0] is not None:
             oldest = datetime.fromtimestamp(float(row[0]))
@@ -1179,19 +1152,13 @@ class MemoryStore:
         if len(rows) < 3:
             return []
 
-        first_apps = Counter(
-            app for _, app, _ in rows
-            if not self._is_sensitive(app, exclude)
-        )
+        first_apps = Counter(app for _, app, _ in rows if not self._is_sensitive(app, exclude))
         if not first_apps:
             return []
 
         top_app, top_count = first_apps.most_common(1)[0]
         if top_count >= 3 and top_count / len(rows) >= 0.4:
-            return [
-                f"You open {top_app} first in {top_count} of your last "
-                f"{len(rows)} sessions"
-            ]
+            return [f"You open {top_app} first in {top_count} of your last {len(rows)} sessions"]
         return []
 
     def _detect_streaks(self, exclude: set[str]) -> list[str]:
@@ -1210,9 +1177,7 @@ class MemoryStore:
         for app, d in rows:
             if self._is_sensitive(app, exclude):
                 continue
-            app_dates.setdefault(app, []).append(
-                datetime.strptime(d, "%Y-%m-%d")
-            )
+            app_dates.setdefault(app, []).append(datetime.strptime(d, "%Y-%m-%d"))
 
         today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         best_callback = ""
@@ -1400,6 +1365,7 @@ class MemoryStore:
         Keying on mode keeps result sets separate so /refine follows a
         consistent trust model per entry."""
         import hashlib
+
         prefix = f"{mode}:" if mode else ""
         raw = f"{prefix}{question.strip().lower()}"
         return hashlib.sha256(raw.encode("utf-8")).hexdigest()
@@ -1485,9 +1451,7 @@ class MemoryStore:
             self._conn.commit()
             return added
 
-    def get_latest_research(
-        self, max_age_s: float
-    ) -> tuple[str, str, str, float] | None:
+    def get_latest_research(self, max_age_s: float) -> tuple[str, str, str, float] | None:
         """Return ``(question, answer, sources_json, age_s)`` for the most
         recent research within *max_age_s*, or None. Used by /refine to pull
         the most-recently-fetched source pool without needing the user to
@@ -1524,22 +1488,23 @@ class MemoryStore:
             return None
         with self._lock:
             row = self._conn.execute(
-                "SELECT description, fetched_at, success FROM app_enrichment "
-                "WHERE app_name = ?",
+                "SELECT description, fetched_at, success FROM app_enrichment WHERE app_name = ?",
                 (app_name,),
             ).fetchone()
         if row is None:
             return None
         description, fetched_at, success = row
         age_s = time.time() - fetched_at
-        still_fresh = (
-            (bool(success) and age_s < fresh_after_s)
-            or (not bool(success) and age_s < retry_after_s)
+        still_fresh = (bool(success) and age_s < fresh_after_s) or (
+            not bool(success) and age_s < retry_after_s
         )
         return (description if success else None, still_fresh)
 
     def put_app_enrichment(
-        self, app_name: str, description: str | None, success: bool,
+        self,
+        app_name: str,
+        description: str | None,
+        success: bool,
     ) -> None:
         if not self._enabled or not self._conn:
             return

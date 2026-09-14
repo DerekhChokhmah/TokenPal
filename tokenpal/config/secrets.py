@@ -87,8 +87,9 @@ def _get(field: str, path: Path | None) -> str | None:
     return key or None
 
 
-def _set(field: str, key: str, validator: re.Pattern[str], expectation: str,
-         path: Path | None) -> Path:
+def _set(
+    field: str, key: str, validator: re.Pattern[str], expectation: str, path: Path | None
+) -> Path:
     key = key.strip()
     if not validator.match(key):
         raise ValueError(expectation)
@@ -127,9 +128,10 @@ def get_cloud_key(path: Path | None = None) -> str | None:
 def set_cloud_key(key: str, path: Path | None = None) -> Path:
     """Persist Anthropic *key* at 0o600. Raises ValueError on shape mismatch."""
     return _set(
-        _ANTHROPIC_KEY_FIELD, key, _ANTHROPIC_KEY_RE,
-        "Expected an Anthropic API key starting with 'sk-ant-' "
-        "(get one at console.anthropic.com).",
+        _ANTHROPIC_KEY_FIELD,
+        key,
+        _ANTHROPIC_KEY_RE,
+        "Expected an Anthropic API key starting with 'sk-ant-' (get one at console.anthropic.com).",
         path,
     )
 
@@ -148,9 +150,10 @@ def get_tavily_key(path: Path | None = None) -> str | None:
 
 def set_tavily_key(key: str, path: Path | None = None) -> Path:
     return _set(
-        _TAVILY_KEY_FIELD, key, _TAVILY_KEY_RE,
-        "Expected a Tavily API key starting with 'tvly-' "
-        "(get one at app.tavily.com).",
+        _TAVILY_KEY_FIELD,
+        key,
+        _TAVILY_KEY_RE,
+        "Expected a Tavily API key starting with 'tvly-' (get one at app.tavily.com).",
         path,
     )
 
@@ -168,7 +171,9 @@ def get_brave_key(path: Path | None = None) -> str | None:
 
 def set_brave_key(key: str, path: Path | None = None) -> Path:
     return _set(
-        _BRAVE_KEY_FIELD, key, _BRAVE_KEY_RE,
+        _BRAVE_KEY_FIELD,
+        key,
+        _BRAVE_KEY_RE,
         "Expected a Brave Search API key (20+ alphanumeric chars). "
         "Get one at api.search.brave.com.",
         path,
@@ -185,16 +190,15 @@ def clear_brave_key(path: Path | None = None) -> Path:
 # pipeline picks it up automatically via load_search_keys(). The cs_gated flag
 # marks keys that only activate under `cloud_search.enabled` (Tavily today);
 # keys without the flag are "presence = active" (Brave today).
-_SEARCH_KEY_GETTERS: tuple[
-    tuple[str, Callable[[Path | None], str | None], bool], ...
-] = (
+_SEARCH_KEY_GETTERS: tuple[tuple[str, Callable[[Path | None], str | None], bool], ...] = (
     ("tavily", get_tavily_key, True),
-    ("brave",  get_brave_key,  False),
+    ("brave", get_brave_key, False),
 )
 
 
 def load_search_keys(
-    cloud_search_enabled: bool, path: Path | None = None,
+    cloud_search_enabled: bool,
+    path: Path | None = None,
 ) -> dict[str, str]:
     """Return {backend_name: key} for every stored search-backend key.
 

@@ -44,11 +44,16 @@ _BRAIN_INVOKED_METHODS: tuple[tuple[str, tuple[Any, ...]], ...] = (
     # Chat-pane control
     ("toggle_chat_log", ()),
     # Environment / persistence hooks
-    ("set_environment_provider", (
-        lambda: EnvironmentSnapshot(
-            weather_data=None, idle_event=None, sensitive_suppressed=False,
+    (
+        "set_environment_provider",
+        (
+            lambda: EnvironmentSnapshot(
+                weather_data=None,
+                idle_event=None,
+                sensitive_suppressed=False,
+            ),
         ),
-    )),
+    ),
     ("set_chat_persist_callback", (lambda s, t, u: None, lambda: None)),
     # Callback wiring
     ("set_input_callback", (lambda s: None,)),
@@ -69,11 +74,12 @@ _MODAL_METHODS: tuple[tuple[str, tuple[Any, ...]], ...] = (
 def test_overlay_has_no_abstract_methods(overlay_cls: type[AbstractOverlay]) -> None:
     """Every registered overlay must satisfy the ABC at construction time."""
     leftover: frozenset[str] = getattr(
-        overlay_cls, "__abstractmethods__", frozenset(),
+        overlay_cls,
+        "__abstractmethods__",
+        frozenset(),
     )
     assert not leftover, (
-        f"{overlay_cls.__name__} leaves abstract methods unimplemented: "
-        f"{sorted(leftover)}"
+        f"{overlay_cls.__name__} leaves abstract methods unimplemented: {sorted(leftover)}"
     )
 
 
@@ -98,6 +104,7 @@ def test_console_overlay_accepts_full_adapter_surface(
     raising on a pre-setup instance. Proves the no-op defaults are safe to
     call even when the overlay hasn't built its window yet."""
     from tokenpal.ui.console_overlay import ConsoleOverlay
+
     overlay = ConsoleOverlay(config={})
     for name, args in _BRAIN_INVOKED_METHODS:
         if name in {"setup", "teardown"}:
@@ -107,7 +114,5 @@ def test_console_overlay_accepts_full_adapter_surface(
 
     for name, args in _MODAL_METHODS:
         result = getattr(overlay, name)(*args)
-        assert result is False, (
-            f"ConsoleOverlay.{name} should return False (no modal support)"
-        )
+        assert result is False, f"ConsoleOverlay.{name} should return False (no modal support)"
     capsys.readouterr()  # drain any render output so it doesn't pollute

@@ -160,7 +160,9 @@ class CloudModal(ModalScreen[CloudModalResult | None]):
                     classes="section-help",
                 )
                 yield WrappingCheckbox(
-                    "Replace stored key", id="replace-key", value=False,
+                    "Replace stored key",
+                    id="replace-key",
+                    value=False,
                 )
                 # The replacement input starts disabled; toggled by the
                 # checkbox (see on_checkbox_changed).
@@ -275,14 +277,16 @@ class CloudModal(ModalScreen[CloudModalResult | None]):
             with RadioSet(id="tavily-depth-set"):
                 for depth in ("basic", "advanced"):
                     yield WrappingRadioButton(
-                        depth, value=(depth == s.tavily_search_depth),
+                        depth,
+                        value=(depth == s.tavily_search_depth),
                     )
 
             # ------------------------------------------------------------
             # Brave section
             # ------------------------------------------------------------
             yield Label(
-                "Brave (alternative web search)", classes="section-header",
+                "Brave (alternative web search)",
+                classes="section-header",
             )
             yield Label(
                 "Free-tier web search (2k queries/month); the planner "
@@ -307,8 +311,7 @@ class CloudModal(ModalScreen[CloudModalResult | None]):
                 )
             else:
                 yield Label(
-                    "No key stored. Paste one from "
-                    "api.search.brave.com:",
+                    "No key stored. Paste one from api.search.brave.com:",
                     classes="section-help",
                 )
                 yield Input(
@@ -393,8 +396,7 @@ class CloudModal(ModalScreen[CloudModalResult | None]):
         model = self._selected_model()
         if model not in DEEP_MODE_MODELS:
             label.update(
-                "Haiku doesn't support dynamic-filtering web tools. "
-                "Pick Sonnet 4.6 or Opus 4.7."
+                "Haiku doesn't support dynamic-filtering web tools. Pick Sonnet 4.6 or Opus 4.7."
             )
         else:
             label.update(
@@ -463,9 +465,7 @@ class CloudModal(ModalScreen[CloudModalResult | None]):
 
         # Tavily toggles
         try:
-            tavily_enabled = bool(
-                self.query_one("#toggle-tavily-enabled", Checkbox).value
-            )
+            tavily_enabled = bool(self.query_one("#toggle-tavily-enabled", Checkbox).value)
         except Exception:
             tavily_enabled = self._state.tavily_enabled
         tavily_depth = self._selected_tavily_depth()
@@ -475,7 +475,8 @@ class CloudModal(ModalScreen[CloudModalResult | None]):
         # back to the state default rather than 0.
         try:
             raw_cap = self.query_one(
-                "#refine-max-supplemental-input", Input,
+                "#refine-max-supplemental-input",
+                Input,
             ).value.strip()
         except Exception:
             raw_cap = ""
@@ -521,6 +522,4 @@ class CloudModal(ModalScreen[CloudModalResult | None]):
         if pressed is None:
             return self._state.tavily_search_depth
         label = str(pressed.label).strip()
-        return label if label in ("basic", "advanced") else (
-            self._state.tavily_search_depth
-        )
+        return label if label in ("basic", "advanced") else (self._state.tavily_search_depth)

@@ -94,8 +94,7 @@ def test_legacy_profile_without_mood_frames_loads_cleanly(
     voices = tmp_path / "voices"
     voices.mkdir()
     (voices / "legacy.json").write_text(
-        '{"character": "Finn", "source": "", "created": "2026-01-01",'
-        ' "lines": ["x"]}',
+        '{"character": "Finn", "source": "", "created": "2026-01-01", "lines": ["x"]}',
     )
     loaded = load_profile("legacy", voices)
     assert loaded.mood_frames == {}
@@ -103,9 +102,13 @@ def test_legacy_profile_without_mood_frames_loads_cleanly(
 
 def test_profile_summary_is_frozen() -> None:
     s = ProfileSummary(
-        slug="finn", character="Finn", line_count=1,
-        source="", finetuned_model="",
+        slug="finn",
+        character="Finn",
+        line_count=1,
+        source="",
+        finetuned_model="",
     )
     import pytest
+
     with pytest.raises(AttributeError):
         s.slug = "other"  # type: ignore[misc]

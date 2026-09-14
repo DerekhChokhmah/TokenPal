@@ -77,10 +77,7 @@ class IntentStore:
         if not cleaned:
             raise IntentError("Intent text cannot be empty.")
         if contains_sensitive_term(cleaned):
-            raise IntentError(
-                "Intent text looks like it references a sensitive app; "
-                "not stored."
-            )
+            raise IntentError("Intent text looks like it references a sensitive app; not stored.")
         self._memory.set_active_intent(cleaned)
         row = self._memory.get_active_intent()
         assert row is not None, "set_active_intent followed by get_active_intent returned None"

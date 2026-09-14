@@ -20,4 +20,5 @@ def _fast_poll_interval(monkeypatch: pytest.MonkeyPatch) -> None:
     that reaches the poll loop.
     """
     import tokenpal.tools.remote_train as rt
+
     monkeypatch.setattr(rt, "POLL_INTERVAL_SECONDS", 0)

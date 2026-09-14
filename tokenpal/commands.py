@@ -23,9 +23,7 @@ class CommandDispatcher:
     def __init__(self) -> None:
         self._commands: dict[str, Callable[[str], CommandResult]] = {}
 
-    def register(
-        self, name: str, handler: Callable[[str], CommandResult]
-    ) -> None:
+    def register(self, name: str, handler: Callable[[str], CommandResult]) -> None:
         self._commands[name] = handler
 
     def dispatch(self, raw_input: str) -> CommandResult:

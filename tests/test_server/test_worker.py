@@ -130,7 +130,9 @@ def test_pipeline_llamacpp_raises_at_registration(tmp_path):
         pytest.raises(NotImplementedError, match="M4"),
     ):
         _run_pipeline(
-            job, tmp_path / "data", tmp_path / "output",
+            job,
+            tmp_path / "data",
+            tmp_path / "output",
             inference_engine="llamacpp",
         )
 

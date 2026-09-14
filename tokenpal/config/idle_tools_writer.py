@@ -14,6 +14,7 @@ from tokenpal.config.toml_writer import update_config
 
 def set_idle_tools_enabled(enabled: bool) -> Path:
     """Flip `[idle_tools] enabled = true|false`. Creates the section if missing."""
+
     def mutate(data: dict[str, Any]) -> None:
         data.setdefault("idle_tools", {})["enabled"] = enabled
 
@@ -22,6 +23,7 @@ def set_idle_tools_enabled(enabled: bool) -> Path:
 
 def set_idle_rule_enabled(rule_name: str, enabled: bool) -> Path:
     """Upsert one rule toggle under `[idle_tools.rules]`."""
+
     def mutate(data: dict[str, Any]) -> None:
         section = data.setdefault("idle_tools", {})
         rules = section.setdefault("rules", {})
@@ -32,6 +34,7 @@ def set_idle_rule_enabled(rule_name: str, enabled: bool) -> Path:
 
 def set_llm_initiated_enabled(enabled: bool) -> Path:
     """Flip `[idle_tools] llm_initiated_enabled = true|false` (M3, issue #33)."""
+
     def mutate(data: dict[str, Any]) -> None:
         data.setdefault("idle_tools", {})["llm_initiated_enabled"] = enabled
 

@@ -45,13 +45,15 @@ def stackexchange_search(
     if not query:
         return []
 
-    params = urllib.parse.urlencode({
-        "q": query,
-        "site": site,
-        "order": "desc",
-        "sort": "relevance",
-        "pagesize": max(1, min(pagesize, 20)),
-    })
+    params = urllib.parse.urlencode(
+        {
+            "q": query,
+            "site": site,
+            "order": "desc",
+            "sort": "relevance",
+            "pagesize": max(1, min(pagesize, 20)),
+        }
+    )
     payload = http_json(f"{_API_URL}?{params}", timeout_s=timeout_s)
 
     if not isinstance(payload, dict):
@@ -77,13 +79,14 @@ def stackexchange_search(
         score = item.get("score") or 0
         answers = item.get("answer_count") or 0
         answered = "answered" if item.get("is_answered") else "unanswered"
-        description = (
-            f"SO: {score} votes, {answers} answers ({answered})"
-            + (f" — tags: {tag_str}" if tag_str else "")
+        description = f"SO: {score} votes, {answers} answers ({answered})" + (
+            f" — tags: {tag_str}" if tag_str else ""
         )
-        cleaned.append({
-            "url": link,
-            "title": title,
-            "description": description,
-        })
+        cleaned.append(
+            {
+                "url": link,
+                "title": title,
+                "description": description,
+            }
+        )
     return cleaned

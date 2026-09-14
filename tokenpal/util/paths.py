@@ -67,9 +67,7 @@ async def allowed_roots(configured: Sequence[str]) -> list[Path]:
     return roots
 
 
-def resolve_inside(
-    candidate: str | Path, roots: Sequence[Path]
-) -> tuple[Path, Path, str] | None:
+def resolve_inside(candidate: str | Path, roots: Sequence[Path]) -> tuple[Path, Path, str] | None:
     """Resolve ``candidate`` and return (resolved, root, rel) for the root containing it.
 
     Symlinks and ``..`` are followed before the containment check. Case folding
@@ -115,9 +113,7 @@ def path_is_sensitive(rel: str) -> bool:
         return True
     # Every dot-separated token, so "server.key.bak" is caught and "notes.keynote" is not.
     return any(
-        ext in _SENSITIVE_EXTS
-        for part in re.split(r"[\\/]", lower)
-        for ext in part.split(".")[1:]
+        ext in _SENSITIVE_EXTS for part in re.split(r"[\\/]", lower) for ext in part.split(".")[1:]
     )
 
 

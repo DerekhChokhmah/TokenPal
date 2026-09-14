@@ -83,9 +83,7 @@ class TestIsLatinScript:
         assert is_latin_script("café résumé naïve")
 
     def test_rejects_cjk(self):
-        assert not is_latin_script(
-            "Prompt as Code | GPT-Image2 工业级提示词引擎与模板库"
-        )
+        assert not is_latin_script("Prompt as Code | GPT-Image2 工业级提示词引擎与模板库")
 
     def test_rejects_single_cjk_char(self):
         assert not is_latin_script("repo · 工")
@@ -193,7 +191,7 @@ def _blank_profile(**overrides) -> VoiceProfile:
         source="adventuretime.fandom.com",
         created="2026-04-15T00:00:00",
         lines=["Hey man!", "Whoa!"],
-        persona="VOICE: you yell\nCATCHPHRASES: \"whoa\"",
+        persona='VOICE: you yell\nCATCHPHRASES: "whoa"',
         greetings=["Hey hey!", "What's up?"],
         offline_quips=["Uhh... what?", "My brain hurts."],
         mood_prompts={"default": "Your current mood: HEROIC. Be brave."},
@@ -229,16 +227,20 @@ class TestAudit:
         assert report.ok, report.issues
 
     def test_flags_non_english_greetings(self):
-        p = _blank_profile(greetings=[
-            "copiert/paste von Wikipedia/nachweislich kopiert.",
-            "**Analyze:**",
-        ])
+        p = _blank_profile(
+            greetings=[
+                "copiert/paste von Wikipedia/nachweislich kopiert.",
+                "**Analyze:**",
+            ]
+        )
         report = audit_profile(p)
         assert any("greetings" in i for i in report.issues)
 
     def test_flags_empty_moods(self):
         p = _blank_profile(
-            mood_prompts={}, mood_roles={}, default_mood="",
+            mood_prompts={},
+            mood_roles={},
+            default_mood="",
         )
         report = audit_profile(p)
         assert any("mood_prompts" in i for i in report.issues)
@@ -276,10 +278,7 @@ def test_regenerate_refreshes_all_llm_fields(tmp_path):
     )
     save_profile(broken, tmp_path)
 
-    fake_persona = (
-        'VOICE: You yell.\nCATCHPHRASES: "whoa"\nNEVER: whisper\n'
-        "WORLDVIEW: heroism"
-    )
+    fake_persona = 'VOICE: You yell.\nCATCHPHRASES: "whoa"\nNEVER: whisper\nWORLDVIEW: heroism'
     good_frame = [
         "[#ff6600]head[/]",
         "[#00ccff]torso[/]",
@@ -288,26 +287,41 @@ def test_regenerate_refreshes_all_llm_fields(tmp_path):
     ]
     fake_frames = (good_frame, good_frame, good_frame, {})
 
-    with patch.object(
-        train_voice, "_generate_persona", return_value=fake_persona,
-    ), patch.object(
-        train_voice, "_generate_greetings",
-        return_value=["Hey now!", "What's up!"],
-    ), patch.object(
-        train_voice, "_generate_offline_quips",
-        return_value=["Uhh.", "My brain."],
-    ), patch.object(
-        train_voice, "_generate_mood_prompts",
-        return_value=(
-            {"default": "Your current mood: HEROIC. Be brave."},
-            {"default": "HEROIC"},
-            "HEROIC",
+    with (
+        patch.object(
+            train_voice,
+            "_generate_persona",
+            return_value=fake_persona,
         ),
-    ), patch.object(
-        train_voice, "_generate_structure_hints",
-        return_value=["Respond heroically."],
-    ), patch.object(
-        train_voice, "_generate_ascii_art", return_value=fake_frames,
+        patch.object(
+            train_voice,
+            "_generate_greetings",
+            return_value=["Hey now!", "What's up!"],
+        ),
+        patch.object(
+            train_voice,
+            "_generate_offline_quips",
+            return_value=["Uhh.", "My brain."],
+        ),
+        patch.object(
+            train_voice,
+            "_generate_mood_prompts",
+            return_value=(
+                {"default": "Your current mood: HEROIC. Be brave."},
+                {"default": "HEROIC"},
+                "HEROIC",
+            ),
+        ),
+        patch.object(
+            train_voice,
+            "_generate_structure_hints",
+            return_value=["Respond heroically."],
+        ),
+        patch.object(
+            train_voice,
+            "_generate_ascii_art",
+            return_value=fake_frames,
+        ),
     ):
         result = train_voice.regenerate_voice_assets(broken, tmp_path)
 
@@ -336,7 +350,9 @@ def test_generate_lines_retries_on_drift():
 
     with patch.object(train_voice, "_ollama_generate", side_effect=fake_ollama):
         out = train_voice._generate_lines_from_prompt(
-            "Finn", ["line one", "line two"], "Write some greetings.",
+            "Finn",
+            ["line one", "line two"],
+            "Write some greetings.",
         )
     assert out == ["Hey man!", "Whoa dude.", "What's up!"]
     assert calls["n"] == 2
@@ -350,7 +366,9 @@ def test_generate_lines_returns_best_effort_after_all_fail():
 
     with patch.object(train_voice, "_ollama_generate", side_effect=fake_ollama):
         out = train_voice._generate_lines_from_prompt(
-            "Finn", ["line one", "line two"], "Write some greetings.",
+            "Finn",
+            ["line one", "line two"],
+            "Write some greetings.",
         )
     assert out == []
 
@@ -367,7 +385,7 @@ def _llamacpp_config() -> TokenPalConfig:
 
 def test_ollama_generate_builds_backend_from_config():
     captured: list[dict] = []
-    backend = ScriptedLLM([ok_response("  \"a persona line\"  ")])
+    backend = ScriptedLLM([ok_response('  "a persona line"  ')])
     load_config = Mock(side_effect=_llamacpp_config)
 
     def fake_backend(config):

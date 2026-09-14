@@ -54,7 +54,9 @@ class ObservationEnricher:
         return snapshot
 
     async def _enrich_app_awareness(
-        self, snapshot: str, readings: dict[str, Any],
+        self,
+        snapshot: str,
+        readings: dict[str, Any],
     ) -> str:
         """Splice the foreground app's description into `App: <name>`.
 
@@ -73,11 +75,15 @@ class ObservationEnricher:
         if not description:
             return snapshot
         return snapshot.replace(
-            f"App: {app_name}", f"App: {app_name} ({description})", 1,
+            f"App: {app_name}",
+            f"App: {app_name} ({description})",
+            1,
         )
 
     async def _enrich_process_heat(
-        self, snapshot: str, readings: dict[str, Any],
+        self,
+        snapshot: str,
+        readings: dict[str, Any],
     ) -> str:
         """Append the top CPU hog's description to its reading summary.
 

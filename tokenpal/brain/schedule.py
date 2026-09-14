@@ -35,6 +35,7 @@ _BOTH_KINDS_HELP = "every_min and at cannot both be set."
 def _unknown_kind(kind: object) -> str:
     return f"unknown schedule kind {kind!r}."
 
+
 # Both grammars are stricter than the stdlib parsers they replace: float() would
 # take "1e3" and "1_0" as 1000 and 10, and %M matches one digit, so "9:3" would
 # arm 09:03 for a user who meant 09:30.

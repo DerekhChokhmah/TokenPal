@@ -108,8 +108,7 @@ async def _screened_hits(
 class GrepCodebaseAction(AbstractAction):
     action_name = "grep_codebase"
     description = (
-        "Search the current repo with ripgrep. Respects .gitignore. "
-        "Capped at 100 matches."
+        "Search the current repo with ripgrep. Respects .gitignore. Capped at 100 matches."
     )
     parameters: ClassVar[dict[str, Any]] = {
         "type": "object",

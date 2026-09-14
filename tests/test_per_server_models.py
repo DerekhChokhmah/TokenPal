@@ -66,9 +66,7 @@ def test_remember_server_model_upserts(fake_config: Path) -> None:
 
 
 def test_remember_server_model_preserves_other_llm_keys(fake_config: Path) -> None:
-    fake_config.write_text(
-        '[llm]\nmodel_name = "gemma4"\napi_url = "http://x:1/v1"\n'
-    )
+    fake_config.write_text('[llm]\nmodel_name = "gemma4"\napi_url = "http://x:1/v1"\n')
     remember_server_model("http://x:1/v1", "newmodel")
     data = _toml(fake_config)
     assert data["llm"]["model_name"] == "gemma4"

@@ -62,7 +62,9 @@ def test_wmo_none_falls_back_to_clear() -> None:
 
 def test_envstate_no_weather_idle_clear() -> None:
     s = EnvState.from_inputs(
-        weather_data=None, idle_event=None, sensitive_suppressed=False,
+        weather_data=None,
+        idle_event=None,
+        sensitive_suppressed=False,
     )
     assert s.kind is Kind.CLEAR
     assert s.hot_outside is False
@@ -100,7 +102,9 @@ def test_envstate_cold_not_hot() -> None:
 
 def test_envstate_sustained_idle_is_afk() -> None:
     s = EnvState.from_inputs(
-        weather_data=None, idle_event="sustained", sensitive_suppressed=False,
+        weather_data=None,
+        idle_event="sustained",
+        sensitive_suppressed=False,
     )
     assert s.afk_active is True
 
@@ -136,11 +140,15 @@ def test_prop_swaps_sun_for_moon_at_night() -> None:
 
     clear_data = {"weather_code": 0, "temperature": 60, "unit": "°F"}
     day = EnvState.from_inputs(
-        weather_data=clear_data, idle_event=None, sensitive_suppressed=False,
+        weather_data=clear_data,
+        idle_event=None,
+        sensitive_suppressed=False,
         now=dt.datetime(2026, 4, 19, 13, 0),
     )
     night = EnvState.from_inputs(
-        weather_data=clear_data, idle_event=None, sensitive_suppressed=False,
+        weather_data=clear_data,
+        idle_event=None,
+        sensitive_suppressed=False,
         now=dt.datetime(2026, 4, 19, 22, 0),
     )
     assert prop_for(day) is SUN_SPRITE
@@ -160,7 +168,8 @@ def test_overcast_layers_cloud_over_sun() -> None:
     # WMO 3 → (CLOUDY, 0.8) = overcast.
     overcast_day = EnvState.from_inputs(
         weather_data={"weather_code": 3, "temperature": 60, "unit": "°F"},
-        idle_event=None, sensitive_suppressed=False,
+        idle_event=None,
+        sensitive_suppressed=False,
         now=dt.datetime(2026, 4, 19, 13, 0),
     )
     stack = props_for(overcast_day)
@@ -179,7 +188,8 @@ def test_overcast_layers_cloud_over_sun() -> None:
     # from both clear and overcast.
     partly_cloudy = EnvState.from_inputs(
         weather_data={"weather_code": 2, "temperature": 60, "unit": "°F"},
-        idle_event=None, sensitive_suppressed=False,
+        idle_event=None,
+        sensitive_suppressed=False,
         now=dt.datetime(2026, 4, 19, 13, 0),
     )
     assert props_for(partly_cloudy) == (SUN_SPRITE, OVERCAST_CLOUD_A)
@@ -187,13 +197,17 @@ def test_overcast_layers_cloud_over_sun() -> None:
     # Overcast at night: moon takes the sun's place behind the same drifting
     # cloud pair.
     from tokenpal.ui.ascii_props import MOON_SPRITE
+
     overcast_night = EnvState.from_inputs(
         weather_data={"weather_code": 3, "temperature": 60, "unit": "°F"},
-        idle_event=None, sensitive_suppressed=False,
+        idle_event=None,
+        sensitive_suppressed=False,
         now=dt.datetime(2026, 4, 19, 22, 0),
     )
     assert props_for(overcast_night) == (
-        MOON_SPRITE, OVERCAST_CLOUD_A, OVERCAST_CLOUD_B,
+        MOON_SPRITE,
+        OVERCAST_CLOUD_A,
+        OVERCAST_CLOUD_B,
     )
 
 
@@ -203,7 +217,8 @@ def test_overcast_layers_cloud_over_sun() -> None:
 def _overcast_env() -> EnvState:
     return EnvState.from_inputs(
         weather_data={"weather_code": 3, "temperature": 60, "unit": "°F"},
-        idle_event=None, sensitive_suppressed=False,
+        idle_event=None,
+        sensitive_suppressed=False,
     )
 
 
@@ -242,10 +257,12 @@ def test_night_star_scale_tiers() -> None:
 
     from tokenpal.ui.ascii_props import night_star_scale
 
-    night_args = dict(idle_event=None, sensitive_suppressed=False,
-                      now=dt.datetime(2026, 4, 19, 22, 0))
-    day_args = dict(idle_event=None, sensitive_suppressed=False,
-                    now=dt.datetime(2026, 4, 19, 13, 0))
+    night_args = dict(
+        idle_event=None, sensitive_suppressed=False, now=dt.datetime(2026, 4, 19, 22, 0)
+    )
+    day_args = dict(
+        idle_event=None, sensitive_suppressed=False, now=dt.datetime(2026, 4, 19, 13, 0)
+    )
 
     clear_night = EnvState.from_inputs(
         weather_data={"weather_code": 0, "temperature": 60, "unit": "°F"},
@@ -281,7 +298,8 @@ def test_partly_cloudy_night_has_moon_and_single_cloud() -> None:
 
     partly_night = EnvState.from_inputs(
         weather_data={"weather_code": 2, "temperature": 60, "unit": "°F"},
-        idle_event=None, sensitive_suppressed=False,
+        idle_event=None,
+        sensitive_suppressed=False,
         now=dt.datetime(2026, 4, 19, 22, 0),
     )
     assert props_for(partly_night) == (MOON_SPRITE, OVERCAST_CLOUD_A)
@@ -297,7 +315,8 @@ def test_cloud_drift_freezes_under_sensitive() -> None:
 
     suppressed = EnvState.from_inputs(
         weather_data={"weather_code": 3, "temperature": 60, "unit": "°F"},
-        idle_event=None, sensitive_suppressed=True,
+        idle_event=None,
+        sensitive_suppressed=True,
     )
     for _ in range(50):
         drift.tick(0.1, suppressed)
@@ -306,7 +325,9 @@ def test_cloud_drift_freezes_under_sensitive() -> None:
 
 def test_envstate_other_idle_event_not_afk() -> None:
     s = EnvState.from_inputs(
-        weather_data=None, idle_event="returned", sensitive_suppressed=False,
+        weather_data=None,
+        idle_event="returned",
+        sensitive_suppressed=False,
     )
     assert s.afk_active is False
 
@@ -321,7 +342,9 @@ def _seeded_motion() -> BuddyMotion:
 def test_motion_picks_target_and_slides() -> None:
     m = _seeded_motion()
     env = EnvState.from_inputs(
-        weather_data=None, idle_event=None, sensitive_suppressed=False,
+        weather_data=None,
+        idle_event=None,
+        sensitive_suppressed=False,
     )
     # First tick picks a target, advances toward it.
     m.tick(0.1, bounds_w=20.0, bounds_h=2.0, env=env)
@@ -334,7 +357,9 @@ def test_motion_picks_target_and_slides() -> None:
 def test_motion_freezes_under_sensitive() -> None:
     m = _seeded_motion()
     env = EnvState.from_inputs(
-        weather_data=None, idle_event=None, sensitive_suppressed=True,
+        weather_data=None,
+        idle_event=None,
+        sensitive_suppressed=True,
     )
     for _ in range(20):
         m.tick(0.1, bounds_w=20.0, bounds_h=2.0, env=env)
@@ -345,7 +370,9 @@ def test_motion_freezes_under_sensitive() -> None:
 def test_motion_clamps_to_bounds_on_resize() -> None:
     m = _seeded_motion()
     env = EnvState.from_inputs(
-        weather_data=None, idle_event=None, sensitive_suppressed=False,
+        weather_data=None,
+        idle_event=None,
+        sensitive_suppressed=False,
     )
     for _ in range(50):
         m.tick(0.1, bounds_w=40.0, bounds_h=2.0, env=env)
@@ -359,10 +386,14 @@ def test_motion_afk_slows() -> None:
     fast = _seeded_motion()
     slow = BuddyMotion(rng=random.Random(42), speed=10.0)
     env_active = EnvState.from_inputs(
-        weather_data=None, idle_event=None, sensitive_suppressed=False,
+        weather_data=None,
+        idle_event=None,
+        sensitive_suppressed=False,
     )
     env_afk = EnvState.from_inputs(
-        weather_data=None, idle_event="sustained", sensitive_suppressed=False,
+        weather_data=None,
+        idle_event="sustained",
+        sensitive_suppressed=False,
     )
     # Force same target by seeding identically and ticking once for both.
     fast.tick(0.1, 30.0, 2.0, env_active)
@@ -379,7 +410,9 @@ def test_motion_afk_slows() -> None:
 
 def _env_active() -> EnvState:
     return EnvState.from_inputs(
-        weather_data=None, idle_event=None, sensitive_suppressed=False,
+        weather_data=None,
+        idle_event=None,
+        sensitive_suppressed=False,
     )
 
 
@@ -505,7 +538,9 @@ def test_sensitive_freezes_physics_fields() -> None:
         m.drag_update(dx, 0.0, 0.05)
     # Now flip to sensitive and tick once.
     env_suppressed = EnvState.from_inputs(
-        weather_data=None, idle_event=None, sensitive_suppressed=True,
+        weather_data=None,
+        idle_event=None,
+        sensitive_suppressed=True,
     )
     m.tick(0.1, bounds_w=20.0, bounds_h=2.0, env=env_suppressed)
     assert m.drag_offset_x == 0.0
@@ -594,7 +629,7 @@ def test_populate_starfield_enforces_minimum_spacing() -> None:
     # No two stars closer than ~half a cell side.
     pts = [(p.x, p.y) for p in field.particles]
     for i, (x1, y1) in enumerate(pts):
-        for x2, y2 in pts[i + 1:]:
+        for x2, y2 in pts[i + 1 :]:
             d = ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
             assert d > 1.5, f"stars too close: ({x1:.1f},{y1:.1f}) ↔ ({x2:.1f},{y2:.1f}) d={d:.2f}"
 
@@ -731,10 +766,14 @@ def test_particles_sensitive_freezes_field() -> None:
 def test_particles_afk_slower_spawn_than_active() -> None:
     rain_data = {"weather_code": 63, "temperature": 60, "unit": "°F"}
     env_active = EnvState.from_inputs(
-        weather_data=rain_data, idle_event=None, sensitive_suppressed=False,
+        weather_data=rain_data,
+        idle_event=None,
+        sensitive_suppressed=False,
     )
     env_afk = EnvState.from_inputs(
-        weather_data=rain_data, idle_event="sustained", sensitive_suppressed=False,
+        weather_data=rain_data,
+        idle_event="sustained",
+        sensitive_suppressed=False,
     )
     field_active = ParticleField(rng=random.Random(7))
     field_afk = ParticleField(rng=random.Random(7))
@@ -767,12 +806,20 @@ def test_particles_cull_when_off_panel() -> None:
     # Spawn one rain drop with a tiny life and verify it culls cleanly.
     from tokenpal.ui.buddy_environment import Particle
 
-    field.particles.append(Particle(
-        x=5.0, y=5.0, vx=0.0, vy=0.0, ax=0.0, ay=0.0,
-        life=0.05, glyph=".", color="#5599ff",
-    ))
+    field.particles.append(
+        Particle(
+            x=5.0,
+            y=5.0,
+            vx=0.0,
+            vy=0.0,
+            ax=0.0,
+            ay=0.0,
+            life=0.05,
+            glyph=".",
+            color="#5599ff",
+        )
+    )
     field.tick(0.2, 30, 15, env, 15.0, 10.0)
-    assert all(
-        not (p.x == 5.0 and p.y == 5.0 and p.glyph == ".")
-        for p in field.particles
-    ), "expired particle should be culled"
+    assert all(not (p.x == 5.0 and p.y == 5.0 and p.glyph == ".") for p in field.particles), (
+        "expired particle should be culled"
+    )

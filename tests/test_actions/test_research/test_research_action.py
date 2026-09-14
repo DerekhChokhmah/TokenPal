@@ -45,7 +45,8 @@ async def test_rejects_empty_question() -> None:
 
 @pytest.mark.asyncio
 async def test_without_research_consent_errors(
-    tmp_path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from tokenpal.config import consent as consent_mod
 
@@ -61,14 +62,16 @@ async def test_without_research_consent_errors(
 
 @pytest.mark.asyncio
 async def test_without_web_fetches_consent_errors(
-    tmp_path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from tokenpal.config import consent as consent_mod
 
     path = tmp_path / "consent.json"
     monkeypatch.setattr(consent_mod, "_default_path", lambda: path)
     consent_mod.save_consent(
-        {consent_mod.Category.RESEARCH_MODE: True}, path,
+        {consent_mod.Category.RESEARCH_MODE: True},
+        path,
     )
 
     action = ResearchAction({})
@@ -88,10 +91,14 @@ async def test_llm_not_injected_errors(grant_all_consent) -> None:
 
 @pytest.mark.asyncio
 async def test_happy_path_returns_cited_answer(
-    monkeypatch: pytest.MonkeyPatch, grant_all_consent,
+    monkeypatch: pytest.MonkeyPatch,
+    grant_all_consent,
 ) -> None:
     def fake_search(
-        query: str, backend: str = "duckduckgo", limit: int = 5, **_: Any,
+        query: str,
+        backend: str = "duckduckgo",
+        limit: int = 5,
+        **_: Any,
     ) -> list[SearchResult]:
         return [
             SearchResult(
@@ -109,13 +116,16 @@ async def test_happy_path_returns_cited_answer(
         return f"Full article text from {url}"
 
     monkeypatch.setattr(
-        "tokenpal.actions.research.research_action.fetch_and_extract", fake_fetch,
+        "tokenpal.actions.research.research_action.fetch_and_extract",
+        fake_fetch,
     )
 
-    llm = _ScriptedLLM([
-        _ok('[{"query": "test query", "intent": "find facts"}]'),
-        _ok("The answer with citation [1] and another [2]."),
-    ])
+    llm = _ScriptedLLM(
+        [
+            _ok('[{"query": "test query", "intent": "find facts"}]'),
+            _ok("The answer with citation [1] and another [2]."),
+        ]
+    )
 
     action = ResearchAction({})
     action._llm = llm
@@ -136,15 +146,19 @@ async def test_happy_path_returns_cited_answer(
 
 @pytest.mark.asyncio
 async def test_failed_pipeline_returns_failure(
-    monkeypatch: pytest.MonkeyPatch, grant_all_consent,
+    monkeypatch: pytest.MonkeyPatch,
+    grant_all_consent,
 ) -> None:
     monkeypatch.setattr(
-        "tokenpal.brain.research.search_many", lambda *_a, **_kw: [],
+        "tokenpal.brain.research.search_many",
+        lambda *_a, **_kw: [],
     )
 
-    llm = _ScriptedLLM([
-        _ok('[{"query": "test", "intent": "find"}]'),
-    ])
+    llm = _ScriptedLLM(
+        [
+            _ok('[{"query": "test", "intent": "find"}]'),
+        ]
+    )
 
     action = ResearchAction({})
     action._llm = llm

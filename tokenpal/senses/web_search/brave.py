@@ -44,12 +44,14 @@ def brave_search(
     if not query or not key:
         return []
 
-    params = urllib.parse.urlencode({
-        "q": query,
-        # Brave caps count at 20; clamp defensively even though the planner
-        # never goes that high.
-        "count": max(1, min(count, 20)),
-    })
+    params = urllib.parse.urlencode(
+        {
+            "q": query,
+            # Brave caps count at 20; clamp defensively even though the planner
+            # never goes that high.
+            "count": max(1, min(count, 20)),
+        }
+    )
     payload = http_json(
         f"{_API_URL}?{params}",
         headers={
@@ -75,9 +77,11 @@ def brave_search(
         description = str(item.get("description") or "").strip()
         if not url_val or not description:
             continue
-        cleaned.append({
-            "url": url_val,
-            "title": title or url_val,
-            "description": description,
-        })
+        cleaned.append(
+            {
+                "url": url_val,
+                "title": title or url_val,
+                "description": description,
+            }
+        )
     return cleaned

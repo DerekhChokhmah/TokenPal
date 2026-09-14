@@ -35,8 +35,8 @@ class VoiceState(StrEnum):
 
 class Action(StrEnum):
     NONE = "none"
-    SUBMIT = "submit"          # caller hands transcript to the brain
-    CLOSE_SESSION = "close"    # caller drains queues + closes mic
+    SUBMIT = "submit"  # caller hands transcript to the brain
+    CLOSE_SESSION = "close"  # caller drains queues + closes mic
 
 
 @dataclass(frozen=True)

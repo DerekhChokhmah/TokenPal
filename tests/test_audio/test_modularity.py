@@ -22,16 +22,21 @@ from typing import Any
 
 import pytest
 
-INPUT_SIDE_DEPS: frozenset[str] = frozenset({
-    "pyaudio",
-    "openwakeword",
-    "faster_whisper",
-})
+INPUT_SIDE_DEPS: frozenset[str] = frozenset(
+    {
+        "pyaudio",
+        "openwakeword",
+        "faster_whisper",
+    }
+)
 
 
 class _BlockInputSide:
     def find_spec(
-        self, fullname: str, path: Any = None, target: Any = None,
+        self,
+        fullname: str,
+        path: Any = None,
+        target: Any = None,
     ) -> ModuleSpec | None:
         if fullname in INPUT_SIDE_DEPS:
             raise ImportError(
@@ -69,9 +74,7 @@ async def test_ambient_only_does_not_open_input(tmp_path: Path) -> None:
         await speak("hello", source="ambient", pipeline=pipeline)
 
         leaked = sorted(m for m in sys.modules if m in INPUT_SIDE_DEPS)
-        assert not leaked, (
-            f"ambient-only boot leaked input-side deps: {leaked}"
-        )
+        assert not leaked, f"ambient-only boot leaked input-side deps: {leaked}"
 
 
 async def test_voice_on_imports_input_side(tmp_path: Path) -> None:

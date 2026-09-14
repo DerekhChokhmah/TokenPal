@@ -74,7 +74,7 @@ def test_detect_volume_gate_skips_quiet_frame(tmp_path: Path) -> None:
     b._model = fake_model
 
     # All samples below the volume gate.
-    quiet = (b"\x10\x00" * 1280)  # 16 < _VOLUME_GATE
+    quiet = b"\x10\x00" * 1280  # 16 < _VOLUME_GATE
     assert b.detect(quiet) is None
     fake_model.predict.assert_not_called()
 

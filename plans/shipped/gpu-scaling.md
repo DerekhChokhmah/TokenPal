@@ -131,11 +131,12 @@ class ThroughputSample:
     total_elapsed_s: float  # wall-clock around the HTTP call
     timestamp: float
 
+
 class HttpBackend:
-    _samples: deque[ThroughputSample]                 # maxlen=20
-    _decode_tps_ewma: float | None                    # α=0.2, None < 3 samples
-    _ttft_ewma_s: float | None                        # α=0.2, None < 3 samples
-    _estimator_key: tuple[str, str] | None            # (server_url, model)
+    _samples: deque[ThroughputSample]  # maxlen=20
+    _decode_tps_ewma: float | None  # α=0.2, None < 3 samples
+    _ttft_ewma_s: float | None  # α=0.2, None < 3 samples
+    _estimator_key: tuple[str, str] | None  # (server_url, model)
 ```
 
 Measurements, per successful call with `completion_tokens > 0`:

@@ -25,9 +25,7 @@ class _MockBackend(AbstractLLMBackend):
     async def setup(self) -> None:
         pass
 
-    async def generate(
-        self, prompt: str, max_tokens: int = 256, **_: Any
-    ) -> LLMResponse:
+    async def generate(self, prompt: str, max_tokens: int = 256, **_: Any) -> LLMResponse:
         self._call_log.append({"method": "generate", "prompt": prompt})
         return self._responses.pop(0)
 
@@ -49,9 +47,7 @@ def test_llm_response_defaults_empty_tool_calls():
 
 def test_llm_response_with_tool_calls():
     tc = ToolCall(id="call_1", name="timer", arguments={})
-    r = LLMResponse(
-        text="", tokens_used=10, model_name="test", latency_ms=50.0, tool_calls=[tc]
-    )
+    r = LLMResponse(text="", tokens_used=10, model_name="test", latency_ms=50.0, tool_calls=[tc])
     assert len(r.tool_calls) == 1
     assert r.tool_calls[0].name == "timer"
 
@@ -80,16 +76,20 @@ async def test_malformed_tool_arguments_are_never_logged(caplog: Any) -> None:
     raw_args = '{"text": "' + secret
 
     payload = {
-        "choices": [{
-            "message": {
-                "content": "",
-                "tool_calls": [{
-                    "id": "c1",
-                    "function": {"name": "read_selection", "arguments": raw_args},
-                }],
-            },
-            "finish_reason": "tool_calls",
-        }],
+        "choices": [
+            {
+                "message": {
+                    "content": "",
+                    "tool_calls": [
+                        {
+                            "id": "c1",
+                            "function": {"name": "read_selection", "arguments": raw_args},
+                        }
+                    ],
+                },
+                "finish_reason": "tool_calls",
+            }
+        ],
     }
 
     backend = HttpBackend({"api_url": "http://localhost:11434/v1", "model_name": "m"})
@@ -110,16 +110,20 @@ async def test_non_object_tool_arguments_become_an_empty_dict() -> None:
     """``ToolCall.arguments`` is a dict by contract; a server that sends
     ``"null"`` or ``"[]"`` must not hand the executor a None or a list."""
     payload = {
-        "choices": [{
-            "message": {
-                "content": "",
-                "tool_calls": [{
-                    "id": "c1",
-                    "function": {"name": "timer", "arguments": "null"},
-                }],
-            },
-            "finish_reason": "tool_calls",
-        }],
+        "choices": [
+            {
+                "message": {
+                    "content": "",
+                    "tool_calls": [
+                        {
+                            "id": "c1",
+                            "function": {"name": "timer", "arguments": "null"},
+                        }
+                    ],
+                },
+                "finish_reason": "tool_calls",
+            }
+        ],
     }
     backend = HttpBackend({"api_url": "http://localhost:11434/v1", "model_name": "m"})
     client = AsyncMock()

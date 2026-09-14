@@ -13,6 +13,7 @@ returns. Net: 240 fps when the cursor is over the buddy, ~140 fps when
 elsewhere -- still a clean win over the QWidget path's 70-80 fps in
 motion.
 """
+
 from __future__ import annotations
 
 import ctypes
@@ -51,12 +52,15 @@ def _bind_user32() -> Any:
     u32.GetWindowLongPtrW.argtypes = [ctypes.wintypes.HWND, ctypes.c_int]
     u32.SetWindowLongPtrW.restype = ctypes.c_longlong
     u32.SetWindowLongPtrW.argtypes = [
-        ctypes.wintypes.HWND, ctypes.c_int, ctypes.c_longlong,
+        ctypes.wintypes.HWND,
+        ctypes.c_int,
+        ctypes.c_longlong,
     ]
     u32.GetCursorPos.argtypes = [ctypes.POINTER(ctypes.wintypes.POINT)]
     u32.GetCursorPos.restype = ctypes.wintypes.BOOL
     u32.ScreenToClient.argtypes = [
-        ctypes.wintypes.HWND, ctypes.POINTER(ctypes.wintypes.POINT),
+        ctypes.wintypes.HWND,
+        ctypes.POINTER(ctypes.wintypes.POINT),
     ]
     u32.ScreenToClient.restype = ctypes.wintypes.BOOL
     # SetWindowPos was previously called without explicit argtypes;
@@ -65,13 +69,13 @@ def _bind_user32() -> Any:
     # way that caused the call to silently fail under some loaders
     # (no exception, no style update). Bind explicitly.
     u32.SetWindowPos.argtypes = [
-        ctypes.wintypes.HWND,    # hWnd
-        ctypes.wintypes.HWND,    # hWndInsertAfter
-        ctypes.c_int,            # X
-        ctypes.c_int,            # Y
-        ctypes.c_int,            # cx
-        ctypes.c_int,            # cy
-        ctypes.wintypes.UINT,    # uFlags
+        ctypes.wintypes.HWND,  # hWnd
+        ctypes.wintypes.HWND,  # hWndInsertAfter
+        ctypes.c_int,  # X
+        ctypes.c_int,  # Y
+        ctypes.c_int,  # cx
+        ctypes.c_int,  # cy
+        ctypes.wintypes.UINT,  # uFlags
     ]
     u32.SetWindowPos.restype = ctypes.wintypes.BOOL
     return u32
@@ -116,8 +120,7 @@ class ClickThroughToggle(QObject):
             self._hwnd = ctypes.wintypes.HWND(int(wid))
             ex0 = self._u32.GetWindowLongPtrW(self._hwnd, _GWL_EXSTYLE)
             log.info(
-                "click-through bound to hwnd=%s, initial WS_EX=0x%08x "
-                "(LAYERED=%s, TRANSPARENT=%s)",
+                "click-through bound to hwnd=%s, initial WS_EX=0x%08x (LAYERED=%s, TRANSPARENT=%s)",
                 int(wid),
                 ex0 & 0xFFFFFFFF,
                 bool(ex0 & _WS_EX_LAYERED),
@@ -136,27 +139,29 @@ class ClickThroughToggle(QObject):
             return
         self._currently_transparent = want_transparent
         ex = self._u32.GetWindowLongPtrW(self._hwnd, _GWL_EXSTYLE)
-        ex_new = (
-            (ex | _WS_EX_TRANSPARENT) if want_transparent
-            else (ex & ~_WS_EX_TRANSPARENT)
-        )
+        ex_new = (ex | _WS_EX_TRANSPARENT) if want_transparent else (ex & ~_WS_EX_TRANSPARENT)
         self._u32.SetWindowLongPtrW(self._hwnd, _GWL_EXSTYLE, ex_new)
         self._u32.SetWindowPos(
             self._hwnd,
             ctypes.wintypes.HWND(0),  # hWndInsertAfter (ignored under SWP_NOZORDER)
-            0, 0, 0, 0,
-            _SWP_NOMOVE | _SWP_NOSIZE | _SWP_NOZORDER
-            | _SWP_NOACTIVATE | _SWP_NOREDRAW | _SWP_FRAMECHANGED,
+            0,
+            0,
+            0,
+            0,
+            _SWP_NOMOVE
+            | _SWP_NOSIZE
+            | _SWP_NOZORDER
+            | _SWP_NOACTIVATE
+            | _SWP_NOREDRAW
+            | _SWP_FRAMECHANGED,
         )
         if _TRACE or self._tick_log_count < 6:
-            ex_after = (
-                self._u32.GetWindowLongPtrW(self._hwnd, _GWL_EXSTYLE) & 0xFFFFFFFF
-            )
+            ex_after = self._u32.GetWindowLongPtrW(self._hwnd, _GWL_EXSTYLE) & 0xFFFFFFFF
             log.info(
-                "click-through %s @ client=(%.0f,%.0f) WS_EX=0x%08x "
-                "(TRANSPARENT=%s)",
+                "click-through %s @ client=(%.0f,%.0f) WS_EX=0x%08x (TRANSPARENT=%s)",
                 "TRANSPARENT" if want_transparent else "OPAQUE",
-                client.x(), client.y(),
+                client.x(),
+                client.y(),
                 ex_after,
                 bool(ex_after & _WS_EX_TRANSPARENT),
             )

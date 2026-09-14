@@ -73,10 +73,12 @@ def make_asr(config: AudioConfig, data_dir: Path) -> ASRBackend:
             return LocalWhisperBackend(data_dir, model_size=config.asr_model_size)
         return ASRWithFallback(
             primary=RemoteWhisperBackend(
-                config.asr_server_url, model=config.asr_model_size,
+                config.asr_server_url,
+                model=config.asr_model_size,
             ),
             fallback=LocalWhisperBackend(
-                data_dir, model_size=config.asr_model_size,
+                data_dir,
+                model_size=config.asr_model_size,
             ),
         )
     return LocalWhisperBackend(data_dir, model_size=config.asr_model_size)

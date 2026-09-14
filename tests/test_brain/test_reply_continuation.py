@@ -37,9 +37,7 @@ class _ScriptedLLM(AbstractLLMBackend):
     async def teardown(self) -> None:
         pass
 
-    async def generate(
-        self, prompt: str, max_tokens: int | None = None, **_: Any
-    ) -> LLMResponse:
+    async def generate(self, prompt: str, max_tokens: int | None = None, **_: Any) -> LLMResponse:
         raise NotImplementedError
 
     async def generate_with_tools(
@@ -93,40 +91,48 @@ class TestReplyContinuation:
         llm = _ScriptedLLM([("Hello there.", "stop")])
         brain = _brain(llm)
         out = await brain._reply_with_continuation(
-            [{"role": "user", "content": "hi"}], max_tokens=64,
+            [{"role": "user", "content": "hi"}],
+            max_tokens=64,
         )
         assert out == "Hello there."
         assert len(llm.calls) == 1
 
     @pytest.mark.asyncio
     async def test_continues_once_when_length(self) -> None:
-        llm = _ScriptedLLM([
-            ("First half, ", "length"),
-            ("second half done.", "stop"),
-        ])
+        llm = _ScriptedLLM(
+            [
+                ("First half, ", "length"),
+                ("second half done.", "stop"),
+            ]
+        )
         brain = _brain(llm)
         out = await brain._reply_with_continuation(
-            [{"role": "user", "content": "hi"}], max_tokens=64,
+            [{"role": "user", "content": "hi"}],
+            max_tokens=64,
         )
         assert out == "First half, second half done."
         assert len(llm.calls) == 2
         # The second call includes the partial assistant turn so the model resumes.
         assert llm.calls[1]["messages"][-1] == {
-            "role": "assistant", "content": "First half, ",
+            "role": "assistant",
+            "content": "First half, ",
         }
 
     @pytest.mark.asyncio
     async def test_caps_continuations_and_trims_tail(self) -> None:
         # Three straight length-truncations → we stop after _MAX_CONTINUATIONS
         # and clip the ragged tail back to the last sentence.
-        llm = _ScriptedLLM([
-            ("Intro sentence. Partial ", "length"),
-            ("more partial ", "length"),
-            ("still partial", "length"),
-        ])
+        llm = _ScriptedLLM(
+            [
+                ("Intro sentence. Partial ", "length"),
+                ("more partial ", "length"),
+                ("still partial", "length"),
+            ]
+        )
         brain = _brain(llm)
         out = await brain._reply_with_continuation(
-            [{"role": "user", "content": "hi"}], max_tokens=64,
+            [{"role": "user", "content": "hi"}],
+            max_tokens=64,
         )
         assert len(llm.calls) == brain._MAX_CONTINUATIONS + 1
         assert out.endswith("…")
@@ -139,7 +145,8 @@ class TestReplyContinuation:
         llm = _ScriptedLLM([("", "length")])
         brain = _brain(llm)
         out = await brain._reply_with_continuation(
-            [{"role": "user", "content": "hi"}], max_tokens=64,
+            [{"role": "user", "content": "hi"}],
+            max_tokens=64,
         )
         assert out == ""
         assert len(llm.calls) == 1

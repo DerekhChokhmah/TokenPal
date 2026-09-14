@@ -55,7 +55,8 @@ def _env_float(name: str, default: float) -> float:
     except ValueError:
         print(
             f"ruler_scroll: bad value for {name}={raw!r}; using {default}",
-            file=sys.stderr, flush=True,
+            file=sys.stderr,
+            flush=True,
         )
         return default
 

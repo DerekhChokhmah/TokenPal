@@ -216,9 +216,7 @@ async def test_a_path_outside_the_roots_never_reaches_execute(
     assert action.seen == []
 
 
-async def test_an_undeclared_tool_does_no_path_work(
-    monkeypatch: pytest.MonkeyPatch
-) -> None:
+async def test_an_undeclared_tool_does_no_path_work(monkeypatch: pytest.MonkeyPatch) -> None:
     """``path_params`` empty is the gate that keeps a git subprocess off the
     tools that declare no path, including every idle roll."""
     calls = _stub_repo(monkeypatch, None)
@@ -231,9 +229,7 @@ async def test_an_undeclared_tool_does_no_path_work(
     assert calls == []
 
 
-async def test_a_blank_path_is_left_to_the_tool(
-    monkeypatch: pytest.MonkeyPatch
-) -> None:
+async def test_a_blank_path_is_left_to_the_tool(monkeypatch: pytest.MonkeyPatch) -> None:
     """An optional or missing path is the tool's refusal to word, and
     grep_codebase's ``path`` is genuinely optional."""
     calls = _stub_repo(monkeypatch, None)

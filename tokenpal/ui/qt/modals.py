@@ -76,8 +76,7 @@ class ConfirmDialog(QDialog, _OneShotCallback):
         layout.addWidget(label)
 
         buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Yes
-            | QDialogButtonBox.StandardButton.No,
+            QDialogButtonBox.StandardButton.Yes | QDialogButtonBox.StandardButton.No,
         )
         buttons.accepted.connect(self._on_yes)
         buttons.rejected.connect(self._on_no)
@@ -147,8 +146,7 @@ class SelectionDialog(QDialog, _OneShotCallback):
         layout.addWidget(scroll, 1)
 
         buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Save
-            | QDialogButtonBox.StandardButton.Cancel,
+            QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel,
         )
         buttons.accepted.connect(self._on_accept)
         buttons.rejected.connect(self._on_cancel)
@@ -176,6 +174,5 @@ def _focus_dialog(dialog: QDialog) -> None:
     dialog.raise_()
     dialog.activateWindow()
     dialog.setWindowState(
-        dialog.windowState() & ~Qt.WindowState.WindowMinimized
-        | Qt.WindowState.WindowActive,
+        dialog.windowState() & ~Qt.WindowState.WindowMinimized | Qt.WindowState.WindowActive,
     )

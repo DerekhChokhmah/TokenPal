@@ -96,8 +96,13 @@ def install(timeout_s: float = 600.0) -> InstallResult:
     # progress. Without these, capture_output buffers ~5-20MB of text on a
     # slow connection (kokoro-onnx pulls onnxruntime ~200MB).
     cmd = [
-        sys.executable, "-m", "pip", "install",
-        "--progress-bar", "off", "-q",
+        sys.executable,
+        "-m",
+        "pip",
+        "install",
+        "--progress-bar",
+        "off",
+        "-q",
         *missing,
     ]
     log.info("Installing audio deps: %s", " ".join(missing))
@@ -158,10 +163,10 @@ def _kokoro_filenames(quantization: str) -> tuple[str, str]:
     backends package yet.
     """
     from tokenpal.audio.backends.kokoro import MODEL_FILENAMES, VOICES_FILENAME
+
     if quantization not in MODEL_FILENAMES:
         raise ValueError(
-            f"unknown quantization {quantization!r} — pick from "
-            f"{sorted(MODEL_FILENAMES)}",
+            f"unknown quantization {quantization!r} — pick from {sorted(MODEL_FILENAMES)}",
         )
     return MODEL_FILENAMES[quantization], VOICES_FILENAME
 
@@ -170,9 +175,7 @@ def missing_models(data_dir: Path, quantization: str = "fp16") -> tuple[Path, ..
     audio_dir = data_dir / "audio"
     model_name, voices_name = _kokoro_filenames(quantization)
     return tuple(
-        audio_dir / name
-        for name in (model_name, voices_name)
-        if not (audio_dir / name).exists()
+        audio_dir / name for name in (model_name, voices_name) if not (audio_dir / name).exists()
     )
 
 
@@ -247,10 +250,7 @@ def install_all(
         input_result = install_input_models(data_dir, timeout_s=timeout_s)
         if not input_result.ok:
             return input_result
-        message = (
-            f"{deps_result.message} {models_result.message} "
-            f"{input_result.message}"
-        )
+        message = f"{deps_result.message} {models_result.message} {input_result.message}"
     else:
         message = f"{deps_result.message} {models_result.message}"
     return InstallResult(ok=True, message=message.strip())
@@ -260,9 +260,7 @@ def install_all(
 # wakeword). Its bundled silero_vad.onnx, however, is a dead-weights copy
 # that returns ~0.0005 on every input — so VAD comes from snakers4/silero-vad
 # directly. Both URLs pin to release tags, which are immutable on GitHub.
-_OWW_RELEASE_BASE: Final[str] = (
-    "https://github.com/dscripka/openWakeWord/releases/download/v0.5.1"
-)
+_OWW_RELEASE_BASE: Final[str] = "https://github.com/dscripka/openWakeWord/releases/download/v0.5.1"
 _SILERO_VAD_URL: Final[str] = (
     "https://github.com/snakers4/silero-vad/raw/v5.1.2/src/silero_vad/data/silero_vad.onnx"
 )
@@ -292,7 +290,8 @@ def missing_input_models(data_dir: Path) -> tuple[Path, ...]:
 
 
 def install_input_models(
-    data_dir: Path, timeout_s: float = 600.0,
+    data_dir: Path,
+    timeout_s: float = 600.0,
 ) -> InstallResult:
     """Fetch Silero VAD + the OpenWakeWord model trio into <data_dir>/audio.
 
@@ -332,7 +331,8 @@ def install_input_models(
     for path, err in results:
         if err is not None:
             return InstallResult(
-                ok=False, message=f"download {path.name} failed: {err}",
+                ok=False,
+                message=f"download {path.name} failed: {err}",
             )
     return InstallResult(
         ok=True,

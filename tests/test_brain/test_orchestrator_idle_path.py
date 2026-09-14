@@ -26,15 +26,19 @@ def _bare_brain() -> Brain:
     obj._memory = None
     # _any_long_task inspects _mode; default idle state is fine.
     from tokenpal.brain.orchestrator import BrainMode
+
     obj._mode = BrainMode.IDLE
     obj._idle_runner = IdleToolRunner(obj)
     return obj
 
 
 _FIRE_DEFAULTS: dict[str, Any] = dict(
-    rule_name="morning_word", tool_name="word_of_the_day",
-    tool_output="oxymoron", framing="announce it",
-    latency_ms=1.0, success=True,
+    rule_name="morning_word",
+    tool_name="word_of_the_day",
+    tool_output="oxymoron",
+    framing="announce it",
+    latency_ms=1.0,
+    success=True,
 )
 
 
@@ -82,15 +86,20 @@ class _RecordingMemory:
         self.enabled = True
 
     def record_observation(
-        self, sense_name: str, event_type: str, summary: str,
+        self,
+        sense_name: str,
+        event_type: str,
+        summary: str,
         data: dict[str, Any] | None = None,
     ) -> None:
-        self.calls.append({
-            "sense_name": sense_name,
-            "event_type": event_type,
-            "summary": summary,
-            "data": data,
-        })
+        self.calls.append(
+            {
+                "sense_name": sense_name,
+                "event_type": event_type,
+                "summary": summary,
+                "data": data,
+            }
+        )
 
 
 def test_record_idle_fire_writes_telemetry_row() -> None:
@@ -117,7 +126,8 @@ def test_record_idle_fire_marks_llm_initiated_source() -> None:
     fire = _fire(
         rule_name="llm_initiated:word_of_the_day",
         tool_output="serendipity: a happy accident",
-        framing="react to it", latency_ms=80.0,
+        framing="react to it",
+        latency_ms=80.0,
     )
     brain._idle_runner.record_fire(fire, emitted=True)
     assert brain._memory.calls[0]["data"]["source"] == "llm_initiated"
@@ -127,9 +137,13 @@ async def test_generate_comment_returns_false_on_sensitive_app() -> None:
     """False return is what lets the brain loop cede the tick to idle rolls."""
     brain = _bare_brain()
     brain._context = type("C", (), {"snapshot": lambda self: "banking app"})()
-    brain._personality = type("P", (), {
-        "check_sensitive_app": lambda self, s: True,
-    })()
+    brain._personality = type(
+        "P",
+        (),
+        {
+            "check_sensitive_app": lambda self, s: True,
+        },
+    )()
     assert await brain._generate_comment() is False
 
 
@@ -137,10 +151,14 @@ async def test_generate_comment_returns_true_on_easter_egg() -> None:
     """Easter eggs count as emitted, so no redundant idle roll on the tick."""
     brain = _bare_brain()
     brain._context = type("C", (), {"snapshot": lambda self: "noon"})()
-    brain._personality = type("P", (), {
-        "check_sensitive_app": lambda self, s: False,
-        "check_easter_egg": lambda self, s: "Lunchtime.",
-    })()
+    brain._personality = type(
+        "P",
+        (),
+        {
+            "check_sensitive_app": lambda self, s: False,
+            "check_easter_egg": lambda self, s: "Lunchtime.",
+        },
+    )()
     emitted: list[str] = []
     brain._emit_comment = lambda text, acknowledge=False: emitted.append(text)
     assert await brain._generate_comment() is True
@@ -158,12 +176,11 @@ def test_build_idle_context_wires_session_minutes(monkeypatch: Any) -> None:
     brain._last_comment_time = time.monotonic() - 30
     monkeypatch.setattr(
         "tokenpal.brain.idle_runner.datetime",
-        type("D", (), {"now": staticmethod(
-            lambda: datetime(2026, 4, 17, 9, 30)
-        )})(),
+        type("D", (), {"now": staticmethod(lambda: datetime(2026, 4, 17, 9, 30))})(),
     )
     monkeypatch.setattr(
-        "tokenpal.brain.idle_runner.has_consent", lambda _: False,
+        "tokenpal.brain.idle_runner.has_consent",
+        lambda _: False,
     )
     ctx = brain._idle_runner.build_context()
     assert ctx.session_minutes >= 9
@@ -177,9 +194,11 @@ async def test_deliver_registers_running_bit_silently_without_opener() -> None:
     brain._personality = PersonalityEngine(persona_prompt="test")
     brain._idle_runner._riff = AsyncMock()  # type: ignore[method-assign]
     fire = _fire(
-        rule_name="deep_work", tool_output="3h",
+        rule_name="deep_work",
+        tool_output="3h",
         framing="you have been at it for {output}",
-        running_bit=True, bit_decay_s=900.0,
+        running_bit=True,
+        bit_decay_s=900.0,
     )
     assert await brain._idle_runner.deliver("snapshot", fire) is False
     brain._idle_runner._riff.assert_not_awaited()

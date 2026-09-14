@@ -34,6 +34,7 @@ try:
     import select
     import termios
     import tty
+
     _HAS_TERMIOS = True
 except ImportError:
     _HAS_TERMIOS = False
@@ -41,6 +42,7 @@ except ImportError:
 # Try to import msvcrt (Windows only)
 try:
     import msvcrt
+
     _HAS_MSVCRT = True
 except ImportError:
     _HAS_MSVCRT = False
@@ -114,9 +116,7 @@ class ConsoleOverlay(AbstractOverlay):
         hpad = (term_width - len(header)) // 2
         content.append("")
         content.append(
-            f"{_DIM}{'─' * hpad}{_RESET}"
-            f"{_GREEN}{header}{_RESET}"
-            f"{_DIM}{'─' * hpad}{_RESET}"
+            f"{_DIM}{'─' * hpad}{_RESET}{_GREEN}{header}{_RESET}{_DIM}{'─' * hpad}{_RESET}"
         )
         content.append("")
 
@@ -125,7 +125,7 @@ class ConsoleOverlay(AbstractOverlay):
             # During typing, show partial text; after typing, show full text
             if self._typing_active:
                 partial = SpeechBubble(
-                    text=self._full_text[:self._typing_index],
+                    text=self._full_text[: self._typing_index],
                     style=self._current_bubble.style,
                     max_width=self._current_bubble.max_width,
                 )
@@ -302,9 +302,7 @@ class ConsoleOverlay(AbstractOverlay):
                 with self._lock:
                     now = time.monotonic()
                     ready = [(cb, t) for cb, t in self._callbacks if t <= now]
-                    self._callbacks = [
-                        (cb, t) for cb, t in self._callbacks if t > now
-                    ]
+                    self._callbacks = [(cb, t) for cb, t in self._callbacks if t > now]
 
                 for cb, _ in ready:
                     try:
@@ -317,9 +315,7 @@ class ConsoleOverlay(AbstractOverlay):
         except KeyboardInterrupt:
             self._running = False
 
-    def schedule_callback(
-        self, callback: Callable[[], None], delay_ms: int = 0
-    ) -> None:
+    def schedule_callback(self, callback: Callable[[], None], delay_ms: int = 0) -> None:
         with self._lock:
             run_at = time.monotonic() + (delay_ms / 1000.0)
             self._callbacks.append((callback, run_at))

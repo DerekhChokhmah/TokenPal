@@ -16,9 +16,7 @@ from tokenpal.util.http_json import http_json
 
 log = logging.getLogger(__name__)
 
-_HN_FRONT_PAGE_URL = (
-    "https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=10"
-)
+_HN_FRONT_PAGE_URL = "https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=10"
 
 
 @dataclass
@@ -58,7 +56,11 @@ def _parse_hit(hit: dict[str, Any]) -> HNStory | None:
         created_at = ""
 
     return HNStory(
-        title=title, points=points, url=url, author=author, created_at=created_at,
+        title=title,
+        points=points,
+        url=url,
+        author=author,
+        created_at=created_at,
     )
 
 

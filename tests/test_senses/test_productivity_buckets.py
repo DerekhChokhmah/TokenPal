@@ -10,9 +10,13 @@ from tokenpal.senses.productivity.memory_stats import ProductivityStats
 
 
 def _stats(
-    *, time_in_current_min: int = 5, switches_per_hour: float = 3.0,
-    longest_streak_min: int = 0, current_app: str = "Terminal",
-    session_minutes: int = 10, total_switches: int = 1,
+    *,
+    time_in_current_min: int = 5,
+    switches_per_hour: float = 3.0,
+    longest_streak_min: int = 0,
+    current_app: str = "Terminal",
+    session_minutes: int = 10,
+    total_switches: int = 1,
 ) -> dict:
     return {
         "current_app": current_app,

@@ -198,7 +198,8 @@ class OpenVoiceModal(Message):
 
 class LoadChatHistory(Message):
     def __init__(
-        self, entries: list[tuple[float, str, str, str | None]],
+        self,
+        entries: list[tuple[float, str, str, str | None]],
     ) -> None:
         self.entries = entries
         super().__init__()
@@ -261,15 +262,11 @@ class SpeechBubbleWidget(VerticalScroll):
     def source_bubble(self) -> SpeechBubble | None:
         return self._source_bubble
 
-    def start_typing(
-        self, bubble: SpeechBubble, source: SpeechBubble | None = None
-    ) -> None:
+    def start_typing(self, bubble: SpeechBubble, source: SpeechBubble | None = None) -> None:
         self._prime(bubble, source, typing_index=0)
         self._typing_timer = self.set_interval(0.03, self._advance_typing)
 
-    def show_immediate(
-        self, bubble: SpeechBubble, source: SpeechBubble | None = None
-    ) -> None:
+    def show_immediate(self, bubble: SpeechBubble, source: SpeechBubble | None = None) -> None:
         self._prime(bubble, source, typing_index=max(0, len(bubble.text) - 1))
         self._start_auto_hide()
 
@@ -279,9 +276,7 @@ class SpeechBubbleWidget(VerticalScroll):
         self._bubble = bubble
         self._render_partial()
 
-    def _prime(
-        self, bubble: SpeechBubble, source: SpeechBubble | None, typing_index: int
-    ) -> None:
+    def _prime(self, bubble: SpeechBubble, source: SpeechBubble | None, typing_index: int) -> None:
         self._cancel_timers()
         self._bubble = bubble
         self._source_bubble = source or bubble
@@ -304,9 +299,7 @@ class SpeechBubbleWidget(VerticalScroll):
     def _render_partial(self) -> None:
         if not self._bubble:
             return
-        partial = dataclasses.replace(
-            self._bubble, text=self._full_text[: self._typing_index + 1]
-        )
+        partial = dataclasses.replace(self._bubble, text=self._full_text[: self._typing_index + 1])
         self._body.update("\n".join(partial.render()))
         self.scroll_end(animate=False)
 
@@ -405,7 +398,8 @@ class BuddyWidget(Static):
         except MarkupError as exc:
             log.warning(
                 "buddy frame %s has unparseable markup (%s); rendering plain",
-                frame.name, exc,
+                frame.name,
+                exc,
             )
             self.update("\n".join(_esc_markup(line) for line in frame.lines))
 
@@ -442,9 +436,7 @@ class BuddyWidget(Static):
             "talking": BuddyFrame.get("talking"),
         }
         widths = [
-            Text.from_markup(line).cell_len
-            for frame in frames.values()
-            for line in frame.lines
+            Text.from_markup(line).cell_len for frame in frames.values() for line in frame.lines
         ]
         return max(widths, default=20)
 
@@ -692,14 +684,21 @@ class ParticleSky(Widget):
                 anchor_y = 0
             drift_dx = 0
             if prop.drift_x_amplitude > 0.0:
-                drift_dx = int(round(self._env.cloud_drift.offset_x(
-                    prop.drift_x_amplitude, prop.drift_phase_offset,
-                )))
-            anchors.append((
-                prop,
-                anchor_x + prop.anchor_dx + drift_dx,
-                anchor_y + prop.anchor_dy,
-            ))
+                drift_dx = int(
+                    round(
+                        self._env.cloud_drift.offset_x(
+                            prop.drift_x_amplitude,
+                            prop.drift_phase_offset,
+                        )
+                    )
+                )
+            anchors.append(
+                (
+                    prop,
+                    anchor_x + prop.anchor_dx + drift_dx,
+                    anchor_y + prop.anchor_dy,
+                )
+            )
         self._cached_prop_anchors = tuple(anchors)
 
         # Star field: pre-populate when entering clear+night; re-populate
@@ -720,7 +719,8 @@ class ParticleSky(Widget):
             sig = (panel_w, sky_h, max_x, target)
             if self._starfield_for != sig:
                 self._env.field.populate_starfield(
-                    panel_w, sky_h,
+                    panel_w,
+                    sky_h,
                     target_count=target,
                     max_x=max_x,
                     y_top=float(sky_y_offset),
@@ -1324,7 +1324,7 @@ class TokenPalApp(App[None]):
             idx = len(self._link_urls)
             self._link_urls.append(url)
             line += (
-                f"\n[underline #5599ff][@click=app.open_chat_link(\"{idx}\")]"
+                f'\n[underline #5599ff][@click=app.open_chat_link("{idx}")]'
                 f"{_esc_markup(url)}[/][/underline #5599ff]"
             )
         return line
@@ -1367,9 +1367,7 @@ class TokenPalApp(App[None]):
                 if 0 <= old_idx < len(self._link_urls):
                     new_idx = len(new_urls)
                     new_urls.append(self._link_urls[old_idx])
-                    line = (
-                        line[:idx_start] + str(new_idx) + line[idx_end:]
-                    )
+                    line = line[:idx_start] + str(new_idx) + line[idx_end:]
                     lines[i] = line
                     start = idx_start + len(str(new_idx)) + 1
                 else:
@@ -1388,7 +1386,11 @@ class TokenPalApp(App[None]):
         today = datetime.now().strftime("%Y%m%d")
         ts_label = self._format_chat_ts(datetime.now().timestamp(), today)
         line = self._compose_log_line(
-            name, text, markup=markup, url=url, ts_label=ts_label,
+            name,
+            text,
+            markup=markup,
+            url=url,
+            ts_label=ts_label,
         )
         self._chat_log_lines.append(line)
         self._trim_chat_log_lines()
@@ -1463,9 +1465,7 @@ class TokenPalApp(App[None]):
             return bubble
         bordered_max = max(1, min(bubble.max_width, region_w - _SPEECH_SCROLL_PADDING))
         if region_w >= _MIN_BORDERED_REGION_WIDTH:
-            bordered = dataclasses.replace(
-                bubble, max_width=bordered_max, borderless=False
-            )
+            bordered = dataclasses.replace(bubble, max_width=bordered_max, borderless=False)
             if len(bordered.render()) <= region_h:
                 return bordered
         borderless = dataclasses.replace(
@@ -1482,7 +1482,8 @@ class TokenPalApp(App[None]):
 
     def on_load_voice_frames(self, message: LoadVoiceFrames) -> None:
         self.query_one(BuddyWidget).set_custom_frames(
-            message.frames, message.mood_frames or None,
+            message.frames,
+            message.mood_frames or None,
         )
         self._apply_buddy_panel_min_width()
 
@@ -1528,7 +1529,7 @@ class TokenPalApp(App[None]):
         # Clamp to the widget's in-RAM cap so a big hydration payload doesn't
         # blow past _MAX_CHAT_LOG_LINES.
         if len(entries) > self._MAX_CHAT_LOG_LINES:
-            entries = entries[-self._MAX_CHAT_LOG_LINES:]
+            entries = entries[-self._MAX_CHAT_LOG_LINES :]
         today = datetime.now().strftime("%Y%m%d")
         rendered = [
             self._compose_log_line(
@@ -1561,9 +1562,7 @@ class TokenPalApp(App[None]):
         """True when any ModalScreen is on the stack. Prevents stacking a
         second modal when a user hits the keybinding twice or a launcher
         races an already-open picker."""
-        return any(
-            isinstance(screen, ModalScreen) for screen in self.screen_stack
-        )
+        return any(isinstance(screen, ModalScreen) for screen in self.screen_stack)
 
     def on_open_selection_modal(self, message: OpenSelectionModal) -> None:
         if self._modal_already_active():
@@ -1659,22 +1658,14 @@ class TextualOverlay(AbstractOverlay):
         self._command_callback: Callable[[str], None] | None = None
         self._buddy_reaction_callback: Callable[[str], None] | None = None
         self._pending_voice_frames: dict[str, BuddyFrame] | None = None
-        self._pending_mood_frames: (
-            dict[str, dict[str, BuddyFrame]] | None
-        ) = None
-        self._chat_log_width: int = int(
-            config.get("chat_log_width") or _CHAT_LOG_DEFAULT_WIDTH
-        )
+        self._pending_mood_frames: dict[str, dict[str, BuddyFrame]] | None = None
+        self._chat_log_width: int = int(config.get("chat_log_width") or _CHAT_LOG_DEFAULT_WIDTH)
         # Persist hooks wired by app.py once the MemoryStore is live.
-        self._chat_persist_callback: (
-            Callable[[str, str, str | None], None] | None
-        ) = None
+        self._chat_persist_callback: Callable[[str, str, str | None], None] | None = None
         self._chat_clear_callback: Callable[[], None] | None = None
         # Pending chat-history payload — app.py may hand us rows before
         # run_loop() starts, so we stash them and on_mount drains the buffer.
-        self._pending_chat_history: (
-            list[tuple[float, str, str, str | None]] | None
-        ) = None
+        self._pending_chat_history: list[tuple[float, str, str, str | None]] | None = None
         # Environment-snapshot provider (brain.environment_snapshot or similar).
         # The overlay polls this on a 1 Hz Textual interval; if None, the
         # particle field still runs but only ambient dust spawns.
@@ -1769,9 +1760,7 @@ class TextualOverlay(AbstractOverlay):
         if self._app:
             self._app.run()
 
-    def schedule_callback(
-        self, callback: Callable[[], None], delay_ms: int = 0
-    ) -> None:
+    def schedule_callback(self, callback: Callable[[], None], delay_ms: int = 0) -> None:
         self._post(RunCallback(callback, delay_ms))
 
     def open_selection_modal(
@@ -1849,7 +1838,8 @@ class TextualOverlay(AbstractOverlay):
         self._post(LoadChatHistory(entries))
 
     def set_environment_provider(
-        self, provider: Callable[[], EnvironmentSnapshot] | None,
+        self,
+        provider: Callable[[], EnvironmentSnapshot] | None,
     ) -> None:
         """Wire the brain's environment_snapshot getter. Called by app.py
         after Brain construction; the overlay's app starts a 1 Hz poll on

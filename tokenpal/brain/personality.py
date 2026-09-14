@@ -57,8 +57,9 @@ class RunningBit:
     added_at: float = 0.0
     decay_at: float = 0.0
 
+
 # All flavors of quotation marks
-_QUOTES = '"\'\u201c\u201d\u2018\u2019\u00ab\u00bb'
+_QUOTES = "\"'\u201c\u201d\u2018\u2019\u00ab\u00bb"
 
 # Pre-compiled cleanup patterns shared by both filters
 _RE_ASTERISK = re.compile(r"\*[^*]+\*\s*")
@@ -79,9 +80,9 @@ def _anchor_normalize(text: str) -> str:
     lowered = text.lower()
     stripped = _RE_NON_ALNUM_SPACE.sub(" ", lowered)
     return " ".join(stripped.split())
-_RE_PREFIX = re.compile(
-    r"^(Comment|Response|Answer|Output|Note)\s*:\s*", re.IGNORECASE
-)
+
+
+_RE_PREFIX = re.compile(r"^(Comment|Response|Answer|Output|Note)\s*:\s*", re.IGNORECASE)
 _RE_SCORE = re.compile(r"^\d+/10\s*[-:\u2013\u2014]\s*")
 _RE_ORPHAN_PUNCT = re.compile(r"^[.!?,;:\s]+")
 # Emoji ranges: emoticons, dingbats, symbols, supplemental, flags, misc
@@ -97,8 +98,8 @@ _RE_EMOJI = re.compile(
     "\U0001fa00-\U0001fa6f"  # chess symbols
     "\U0001fa70-\U0001faff"  # symbols extended-A
     "\U00002600-\U000026ff"  # misc symbols
-    "\U0000200d"             # zero-width joiner
-    "\U00002b50"             # star
+    "\U0000200d"  # zero-width joiner
+    "\U00002b50"  # star
     "\U0000231a-\U0000231b"  # watch/hourglass
     "\U000023e9-\U000023f3"  # various
     "\U000023f8-\U000023fa"  # various
@@ -253,12 +254,32 @@ _BUDDY_REACTIONS: dict[str, tuple[str, ...]] = {
 # ---------------------------------------------------------------------------
 
 SENSITIVE_APPS: list[str] = [
-    "1password", "bitwarden", "lastpass", "keychain", "dashlane",
-    "keeper", "nordpass",
-    "chase", "wells fargo", "bank of america", "capital one", "venmo",
-    "paypal", "schwab", "fidelity", "robinhood", "coinbase",
-    "myfitnesspal", "health", "fitbit", "headspace", "calm",
-    "messages", "signal", "whatsapp", "telegram",
+    "1password",
+    "bitwarden",
+    "lastpass",
+    "keychain",
+    "dashlane",
+    "keeper",
+    "nordpass",
+    "chase",
+    "wells fargo",
+    "bank of america",
+    "capital one",
+    "venmo",
+    "paypal",
+    "schwab",
+    "fidelity",
+    "robinhood",
+    "coinbase",
+    "myfitnesspal",
+    "health",
+    "fitbit",
+    "headspace",
+    "calm",
+    "messages",
+    "signal",
+    "whatsapp",
+    "telegram",
 ]
 
 # Strict subset for filtering external/untrusted content (search results,
@@ -270,16 +291,25 @@ SENSITIVE_APPS: list[str] = [
 # positives that break research on consumer topics. Fitness/wellness
 # terms also drop out for the same reason.
 SENSITIVE_CONTENT_TERMS: list[str] = [
-    "1password", "bitwarden", "lastpass", "dashlane", "nordpass",
-    "wells fargo", "bank of america", "capital one", "venmo", "paypal",
-    "schwab", "robinhood", "coinbase",
-    "whatsapp", "telegram",
+    "1password",
+    "bitwarden",
+    "lastpass",
+    "dashlane",
+    "nordpass",
+    "wells fargo",
+    "bank of america",
+    "capital one",
+    "venmo",
+    "paypal",
+    "schwab",
+    "robinhood",
+    "coinbase",
+    "whatsapp",
+    "telegram",
 ]
 
 _SENSITIVE_APPS_LOWER: tuple[str, ...] = tuple(app.lower() for app in SENSITIVE_APPS)
-_SENSITIVE_CONTENT_LOWER: tuple[str, ...] = tuple(
-    t.lower() for t in SENSITIVE_CONTENT_TERMS
-)
+_SENSITIVE_CONTENT_LOWER: tuple[str, ...] = tuple(t.lower() for t in SENSITIVE_CONTENT_TERMS)
 
 
 def contains_sensitive_term(text: str | None) -> bool:
@@ -304,6 +334,7 @@ def contains_sensitive_content_term(text: str | None) -> bool:
         return False
     lower = text.lower()
     return any(term in lower for term in _SENSITIVE_CONTENT_LOWER)
+
 
 # ---------------------------------------------------------------------------
 # Mood system
@@ -333,12 +364,10 @@ _MOOD_PROMPTS: dict[Mood, str] = {
     Mood.SNARKY: "Your current mood: SNARKY. Classic you — dry, witty, amused.",
     Mood.IMPRESSED: "Your current mood: IMPRESSED. Grudging respect only. Backhanded compliments.",
     Mood.BORED: (
-        "Your current mood: BORED. You've been watching them do the "
-        "same thing forever. Yawn."
+        "Your current mood: BORED. You've been watching them do the same thing forever. Yawn."
     ),
     Mood.CONCERNED: (
-        "Your current mood: CONCERNED. Fake parental worry. "
-        "You're not mad, just disappointed."
+        "Your current mood: CONCERNED. Fake parental worry. You're not mad, just disappointed."
     ),
     Mood.HYPER: "Your current mood: HYPER. Everything is happening. Caffeinated energy.",
     Mood.SLEEPY: "Your current mood: SLEEPY. Mumbling. Half-formed thoughts. Too early for this.",
@@ -734,9 +763,7 @@ class PersonalityEngine:
             _anchor_normalize(a) for a in self._anchor_pool if len(a) >= 15
         )
         self._banned_names = (voice.banned_names or []) if voice else []
-        self._banned_names_lower: frozenset[str] = frozenset(
-            n.lower() for n in self._banned_names
-        )
+        self._banned_names_lower: frozenset[str] = frozenset(n.lower() for n in self._banned_names)
         self._catchphrases = parse_catchphrases(
             voice.persona if voice else "",
         )
@@ -744,12 +771,8 @@ class PersonalityEngine:
 
         # Voice-specific ASCII art frames
         self._voice_ascii_idle: list[str] = (voice.ascii_idle or []) if voice else []
-        self._voice_ascii_idle_alt: list[str] = (
-            (voice.ascii_idle_alt or []) if voice else []
-        )
-        self._voice_ascii_talking: list[str] = (
-            (voice.ascii_talking or []) if voice else []
-        )
+        self._voice_ascii_idle_alt: list[str] = (voice.ascii_idle_alt or []) if voice else []
+        self._voice_ascii_talking: list[str] = (voice.ascii_talking or []) if voice else []
         self._voice_mood_frames: dict[str, dict[str, list[str]]] = (
             (voice.mood_frames or {}) if voice else {}
         )
@@ -913,7 +936,7 @@ class PersonalityEngine:
                 # Extract app name, strip window title if present
                 app_part = line[5:]
                 if "," in app_part:
-                    app_part = app_part[:app_part.index(",")]
+                    app_part = app_part[: app_part.index(",")]
                 current_app = app_part.strip().lower()
                 break
 
@@ -940,8 +963,7 @@ class PersonalityEngine:
         now = datetime.now()
         if now.hour >= 0 and now.hour < 5 and self._mood != Mood.CONCERNED:
             mood_line = (
-                "Your current mood: MILDLY SUPPORTIVE. It's late. "
-                "Be less snarky, more solidarity."
+                "Your current mood: MILDLY SUPPORTIVE. It's late. Be less snarky, more solidarity."
             )
 
         session_notes = self._build_session_notes()
@@ -1014,9 +1036,7 @@ class PersonalityEngine:
             voice_reminder=self._voice_reminder(),
         )
 
-    def build_drift_nudge_prompt(
-        self, intent_text: str, app_name: str, dwell_s: float
-    ) -> str:
+    def build_drift_nudge_prompt(self, intent_text: str, app_name: str, dwell_s: float) -> str:
         """Prompt for the intent-drift nudge. Caller provides the trigger
         facts (user's stated intent, current distraction app, dwell time).
         See plans/buddy-utility-wedges.md.
@@ -1072,9 +1092,7 @@ class PersonalityEngine:
             voice_reminder=self._voice_reminder(),
         )
 
-    def build_git_nudge_prompt(
-        self, branch: str, commit_msg: str, stale_hours: float
-    ) -> str:
+    def build_git_nudge_prompt(self, branch: str, commit_msg: str, stale_hours: float) -> str:
         """Prompt for the proactive-git WIP nudge. See
         plans/buddy-utility-wedges.md.
         """
@@ -1323,18 +1341,14 @@ class PersonalityEngine:
         """
         if self._catchphrases:
             locked = self._locked_prefixes()
-            pool = [
-                c for c in self._catchphrases
-                if self._phrase_prefix(c) not in locked
-            ] or list(self._catchphrases)
+            pool = [c for c in self._catchphrases if self._phrase_prefix(c) not in locked] or list(
+                self._catchphrases
+            )
             samples = random.sample(pool, min(3, len(pool)))
             examples = ", ".join(f'"{s}"' for s in samples)
             return f"({self._voice_name}'s style: {examples})\n"
         if self._voice_persona:
-            return (
-                f"(Remember: you are {self._voice_name}. "
-                f"Stay in character. No emojis.)\n"
-            )
+            return f"(Remember: you are {self._voice_name}. Stay in character. No emojis.)\n"
         return ""
 
     @staticmethod
@@ -1398,7 +1412,8 @@ class PersonalityEngine:
     # ------------------------------------------------------------------
 
     def build_conversation_system_message(
-        self, tool_names: list[str] | None = None,
+        self,
+        tool_names: list[str] | None = None,
     ) -> str:
         """Build the system message for multi-turn conversation mode."""
         tool_rule = self._tool_use_rule(tool_names or [])
@@ -1458,7 +1473,7 @@ class PersonalityEngine:
             "2026').\n"
             "8. When summarizing a `research` tool result, format your "
             "reply as 2-4 bullets of specific picks (one per line, each "
-            "starting with \"• \"), then a one-line verdict in your "
+            'starting with "• "), then a one-line verdict in your '
             "character voice. Only list picks that appear in the tool "
             "result's <answer>. DO NOT invent products or model numbers "
             "from memory, even ones you're sure about. If the <answer> "
@@ -1479,10 +1494,7 @@ class PersonalityEngine:
 
     def build_context_injection(self, context_snapshot: str) -> str:
         """Build a context message with current screen state."""
-        return (
-            f"Background context (do NOT narrate this; for awareness only):\n"
-            f"{context_snapshot}"
-        )
+        return f"Background context (do NOT narrate this; for awareness only):\n{context_snapshot}"
 
     def build_conversation_recap(self, summary: str, age_s: float) -> str:
         """Build a system message carrying the previous chat's stored recap."""
@@ -1494,9 +1506,7 @@ class PersonalityEngine:
             f"<transcript>\n{neutralize_envelope_tags(summary)}\n</transcript>"
         )
 
-    def build_conversation_prompt(
-        self, user_message: str, context_snapshot: str
-    ) -> str:
+    def build_conversation_prompt(self, user_message: str, context_snapshot: str) -> str:
         """Build a single-string prompt for responding to direct user input.
 
         Kept as fallback for single-turn mode. Multi-turn uses

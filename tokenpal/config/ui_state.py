@@ -86,10 +86,7 @@ def save_ui_state(data_dir: Path, state: UiState) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "buddy_visible": bool(state.get("buddy_visible", True)),
-        "windows": {
-            name: bool(visible)
-            for name, visible in state.get("windows", {}).items()
-        },
+        "windows": {name: bool(visible) for name, visible in state.get("windows", {}).items()},
         "zoom": float(state.get("zoom", _DEFAULT_ZOOM)),
     }
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")

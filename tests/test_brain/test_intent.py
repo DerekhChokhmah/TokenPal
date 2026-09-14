@@ -108,9 +108,7 @@ def test_stale_intent_notice(memory: MemoryStore, config: IntentConfig) -> None:
 # -----------------------------------------------------------------------
 
 
-def test_drift_fires_when_conditions_met(
-    memory: MemoryStore, config: IntentConfig
-) -> None:
+def test_drift_fires_when_conditions_met(memory: MemoryStore, config: IntentConfig) -> None:
     store = IntentStore(memory=memory, config=config)
     store.set("finish the auth PR")
     store.on_app_change("Twitter")
@@ -121,18 +119,14 @@ def test_drift_fires_when_conditions_met(
     assert "Twitter" in signal.app_name
 
 
-def test_drift_requires_active_intent(
-    memory: MemoryStore, config: IntentConfig
-) -> None:
+def test_drift_requires_active_intent(memory: MemoryStore, config: IntentConfig) -> None:
     store = IntentStore(memory=memory, config=config)
     store.on_app_change("Twitter")
     time.sleep(0.02)
     assert store.check_drift() is None
 
 
-def test_drift_requires_distraction_app(
-    memory: MemoryStore, config: IntentConfig
-) -> None:
+def test_drift_requires_distraction_app(memory: MemoryStore, config: IntentConfig) -> None:
     store = IntentStore(memory=memory, config=config)
     store.set("finish work")
     store.on_app_change("VS Code")
@@ -140,9 +134,7 @@ def test_drift_requires_distraction_app(
     assert store.check_drift() is None
 
 
-def test_drift_requires_min_dwell(
-    memory: MemoryStore, config: IntentConfig
-) -> None:
+def test_drift_requires_min_dwell(memory: MemoryStore, config: IntentConfig) -> None:
     config.drift_min_dwell_s = 10.0  # longer than we'll wait
     store = IntentStore(memory=memory, config=config)
     store.set("finish work")
@@ -151,9 +143,7 @@ def test_drift_requires_min_dwell(
     assert store.check_drift() is None
 
 
-def test_drift_cooldown_enforced(
-    memory: MemoryStore, config: IntentConfig
-) -> None:
+def test_drift_cooldown_enforced(memory: MemoryStore, config: IntentConfig) -> None:
     store = IntentStore(memory=memory, config=config)
     store.set("finish work")
     store.on_app_change("Twitter")
@@ -165,9 +155,7 @@ def test_drift_cooldown_enforced(
     assert second is None, "cooldown should suppress the second check"
 
 
-def test_on_app_change_resets_dwell(
-    memory: MemoryStore, config: IntentConfig
-) -> None:
+def test_on_app_change_resets_dwell(memory: MemoryStore, config: IntentConfig) -> None:
     store = IntentStore(memory=memory, config=config)
     store.set("finish work")
     store.on_app_change("Twitter")

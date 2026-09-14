@@ -42,7 +42,11 @@ class TTSBackend(ABC):
 
     @abstractmethod
     def synthesize(
-        self, text: str, voice_id: str, *, speed: float = 1.0,
+        self,
+        text: str,
+        voice_id: str,
+        *,
+        speed: float = 1.0,
     ) -> AsyncIterator[bytes]:
         """Yield PCM chunks in the backend's declared format. Streaming-first;
         a buffer-only backend yields a single chunk.

@@ -36,15 +36,35 @@ MAX_DESCRIPTION_CHARS = 120
 _SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+")
 
 # Platform-internal processes that aren't worth enriching.
-NON_APP_NAMES: frozenset[str] = frozenset({
-    "finder", "loginwindow", "windowserver", "systemuiserver",
-    "dock", "controlcenter", "notificationcenter", "spotlight",
-    "universalcontrol", "quicklookuihelper", "screensaverengine",
-    "coreservicesuiagent", "accessibility", "siri",
-    "explorer.exe", "dwm.exe", "svchost.exe", "csrss.exe",
-    "lockapp.exe", "searchui.exe", "shellexperiencehost.exe",
-    "xorg", "gnome-shell", "kwin_x11", "plasmashell",
-})
+NON_APP_NAMES: frozenset[str] = frozenset(
+    {
+        "finder",
+        "loginwindow",
+        "windowserver",
+        "systemuiserver",
+        "dock",
+        "controlcenter",
+        "notificationcenter",
+        "spotlight",
+        "universalcontrol",
+        "quicklookuihelper",
+        "screensaverengine",
+        "coreservicesuiagent",
+        "accessibility",
+        "siri",
+        "explorer.exe",
+        "dwm.exe",
+        "svchost.exe",
+        "csrss.exe",
+        "lockapp.exe",
+        "searchui.exe",
+        "shellexperiencehost.exe",
+        "xorg",
+        "gnome-shell",
+        "kwin_x11",
+        "plasmashell",
+    }
+)
 
 
 def _trim_to_sentence(text: str) -> str:

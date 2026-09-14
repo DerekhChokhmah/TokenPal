@@ -185,9 +185,7 @@ async def test_conversation_summary_writes_row(memory: MemoryStore) -> None:
     llm = FakeLLM(reply="You asked how to rebase onto main; I walked you through it.")
     summarizer = SessionSummarizer(memory=memory, llm=llm, interval_s=60)
 
-    await summarizer.summarize_conversation(
-        _TWO_TURN_HISTORY, started_at=100.0, ended_at=200.0
-    )
+    await summarizer.summarize_conversation(_TWO_TURN_HISTORY, started_at=100.0, ended_at=200.0)
 
     assert len(llm.calls) == 1
     assert "You: How do I rebase onto main?" in llm.calls[0]
@@ -205,9 +203,7 @@ async def test_conversation_summary_none_reply_skipped(memory: MemoryStore) -> N
     llm = FakeLLM(reply="NONE")
     summarizer = SessionSummarizer(memory=memory, llm=llm, interval_s=60)
 
-    await summarizer.summarize_conversation(
-        _TWO_TURN_HISTORY, started_at=100.0, ended_at=200.0
-    )
+    await summarizer.summarize_conversation(_TWO_TURN_HISTORY, started_at=100.0, ended_at=200.0)
 
     assert len(llm.calls) == 1
     assert _conversation_rows(memory) == []
@@ -218,9 +214,7 @@ async def test_conversation_summary_sensitive_term_drop(memory: MemoryStore) -> 
     llm = FakeLLM(reply="You asked which 1Password vault to use for work keys.")
     summarizer = SessionSummarizer(memory=memory, llm=llm, interval_s=60)
 
-    await summarizer.summarize_conversation(
-        _TWO_TURN_HISTORY, started_at=100.0, ended_at=200.0
-    )
+    await summarizer.summarize_conversation(_TWO_TURN_HISTORY, started_at=100.0, ended_at=200.0)
 
     assert len(llm.calls) == 1
     assert _conversation_rows(memory) == []

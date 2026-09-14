@@ -37,32 +37,44 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         description="TokenPal — your sarcastic AI desktop buddy",
     )
     parser.add_argument(
-        "--version", action="store_true",
+        "--version",
+        action="store_true",
         help="print version and exit",
     )
     parser.add_argument(
-        "--check", "-c", action="store_true",
+        "--check",
+        "-c",
+        action="store_true",
         help="verify Ollama, model, senses, and actions, then exit",
     )
     parser.add_argument(
-        "--validate", action="store_true",
+        "--validate",
+        action="store_true",
         help="comprehensive preflight check (superset of --check), then exit",
     )
     parser.add_argument(
-        "--verbose", "-v", action="store_true",
+        "--verbose",
+        "-v",
+        action="store_true",
         help="show debug logs in terminal",
     )
     parser.add_argument(
-        "--config", type=Path, default=None, metavar="PATH",
+        "--config",
+        type=Path,
+        default=None,
+        metavar="PATH",
         help="path to config.toml",
     )
     parser.add_argument(
-        "--skip-welcome", action="store_true",
+        "--skip-welcome",
+        action="store_true",
         help="skip the first-run welcome wizard",
     )
     parser.add_argument(
-        "--overlay", choices=("auto", "qt", "textual", "console", "tkinter"),
-        default=None, metavar="NAME",
+        "--overlay",
+        choices=("auto", "qt", "textual", "console", "tkinter"),
+        default=None,
+        metavar="NAME",
         help=(
             "override [ui] overlay from config. qt=desktop window, "
             "textual=rich TUI in terminal, console=ANSI-only terminal"
@@ -120,8 +132,7 @@ def _check_senses(config: TokenPalConfig) -> int:
 
     discover_senses(extra_packages=config.plugins.extra_packages)
     sense_flags = {
-        f.name: getattr(config.senses, f.name)
-        for f in dataclasses.fields(config.senses)
+        f.name: getattr(config.senses, f.name) for f in dataclasses.fields(config.senses)
     }
     senses = resolve_senses(
         sense_flags=sense_flags,
@@ -169,7 +180,8 @@ def _check_actions(config: TokenPalConfig) -> None:
 
 
 def _runs_as_bundle_app(
-    config: TokenPalConfig, overlay_override: str | None = None,
+    config: TokenPalConfig,
+    overlay_override: str | None = None,
 ) -> bool:
     """True when this config launches the buddy inside ``TokenPal.app``.
 
@@ -202,9 +214,7 @@ def _check_audio(config: TokenPalConfig, *, as_bundle: bool) -> int:
     feature they haven't enabled.
     """
     audio_cfg = config.audio
-    if not (
-        audio_cfg.speak_ambient_enabled or audio_cfg.voice_conversation_enabled
-    ):
+    if not (audio_cfg.speak_ambient_enabled or audio_cfg.voice_conversation_enabled):
         return 0
 
     from tokenpal.audio import deps
@@ -216,8 +226,7 @@ def _check_audio(config: TokenPalConfig, *, as_bundle: bool) -> int:
     missing_pkgs = deps.missing_deps()
     if missing_pkgs:
         print(
-            f"  {_WARN} missing deps: {', '.join(missing_pkgs)} "
-            f"— run /voice-io install",
+            f"  {_WARN} missing deps: {', '.join(missing_pkgs)} — run /voice-io install",
         )
         problems += 1
     else:
@@ -225,7 +234,8 @@ def _check_audio(config: TokenPalConfig, *, as_bundle: bool) -> int:
 
     data_dir = Path(config.paths.data_dir).expanduser().resolve()
     missing_files = deps.missing_models(
-        data_dir, audio_cfg.kokoro_quantization,
+        data_dir,
+        audio_cfg.kokoro_quantization,
     )
     if missing_files:
         names = ", ".join(p.name for p in missing_files)
@@ -233,8 +243,7 @@ def _check_audio(config: TokenPalConfig, *, as_bundle: bool) -> int:
         problems += 1
     else:
         print(
-            f"  {_CHECK} kokoro models present "
-            f"({audio_cfg.kokoro_quantization})",
+            f"  {_CHECK} kokoro models present ({audio_cfg.kokoro_quantization})",
         )
 
     # Input-side models: only relevant when voice mode is on.
@@ -243,8 +252,7 @@ def _check_audio(config: TokenPalConfig, *, as_bundle: bool) -> int:
         if missing_input:
             names = ", ".join(p.name for p in missing_input)
             print(
-                f"  {_WARN} missing input models: {names} — "
-                f"run /voice-io install",
+                f"  {_WARN} missing input models: {names} — run /voice-io install",
             )
             problems += 1
         else:
@@ -259,7 +267,7 @@ def _check_audio(config: TokenPalConfig, *, as_bundle: bool) -> int:
         if as_bundle:
             print(
                 f"  {_WARN} macOS: the buddy runs as the {BUNDLE_NAME} app — grant "
-                f"Microphone access to \"{BUNDLE_NAME}\" in System Settings > "
+                f'Microphone access to "{BUNDLE_NAME}" in System Settings > '
                 f"Privacy & Security > Microphone",
             )
         else:
@@ -297,7 +305,7 @@ def _check_desktop_permissions(plat: str, *, as_bundle: bool) -> None:
         print(
             f"  {_WARN} the buddy runs as the {BUNDLE_NAME} app — the rows below "
             f"report this terminal, not {BUNDLE_NAME}. Grant to "
-            f"\"{BUNDLE_NAME}\" when "
+            f'"{BUNDLE_NAME}" when '
             f"macOS prompts.",
         )
 
@@ -376,6 +384,7 @@ def _check_cloud_llm(config: TokenPalConfig) -> None:
         return
     model = getattr(cfg, "model", "?")
     from tokenpal.llm.cloud_backend import DEEP_MODE_MODELS
+
     flags: list[str] = []
     if getattr(cfg, "research_plan", False):
         flags.append("planner")
@@ -391,8 +400,7 @@ def _check_cloud_llm(config: TokenPalConfig) -> None:
             flags.append("search set (Sonnet+ needed)")
     flag_str = f", {', '.join(flags)}" if flags else ""
     print(
-        f"  {_CHECK} Cloud LLM on ({model}{flag_str}, "
-        f"key {fingerprint(key)}) for /research synth"
+        f"  {_CHECK} Cloud LLM on ({model}{flag_str}, key {fingerprint(key)}) for /research synth"
     )
 
 
@@ -423,14 +431,16 @@ async def _check(config_path: Path | None) -> int:
 
 
 def run_validate(
-    config_path: Path | None = None, overlay_override: str | None = None,
+    config_path: Path | None = None,
+    overlay_override: str | None = None,
 ) -> int:
     """Run comprehensive preflight validation. Returns 0 if all good, 1 if problems."""
     return asyncio.run(_validate(config_path, overlay_override))
 
 
 async def _validate(
-    config_path: Path | None, overlay_override: str | None = None,
+    config_path: Path | None,
+    overlay_override: str | None = None,
 ) -> int:
     print(f"\n{_BOLD}TokenPal Preflight Validation{_RESET}")
     print("=" * 40)
@@ -447,8 +457,10 @@ async def _validate(
     # 2. Platform-specific dependencies
     plat = platform.system()
     if plat == "Darwin":
-        for mod, pkg_hint in [("Quartz", "pip install tokenpal[macos]"),
-                              ("Cocoa", "pip install tokenpal[macos]")]:
+        for mod, pkg_hint in [
+            ("Quartz", "pip install tokenpal[macos]"),
+            ("Cocoa", "pip install tokenpal[macos]"),
+        ]:
             try:
                 __import__(mod)
                 print(f"  {_CHECK} {mod} available")

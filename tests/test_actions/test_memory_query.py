@@ -59,9 +59,7 @@ async def test_memory_query_time_in_app(db_dir: Path) -> None:
 
 
 async def test_memory_query_switches_per_hour(db_dir: Path) -> None:
-    result = await MemoryQueryAction({"data_dir": str(db_dir)}).execute(
-        metric="switches_per_hour"
-    )
+    result = await MemoryQueryAction({"data_dir": str(db_dir)}).execute(metric="switches_per_hour")
     assert result.success is True
     assert "switch" in result.output
 
@@ -80,14 +78,10 @@ async def test_memory_query_streaks(db_dir: Path) -> None:
 
 
 async def test_memory_query_rejects_unknown_metric(db_dir: Path) -> None:
-    result = await MemoryQueryAction({"data_dir": str(db_dir)}).execute(
-        metric="drop_table"
-    )
+    result = await MemoryQueryAction({"data_dir": str(db_dir)}).execute(metric="drop_table")
     assert result.success is False
 
 
 async def test_memory_query_missing_db(tmp_path: Path) -> None:
-    result = await MemoryQueryAction({"data_dir": str(tmp_path)}).execute(
-        metric="time_in_app"
-    )
+    result = await MemoryQueryAction({"data_dir": str(tmp_path)}).execute(metric="time_in_app")
     assert result.success is False

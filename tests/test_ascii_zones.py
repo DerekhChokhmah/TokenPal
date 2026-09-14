@@ -73,7 +73,11 @@ def test_normalize_zones_ignores_unknown_zone_keys() -> None:
     out = normalize_zones("humanoid_tall", {"fictional_zone": "anything"})
     assert "fictional_zone" not in out
     assert set(out.keys()) == {
-        "headwear", "facial_hair", "body_motif", "eye_region", "trailing",
+        "headwear",
+        "facial_hair",
+        "body_motif",
+        "eye_region",
+        "trailing",
     }
 
 
@@ -144,7 +148,8 @@ def test_beard_long_replaces_torso_rows_on_mystical_cloaked() -> None:
     palette = _SAMPLE_PALETTES["mystical_cloaked"]
     plain = render("mystical_cloaked", palette)
     with_beard = render(
-        "mystical_cloaked", palette,
+        "mystical_cloaked",
+        palette,
         {"headwear": "none", "facial_hair": "beard_long"},
     )
     assert len(with_beard) == len(plain)
@@ -157,7 +162,8 @@ def test_beard_stubble_replaces_one_row_only() -> None:
     palette = _SAMPLE_PALETTES["humanoid_tall"]
     plain = render("humanoid_tall", palette)
     with_stubble = render(
-        "humanoid_tall", palette,
+        "humanoid_tall",
+        palette,
         {"headwear": "none", "facial_hair": "beard_stubble"},
     )
     assert len(with_stubble) == len(plain)
@@ -170,7 +176,8 @@ def test_beard_goatee_replaces_two_rows_and_preserves_torso() -> None:
     palette = _SAMPLE_PALETTES["humanoid_tall"]
     plain = render("humanoid_tall", palette)
     with_goatee = render(
-        "humanoid_tall", palette,
+        "humanoid_tall",
+        palette,
         {"headwear": "none", "facial_hair": "beard_goatee"},
     )
     assert len(with_goatee) == len(plain)
@@ -184,7 +191,8 @@ def test_mustache_thick_replaces_mouth_row_only() -> None:
     palette = _SAMPLE_PALETTES["humanoid_tall"]
     plain = render("humanoid_tall", palette)
     with_stache = render(
-        "humanoid_tall", palette,
+        "humanoid_tall",
+        palette,
         {"headwear": "none", "facial_hair": "mustache_thick"},
     )
     assert len(with_stache) == len(plain)
@@ -198,7 +206,8 @@ def test_beard_wide_covers_chin_to_upper_torso_leaves_legs() -> None:
     palette = _SAMPLE_PALETTES["humanoid_tall"]
     plain = render("humanoid_tall", palette)
     with_wide = render(
-        "humanoid_tall", palette,
+        "humanoid_tall",
+        palette,
         {"headwear": "none", "facial_hair": "beard_wide"},
     )
     assert len(with_wide) == len(plain)
@@ -213,7 +222,8 @@ def test_new_beard_options_coerce_to_none_on_unsupported_skeleton() -> None:
     plain = render("robot_boxy", palette)
     for opt in ("beard_goatee", "mustache_thick", "beard_wide"):
         illegal = render(
-            "robot_boxy", palette,
+            "robot_boxy",
+            palette,
             {"headwear": "none", "facial_hair": opt},
         )
         assert illegal == plain, f"{opt} leaked into robot_boxy"
@@ -223,7 +233,8 @@ def test_facial_hair_coerces_to_none_on_unsupported_skeleton() -> None:
     palette = _SAMPLE_PALETTES["robot_boxy"]
     plain = render("robot_boxy", palette)
     with_illegal = render(
-        "robot_boxy", palette,
+        "robot_boxy",
+        palette,
         {"headwear": "none", "facial_hair": "beard_long"},
     )
     assert plain == with_illegal
@@ -234,7 +245,8 @@ def test_apply_replace_zones_is_noop_when_all_none() -> None:
     slots = {"c": "[/]", **palette}
     body = SKELETONS["humanoid_tall"].format(**slots).splitlines()
     unchanged = apply_replace_zones(
-        body, "humanoid_tall",
+        body,
+        "humanoid_tall",
         {"headwear": "none", "facial_hair": "none", "body_motif": "none"},
         slots,
     )
@@ -260,7 +272,8 @@ def test_screen_dpad_replaces_mid_torso_on_robot_boxy() -> None:
     palette = _SAMPLE_PALETTES["robot_boxy"]
     plain = render("robot_boxy", palette)
     with_screen = render(
-        "robot_boxy", palette,
+        "robot_boxy",
+        palette,
         {"headwear": "none", "facial_hair": "none", "body_motif": "screen_dpad"},
     )
     assert len(with_screen) == len(plain)
@@ -272,7 +285,8 @@ def test_screen_dpad_replaces_mid_torso_on_robot_boxy() -> None:
 def test_chest_door_differs_from_screen_dpad() -> None:
     palette = _SAMPLE_PALETTES["robot_boxy"]
     screen = render(
-        "robot_boxy", palette,
+        "robot_boxy",
+        palette,
         {"body_motif": "screen_dpad"},
     )
     door = render("robot_boxy", palette, {"body_motif": "chest_door"})
@@ -283,7 +297,9 @@ def test_body_motif_coerces_to_none_on_unsupported_skeleton() -> None:
     palette = _SAMPLE_PALETTES["humanoid_tall"]
     plain = render("humanoid_tall", palette)
     with_illegal = render(
-        "humanoid_tall", palette, {"body_motif": "screen_dpad"},
+        "humanoid_tall",
+        palette,
+        {"body_motif": "screen_dpad"},
     )
     assert plain == with_illegal
 
@@ -307,7 +323,9 @@ def test_single_cyclops_replaces_eye_row_on_humanoid_tall() -> None:
     palette = _SAMPLE_PALETTES["humanoid_tall"]
     plain = render("humanoid_tall", palette)
     with_cyclops = render(
-        "humanoid_tall", palette, {"eye_region": "single_cyclops"},
+        "humanoid_tall",
+        palette,
+        {"eye_region": "single_cyclops"},
     )
     assert len(with_cyclops) == len(plain)
     assert plain[:4] == with_cyclops[:4]
@@ -318,7 +336,9 @@ def test_single_cyclops_replaces_eye_row_on_humanoid_tall() -> None:
 def test_oversized_spiral_on_animal_quadruped_has_spiral_glyphs() -> None:
     palette = _SAMPLE_PALETTES["animal_quadruped"]
     with_spiral = render(
-        "animal_quadruped", palette, {"eye_region": "oversized_spiral"},
+        "animal_quadruped",
+        palette,
+        {"eye_region": "oversized_spiral"},
     )
     eye_row = with_spiral[5]
     assert "◉" in eye_row
@@ -329,7 +349,9 @@ def test_eye_region_coerces_to_none_on_unsupported_skeleton() -> None:
     palette = _SAMPLE_PALETTES["robot_boxy"]
     plain = render("robot_boxy", palette)
     with_illegal = render(
-        "robot_boxy", palette, {"eye_region": "single_cyclops"},
+        "robot_boxy",
+        palette,
+        {"eye_region": "single_cyclops"},
     )
     assert plain == with_illegal
 
@@ -358,17 +380,21 @@ def test_tail_curly_adds_rows_below_animal_quadruped() -> None:
     palette = _SAMPLE_PALETTES["animal_quadruped"]
     plain = render("animal_quadruped", palette)
     with_tail = render(
-        "animal_quadruped", palette, {"trailing": "tail_curly"},
+        "animal_quadruped",
+        palette,
+        {"trailing": "tail_curly"},
     )
     assert len(with_tail) == len(plain) + 1
-    assert plain == with_tail[:len(plain)]
+    assert plain == with_tail[: len(plain)]
 
 
 def test_hair_drift_adds_rows_below_ghost_floating() -> None:
     palette = _SAMPLE_PALETTES["ghost_floating"]
     plain = render("ghost_floating", palette)
     with_drift = render(
-        "ghost_floating", palette, {"trailing": "hair_drift"},
+        "ghost_floating",
+        palette,
+        {"trailing": "hair_drift"},
     )
     assert len(with_drift) == len(plain) + 1
 
@@ -377,6 +403,8 @@ def test_trailing_coerces_to_none_on_unsupported_skeleton() -> None:
     palette = _SAMPLE_PALETTES["humanoid_tall"]
     plain = render("humanoid_tall", palette)
     with_illegal = render(
-        "humanoid_tall", palette, {"trailing": "tail_curly"},
+        "humanoid_tall",
+        palette,
+        {"trailing": "tail_curly"},
     )
     assert plain == with_illegal

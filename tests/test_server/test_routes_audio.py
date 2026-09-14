@@ -31,9 +31,12 @@ class _FakeSegment:
 class _FakeWhisper:
     def transcribe(self, samples, language="en", beam_size=1):
         # Mirror the (segments_iterator, info) return shape.
-        segs: Iterator[_FakeSegment] = iter([
-            _FakeSegment(" hello"), _FakeSegment(" world."),
-        ])
+        segs: Iterator[_FakeSegment] = iter(
+            [
+                _FakeSegment(" hello"),
+                _FakeSegment(" world."),
+            ]
+        )
         return segs, mock.MagicMock(language=language)
 
 

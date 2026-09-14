@@ -13,6 +13,7 @@ treats the whole rotated rect as opaque (mirrors the QWidget path's
 "alpha=1 fillRect" trick, just routed through our cursor-vs-alpha
 sampling instead of layered-window per-pixel hit-test).
 """
+
 from __future__ import annotations
 
 from typing import cast
@@ -99,10 +100,7 @@ class GripQuickItem(QQuickItem):
     # PySide6 widens the stub's parameter to the set of types Qt can
     # implicitly convert to QPointF; the C++ virtual takes QPointF only.
     def contains(self, point: QPointF) -> bool:  # type: ignore[override]
-        return (
-            0.0 <= point.x() <= float(self._side)
-            and 0.0 <= point.y() <= float(self._side)
-        )
+        return 0.0 <= point.x() <= float(self._side) and 0.0 <= point.y() <= float(self._side)
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
         if event.button() != Qt.MouseButton.LeftButton:

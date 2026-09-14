@@ -30,7 +30,6 @@ from tokenpal.brain.research_followup import FollowupSession, bump
 from tokenpal.config.secrets import get_cloud_key
 from tokenpal.llm.cloud_backend import CloudBackend
 
-
 # Realistic Immich sources with bulkier excerpts so the prompt crosses
 # Anthropic's minimum-cacheable-prefix thresholds (Haiku ~2048 tokens,
 # Sonnet/Opus ~1024 tokens). Content is plausible GitHub-issue chatter
@@ -177,11 +176,10 @@ Respond with a concise 2-3 paragraph answer that cites sources using [N] markers
 
 
 def _build_prompt(question: str) -> str:
-    sources_block = "\n\n".join(
-        f"[{s.number}] {s.url}\n{s.excerpt}" for s in _IMMICH_SOURCES
-    )
+    sources_block = "\n\n".join(f"[{s.number}] {s.url}\n{s.excerpt}" for s in _IMMICH_SOURCES)
     return _PROMPT_TEMPLATE.format(
-        sources_block=sources_block, question=question,
+        sources_block=sources_block,
+        question=question,
     )
 
 
@@ -191,8 +189,8 @@ _PRICING = {
     "claude-haiku-4-5": {
         "input": 1.00,
         "output": 5.00,
-        "cache_write": 1.25,   # 1.25x input
-        "cache_read": 0.10,    # 0.10x input
+        "cache_write": 1.25,  # 1.25x input
+        "cache_read": 0.10,  # 0.10x input
     },
     "claude-sonnet-4-6": {
         "input": 3.00,
@@ -203,8 +201,9 @@ _PRICING = {
 }
 
 
-def _estimate_cost(model: str, *, input_tokens: int, output_tokens: int,
-                   cache_creation: int, cache_read: int) -> float:
+def _estimate_cost(
+    model: str, *, input_tokens: int, output_tokens: int, cache_creation: int, cache_read: int
+) -> float:
     """Rough cost estimate based on published pricing."""
     p = _PRICING.get(model)
     if p is None:
@@ -223,8 +222,9 @@ def _estimate_cost(model: str, *, input_tokens: int, output_tokens: int,
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--sonnet", action="store_true",
-                        help="Use claude-sonnet-4-6 instead of haiku-4-5.")
+    parser.add_argument(
+        "--sonnet", action="store_true", help="Use claude-sonnet-4-6 instead of haiku-4-5."
+    )
     args = parser.parse_args()
 
     model = "claude-sonnet-4-6" if args.sonnet else "claude-haiku-4-5"
@@ -251,8 +251,10 @@ def main() -> int:
     t0 = time.monotonic()
     initial = backend.synthesize(prompt, max_tokens=1200)
     dt = time.monotonic() - t0
-    print(f"answer chars: {len(initial.text)} | output_tokens={initial.tokens_used}"
-          f" | latency={dt:.1f}s")
+    print(
+        f"answer chars: {len(initial.text)} | output_tokens={initial.tokens_used}"
+        f" | latency={dt:.1f}s"
+    )
     print("answer (first 400 chars):")
     print(initial.text[:400] + ("..." if len(initial.text) > 400 else ""))
 
@@ -274,7 +276,8 @@ def main() -> int:
     print(f"\n=== followup #1 ({model}) — priming the cache ===")
     t0 = time.monotonic()
     f1 = backend.followup(
-        session.messages, session.tools,
+        session.messages,
+        session.tools,
         "I already tried the thumbnails regen job. What else can I try?",
     )
     dt = time.monotonic() - t0
@@ -287,10 +290,12 @@ def main() -> int:
     )
     # input_tokens from usage isn't directly exposed; recompute from cache parts.
     # The non-cached input is small (just the new user turn).
-    print(f"cache_creation={f1.cache_creation_tokens} "
-          f"cache_read={f1.cache_read_tokens} "
-          f"output={f1.tokens_used} latency={dt:.1f}s "
-          f"est_cost=${cost1:.4f}")
+    print(
+        f"cache_creation={f1.cache_creation_tokens} "
+        f"cache_read={f1.cache_read_tokens} "
+        f"output={f1.tokens_used} latency={dt:.1f}s "
+        f"est_cost=${cost1:.4f}"
+    )
     print("answer (first 400 chars):")
     print(f1.text[:400] + ("..." if len(f1.text) > 400 else ""))
     session.messages = f1.messages
@@ -302,7 +307,8 @@ def main() -> int:
     print(f"\n=== followup #2 ({model}) ===")
     t0 = time.monotonic()
     f2 = backend.followup(
-        session.messages, session.tools,
+        session.messages,
+        session.tools,
         "Is there a version-specific fix I should check first?",
     )
     dt = time.monotonic() - t0
@@ -313,10 +319,12 @@ def main() -> int:
         cache_creation=f2.cache_creation_tokens,
         cache_read=f2.cache_read_tokens,
     )
-    print(f"cache_creation={f2.cache_creation_tokens} "
-          f"cache_read={f2.cache_read_tokens} "
-          f"output={f2.tokens_used} latency={dt:.1f}s "
-          f"est_cost=${cost2:.4f}")
+    print(
+        f"cache_creation={f2.cache_creation_tokens} "
+        f"cache_read={f2.cache_read_tokens} "
+        f"output={f2.tokens_used} latency={dt:.1f}s "
+        f"est_cost=${cost2:.4f}"
+    )
     print("answer (first 400 chars):")
     print(f2.text[:400] + ("..." if len(f2.text) > 400 else ""))
     session.messages = f2.messages
@@ -328,7 +336,8 @@ def main() -> int:
     print(f"\n=== followup #3 ({model}) — expect cache hit from #2 ===")
     t0 = time.monotonic()
     f3 = backend.followup(
-        session.messages, session.tools,
+        session.messages,
+        session.tools,
         "If I'm running v1.121 already, what else could cause this?",
     )
     dt = time.monotonic() - t0
@@ -339,10 +348,12 @@ def main() -> int:
         cache_creation=f3.cache_creation_tokens,
         cache_read=f3.cache_read_tokens,
     )
-    print(f"cache_creation={f3.cache_creation_tokens} "
-          f"cache_read={f3.cache_read_tokens} "
-          f"output={f3.tokens_used} latency={dt:.1f}s "
-          f"est_cost=${cost3:.4f}")
+    print(
+        f"cache_creation={f3.cache_creation_tokens} "
+        f"cache_read={f3.cache_read_tokens} "
+        f"output={f3.tokens_used} latency={dt:.1f}s "
+        f"est_cost=${cost3:.4f}"
+    )
     print("answer (first 400 chars):")
     print(f3.text[:400] + ("..." if len(f3.text) > 400 else ""))
     bump(session)
@@ -359,18 +370,23 @@ def main() -> int:
 
     ok = True
     any_cache_write = max(
-        f1.cache_creation_tokens, f2.cache_creation_tokens,
+        f1.cache_creation_tokens,
+        f2.cache_creation_tokens,
         f3.cache_creation_tokens,
     )
     if any_cache_write == 0:
-        print("FAIL: no follow-up created a cache entry. Check that the "
-              "prefix crosses Anthropic's minimum (~1024 tokens Sonnet, "
-              "~2048 Haiku).")
+        print(
+            "FAIL: no follow-up created a cache entry. Check that the "
+            "prefix crosses Anthropic's minimum (~1024 tokens Sonnet, "
+            "~2048 Haiku)."
+        )
         ok = False
     if f3.cache_read_tokens == 0:
-        print("FAIL: followup #3 did not hit the cache written by #2. "
-              "Possible: cache_control breakpoint drift, >5min between "
-              "calls, SDK version skew.")
+        print(
+            "FAIL: followup #3 did not hit the cache written by #2. "
+            "Possible: cache_control breakpoint drift, >5min between "
+            "calls, SDK version skew."
+        )
         ok = False
     if cost3 > 0.07:
         print(f"WARN: followup #3 cost ${cost3:.4f} exceeds $0.07 target.")

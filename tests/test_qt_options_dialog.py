@@ -35,11 +35,14 @@ def _state() -> OptionsModalState:
         current_api_url="http://localhost:11434/v1",
         known_servers=(
             ServerEntry(
-                url="http://localhost:11434/v1", label="local", model="gemma4",
+                url="http://localhost:11434/v1",
+                label="local",
+                model="gemma4",
             ),
             ServerEntry(
                 url="http://192.168.1.50:11434/v1",
-                label="remote", model="qwen3-14b",
+                label="remote",
+                model="qwen3-14b",
             ),
         ),
         current_model="gemma4",
@@ -211,6 +214,7 @@ def test_model_picker_shows_placeholder_for_unknown_server(
 
 def test_max_persisted_is_clamped_to_config_range(qapp: QApplication) -> None:
     from tokenpal.config.chatlog_writer import MAX_PERSISTED
+
     captured: list[OptionsModalResult | None] = []
     dlg = OptionsDialog(_state(), captured.append)
     dlg._max_persisted_input.setText(str(MAX_PERSISTED + 5000))
@@ -245,7 +249,9 @@ def test_launcher_preserves_unsaved_max_persisted_edit(
     in the field when Save is eventually clicked."""
     result_captured: list[OptionsModalResult | None] = []
     dlg = OptionsDialog(
-        _state(), result_captured.append, on_open_subdialog=lambda _t: None,
+        _state(),
+        result_captured.append,
+        on_open_subdialog=lambda _t: None,
     )
     dlg._max_persisted_input.setText("9")
     dlg._on_launch("cloud")
@@ -271,7 +277,8 @@ def test_commit_background_color_fires_preview_and_updates_swatch(
 ) -> None:
     previews: list[str] = []
     dlg = OptionsDialog(
-        _state(), lambda _r: None,
+        _state(),
+        lambda _r: None,
         on_background_color_preview=previews.append,
     )
     dlg._commit_background_color("#123456")
@@ -285,7 +292,8 @@ def test_commit_font_color_fires_preview_and_normalizes(
 ) -> None:
     previews: list[str] = []
     dlg = OptionsDialog(
-        _state(), lambda _r: None,
+        _state(),
+        lambda _r: None,
         on_font_color_preview=previews.append,
     )
     dlg._commit_font_color("#AbCdEf")
@@ -322,7 +330,8 @@ def test_cancel_reverts_opacity_and_colors(qapp: QApplication) -> None:
     fg_previews: list[str] = []
     state = _state()
     dlg = OptionsDialog(
-        state, lambda _r: None,
+        state,
+        lambda _r: None,
         on_opacity_preview=opacity_previews.append,
         on_background_color_preview=bg_previews.append,
         on_font_color_preview=fg_previews.append,

@@ -31,8 +31,7 @@ def _qt_unavailable_reason() -> str | None:
     # to attach to. macOS and Windows always have a window server when a
     # user session is live.
     if current_platform() == "linux":
-        if not (os.environ.get("DISPLAY")
-                or os.environ.get("WAYLAND_DISPLAY")):
+        if not (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")):
             return "no DISPLAY / WAYLAND_DISPLAY"
     return None
 
@@ -90,7 +89,8 @@ def resolve_overlay_name(config: dict[str, Any]) -> str:
         reason = _qt_unavailable_reason()
         if reason is not None:
             log.info(
-                "qt overlay unavailable (%s) — falling back to textual", reason,
+                "qt overlay unavailable (%s) — falling back to textual",
+                reason,
             )
             overlay_name = _TEXTUAL_FALLBACK
 

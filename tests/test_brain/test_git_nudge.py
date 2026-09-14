@@ -115,9 +115,7 @@ def test_cooldown_enforced(config: GitNudgeConfig) -> None:
 
 def test_wip_marker_match_is_case_insensitive(config: GitNudgeConfig) -> None:
     d = GitNudgeDetector(config=config)
-    d.ingest(
-        [_git_reading(last_commit_ts=time.time() - 10, last_commit_msg="wip: draft")]
-    )
+    d.ingest([_git_reading(last_commit_ts=time.time() - 10, last_commit_msg="wip: draft")])
     assert d.check(user_present=True) is not None
 
 

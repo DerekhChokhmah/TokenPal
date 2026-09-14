@@ -54,9 +54,7 @@ def personality() -> PersonalityEngine:
     return PersonalityEngine("You are a test buddy.")
 
 
-def _insert_app_switch(
-    memory: MemoryStore, app: str, ts: float, session_id: str
-) -> None:
+def _insert_app_switch(memory: MemoryStore, app: str, ts: float, session_id: str) -> None:
     assert memory._conn is not None
     memory._conn.execute(
         "INSERT INTO observations "
@@ -74,29 +72,29 @@ def _ts_for(date_str: str, hour: int = 12) -> float:
 # -----------------------------------------------------------------------
 
 
-def test_empty_day_is_silent(
-    memory: MemoryStore, personality: PersonalityEngine
-) -> None:
+def test_empty_day_is_silent(memory: MemoryStore, personality: PersonalityEngine) -> None:
     """A date with no observations produces no bubble and no LLM call."""
     llm = FakeLLM()
     eod = EODSummary(memory=memory, llm=llm, personality=personality)
+
     async def run() -> str | None:
         return await eod.generate(yesterday_str())
+
     import asyncio
+
     result = asyncio.run(run())
     assert result is None
     assert llm.calls == []
 
 
-def test_populated_day_produces_bubble(
-    memory: MemoryStore, personality: PersonalityEngine
-) -> None:
+def test_populated_day_produces_bubble(memory: MemoryStore, personality: PersonalityEngine) -> None:
     llm = FakeLLM(reply="Code ran, you didn't — usual ratio.")
     eod = EODSummary(memory=memory, llm=llm, personality=personality)
     yesterday = yesterday_str()
     _insert_app_switch(memory, "VS Code", _ts_for(yesterday, 10), "y1")
     _insert_app_switch(memory, "Chrome", _ts_for(yesterday, 11), "y1")
     import asyncio
+
     result = asyncio.run(eod.generate(yesterday))
     assert result is not None
     assert "ratio" in result
@@ -105,14 +103,13 @@ def test_populated_day_produces_bubble(
     assert "VS Code" in llm.calls[0]
 
 
-def test_sensitive_term_drops_bubble(
-    memory: MemoryStore, personality: PersonalityEngine
-) -> None:
+def test_sensitive_term_drops_bubble(memory: MemoryStore, personality: PersonalityEngine) -> None:
     llm = FakeLLM(reply="You spent 20 minutes in 1Password rotating keys.")
     eod = EODSummary(memory=memory, llm=llm, personality=personality)
     yesterday = yesterday_str()
     _insert_app_switch(memory, "VS Code", _ts_for(yesterday, 10), "y1")
     import asyncio
+
     result = asyncio.run(eod.generate(yesterday))
     assert result is None
 
@@ -156,16 +153,16 @@ def test_today_and_yesterday_helpers() -> None:
     assert (parsed_today - parsed_yest) == timedelta(days=1)
 
 
-def test_llm_failure_returns_none(
-    memory: MemoryStore, personality: PersonalityEngine
-) -> None:
+def test_llm_failure_returns_none(memory: MemoryStore, personality: PersonalityEngine) -> None:
     class FailingLLM(FakeLLM):
         async def generate(self, prompt: str, *args: Any, **kwargs: Any) -> LLMResponse:
             raise RuntimeError("boom")
+
     llm = FailingLLM()
     eod = EODSummary(memory=memory, llm=llm, personality=personality)
     yesterday = yesterday_str()
     _insert_app_switch(memory, "VS Code", _ts_for(yesterday, 10), "y1")
     import asyncio
+
     result = asyncio.run(eod.generate(yesterday))
     assert result is None

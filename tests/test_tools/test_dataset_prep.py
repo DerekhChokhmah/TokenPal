@@ -121,10 +121,9 @@ def test_conversation_types_present():
     human_msgs = [item["conversations"][1]["value"] for item in convos]
 
     has_observation = any("What you see right now:" in m for m in human_msgs)
-    has_conversation = any('User says:' in m for m in human_msgs)
+    has_conversation = any("User says:" in m for m in human_msgs)
     has_freeform = any(
-        "random thought" in m.lower() or "in character" in m.lower()
-        for m in human_msgs
+        "random thought" in m.lower() or "in character" in m.lower() for m in human_msgs
     )
     assert has_observation
     assert has_conversation

@@ -91,9 +91,7 @@ async def test_allowed_roots_filters_expands_and_appends_git_root(
 
     monkeypatch.setattr(paths, "git_root", fake_git_root)
 
-    roots = await allowed_roots(
-        ["~/Documents", "~/Missing", str(a_file), "", str(repo)]
-    )
+    roots = await allowed_roots(["~/Documents", "~/Missing", str(a_file), "", str(repo)])
     assert roots == [docs.resolve(), repo.resolve()]
 
 
@@ -165,9 +163,7 @@ async def test_allowed_roots_skips_unresolvable_entries(
 
 
 @pytest.mark.parametrize("candidate", ["~nosuchuser42/x", "a\x00b"])
-def test_resolve_inside_refuses_unresolvable_candidates(
-    candidate: str, tmp_path: Path
-) -> None:
+def test_resolve_inside_refuses_unresolvable_candidates(candidate: str, tmp_path: Path) -> None:
     assert resolve_inside(candidate, [tmp_path]) is None
 
 
@@ -327,9 +323,7 @@ async def test_the_resolved_name_is_screened_whatever_the_raw_screen(
     (root / "notes.txt").symlink_to(root / "id_rsa")
     _stub_allowed_dirs(monkeypatch, root)
 
-    path, refusal = await resolve_declared_path(
-        str(root / "notes.txt"), "allowed_dirs", screen
-    )
+    path, refusal = await resolve_declared_path(str(root / "notes.txt"), "allowed_dirs", screen)
 
     assert path is None
     # The exact string, so an earlier refusal (no roots, outside roots) cannot
@@ -339,9 +333,7 @@ async def test_the_resolved_name_is_screened_whatever_the_raw_screen(
     )
 
 
-async def test_git_root_policy_refuses_outside_a_repo(
-    monkeypatch: pytest.MonkeyPatch
-) -> None:
+async def test_git_root_policy_refuses_outside_a_repo(monkeypatch: pytest.MonkeyPatch) -> None:
     _stub_git_root(monkeypatch, None)
 
     path, refusal = await resolve_declared_path("a.txt", "git_root", "broad")
@@ -351,7 +343,7 @@ async def test_git_root_policy_refuses_outside_a_repo(
 
 
 async def test_allowed_dirs_policy_refuses_when_the_list_is_empty(
-    monkeypatch: pytest.MonkeyPatch
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     _stub_allowed_dirs(monkeypatch)
 

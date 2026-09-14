@@ -78,7 +78,8 @@ class SileroVAD:
         import onnxruntime as ort
 
         self._session = ort.InferenceSession(
-            str(self.model_path), providers=["CPUExecutionProvider"],
+            str(self.model_path),
+            providers=["CPUExecutionProvider"],
         )
         self._state = np.zeros(_STATE_SHAPE, dtype=np.float32)
         self._sr_input = np.array(SAMPLE_RATE, dtype=np.int64)
@@ -131,7 +132,9 @@ class SileroVAD:
         return emitted
 
     def _update_hysteresis(
-        self, prob: float, chunk_s: float,
+        self,
+        prob: float,
+        chunk_s: float,
     ) -> VadEvent | None:
         is_speech = prob >= self.threshold
         if self._in_speech:

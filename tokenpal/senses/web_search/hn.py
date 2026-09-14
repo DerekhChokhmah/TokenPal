@@ -43,11 +43,13 @@ def hn_search(
     if not query:
         return []
 
-    params = urllib.parse.urlencode({
-        "query": query,
-        "tags": "story",
-        "hitsPerPage": max(1, min(hits_per_page, 20)),
-    })
+    params = urllib.parse.urlencode(
+        {
+            "query": query,
+            "tags": "story",
+            "hitsPerPage": max(1, min(hits_per_page, 20)),
+        }
+    )
     payload = http_json(f"{_API_URL}?{params}", timeout_s=timeout_s)
 
     if not isinstance(payload, dict):
@@ -76,9 +78,11 @@ def hn_search(
             points = item.get("points") or 0
             comments = item.get("num_comments") or 0
             body = f"HN discussion: {points} points, {comments} comments"
-        cleaned.append({
-            "url": url_val,
-            "title": title,
-            "description": body,
-        })
+        cleaned.append(
+            {
+                "url": url_val,
+                "title": title,
+                "description": body,
+            }
+        )
     return cleaned

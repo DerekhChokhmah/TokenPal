@@ -60,14 +60,14 @@ current snapshot against per-sense weights:
 
 ```python
 _SENSE_WEIGHTS = {
-    "app_awareness":  0.3,
-    "idle":           1.0,   # idle transitions are always load-bearing
-    "hardware":       0.3,
+    "app_awareness": 0.3,
+    "idle": 1.0,  # idle transitions are always load-bearing
+    "hardware": 0.3,
     "time_awareness": 0.15,
-    "productivity":   0.1,
-    "music":          0.2,
-    "weather":        0.0,   # enriches context only
-    "git":            0.8,   # commits/branch switches are high-signal
+    "productivity": 0.1,
+    "music": 0.2,
+    "weather": 0.0,  # enriches context only
+    "git": 0.8,  # commits/branch switches are high-signal
 }
 ```
 
@@ -184,10 +184,14 @@ deliberately narrower than `_should_comment`:
 
 ```python
 def _idle_tools_eligible(self) -> bool:
-    if not self._idle_tools_config.enabled:   return False
-    if self._paused:                          return False
-    if self._in_conversation:                 return False
-    if self._any_long_task():                 return False
+    if not self._idle_tools_config.enabled:
+        return False
+    if self._paused:
+        return False
+    if self._in_conversation:
+        return False
+    if self._any_long_task():
+        return False
     return True
 ```
 

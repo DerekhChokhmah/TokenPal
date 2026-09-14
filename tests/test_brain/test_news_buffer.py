@@ -131,11 +131,17 @@ def test_buffer_dedupe_key_falls_back_to_source_title_when_url_empty() -> None:
     """HN self-posts can land with empty url. Dedupe must still work
     via (source, title) so two distinct self-posts don't collapse."""
     buf = NewsBuffer()
+
     def _it(title: str, ts: float) -> NewsItem:
         return NewsItem(
-            source="world_awareness", title=title, url="",
-            meta="", description="", timestamp=ts,
+            source="world_awareness",
+            title=title,
+            url="",
+            meta="",
+            description="",
+            timestamp=ts,
         )
+
     new = buf.add([_it("A", 0.0), _it("B", 0.0), _it("A", 1.0)])
     assert len(new) == 2
     assert {i.title for i in new} == {"A", "B"}
@@ -145,8 +151,12 @@ def test_buffer_caps_at_maxlen() -> None:
     buf = NewsBuffer(maxlen=3)
     items = [
         NewsItem(
-            source="lobsters", title=f"t{i}", url=f"u{i}",
-            meta="", description="", timestamp=float(i),
+            source="lobsters",
+            title=f"t{i}",
+            url=f"u{i}",
+            meta="",
+            description="",
+            timestamp=float(i),
         )
         for i in range(5)
     ]

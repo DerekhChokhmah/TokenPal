@@ -61,7 +61,8 @@ async def test_poll_emits_summary_with_all_headlines(enabled_config: dict[str, A
     sense = LobstersSense(enabled_config)
     await sense.setup()
     with patch(
-        "tokenpal.senses.lobsters.sense.fetch_top_stories", return_value=stories,
+        "tokenpal.senses.lobsters.sense.fetch_top_stories",
+        return_value=stories,
     ):
         reading = await sense.poll()
     assert reading is not None
@@ -74,7 +75,8 @@ async def test_poll_truncates_long_title(enabled_config: dict[str, Any]):
     sense = LobstersSense(enabled_config)
     await sense.setup()
     with patch(
-        "tokenpal.senses.lobsters.sense.fetch_top_stories", return_value=stories,
+        "tokenpal.senses.lobsters.sense.fetch_top_stories",
+        return_value=stories,
     ):
         reading = await sense.poll()
     assert reading is not None
@@ -90,7 +92,8 @@ async def test_poll_filters_sensitive_titles(enabled_config: dict[str, Any]):
     sense = LobstersSense(enabled_config)
     await sense.setup()
     with patch(
-        "tokenpal.senses.lobsters.sense.fetch_top_stories", return_value=stories,
+        "tokenpal.senses.lobsters.sense.fetch_top_stories",
+        return_value=stories,
     ):
         reading = await sense.poll()
     assert reading is not None
@@ -103,7 +106,8 @@ async def test_poll_returns_none_when_all_filtered(enabled_config: dict[str, Any
     sense = LobstersSense(enabled_config)
     await sense.setup()
     with patch(
-        "tokenpal.senses.lobsters.sense.fetch_top_stories", return_value=stories,
+        "tokenpal.senses.lobsters.sense.fetch_top_stories",
+        return_value=stories,
     ):
         assert await sense.poll() is None
 
@@ -113,7 +117,8 @@ async def test_poll_dedups_unchanged_summary(enabled_config: dict[str, Any]):
     sense = LobstersSense(enabled_config)
     await sense.setup()
     with patch(
-        "tokenpal.senses.lobsters.sense.fetch_top_stories", return_value=stories,
+        "tokenpal.senses.lobsters.sense.fetch_top_stories",
+        return_value=stories,
     ):
         first = await sense.poll()
         second = await sense.poll()

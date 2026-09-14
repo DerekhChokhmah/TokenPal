@@ -40,9 +40,15 @@ def test_abstract_backend_raises_not_implemented():
     class DummyBackend(AbstractLLMBackend):
         backend_name = "dummy"
         platforms = ("darwin",)
-        async def setup(self): pass
-        async def generate(self, prompt, max_tokens=256, **_): pass
-        async def teardown(self): pass
+
+        async def setup(self):
+            pass
+
+        async def generate(self, prompt, max_tokens=256, **_):
+            pass
+
+        async def teardown(self):
+            pass
 
     backend = DummyBackend({})
     with pytest.raises(NotImplementedError, match="does not support URL switching"):
@@ -51,11 +57,13 @@ def test_abstract_backend_raises_not_implemented():
 
 def test_llamacpp_dispatch_sends_chat_template_kwargs():
     """llamacpp backend always sends enable_thinking explicitly + reasoning_format=deepseek."""
-    backend = HttpBackend({
-        "api_url": "http://localhost:11434/v1",
-        "inference_engine": "llamacpp",
-        "disable_reasoning": True,
-    })
+    backend = HttpBackend(
+        {
+            "api_url": "http://localhost:11434/v1",
+            "inference_engine": "llamacpp",
+            "disable_reasoning": True,
+        }
+    )
 
     body: dict = {}
     backend._apply_thinking_controls(body, enable_thinking=None)
@@ -84,52 +92,62 @@ def test_llamacpp_dispatch_sends_chat_template_kwargs():
     ],
 )
 def test_thinking_effort_written_per_engine(engine, enable, effort, expected):
-    backend = HttpBackend({
-        "api_url": "http://localhost:11434/v1",
-        "inference_engine": engine,
-    })
+    backend = HttpBackend(
+        {
+            "api_url": "http://localhost:11434/v1",
+            "inference_engine": engine,
+        }
+    )
     body: dict = {}
     backend._apply_thinking_controls(body, enable_thinking=enable, thinking_effort=effort)
     assert body.get("reasoning_effort") == expected
 
 
 def test_llamacpp_dispatch_respects_backend_default_when_disable_reasoning_false():
-    backend = HttpBackend({
-        "api_url": "http://localhost:11434/v1",
-        "inference_engine": "llamacpp",
-        "disable_reasoning": False,
-    })
+    backend = HttpBackend(
+        {
+            "api_url": "http://localhost:11434/v1",
+            "inference_engine": "llamacpp",
+            "disable_reasoning": False,
+        }
+    )
     body: dict = {}
     backend._apply_thinking_controls(body, enable_thinking=None)
     assert body["chat_template_kwargs"] == {"enable_thinking": True}
 
 
 def test_llamacpp_cache_hints_set_cache_prompt():
-    backend = HttpBackend({
-        "api_url": "http://localhost:11434/v1",
-        "inference_engine": "llamacpp",
-    })
+    backend = HttpBackend(
+        {
+            "api_url": "http://localhost:11434/v1",
+            "inference_engine": "llamacpp",
+        }
+    )
     body: dict = {}
     backend._apply_cache_hints(body)
     assert body["cache_prompt"] is True
 
 
 def test_ollama_cache_hints_noop():
-    backend = HttpBackend({
-        "api_url": "http://localhost:11434/v1",
-        "inference_engine": "ollama",
-    })
+    backend = HttpBackend(
+        {
+            "api_url": "http://localhost:11434/v1",
+            "inference_engine": "ollama",
+        }
+    )
     body: dict = {}
     backend._apply_cache_hints(body)
     assert "cache_prompt" not in body
 
 
 def test_ollama_dispatch_sends_reasoning_effort():
-    backend = HttpBackend({
-        "api_url": "http://localhost:11434/v1",
-        "inference_engine": "ollama",
-        "disable_reasoning": True,
-    })
+    backend = HttpBackend(
+        {
+            "api_url": "http://localhost:11434/v1",
+            "inference_engine": "ollama",
+            "disable_reasoning": True,
+        }
+    )
 
     body: dict = {}
     backend._apply_thinking_controls(body, enable_thinking=None)
@@ -157,10 +175,12 @@ def test_ollama_default_engine_when_unset():
 
 def _fake_backend(message: dict) -> tuple[HttpBackend, dict]:
     """HttpBackend whose client records the request body and replies with `message`."""
-    backend = HttpBackend({
-        "api_url": "http://localhost:8000/v1",
-        "inference_engine": "llamacpp",
-    })
+    backend = HttpBackend(
+        {
+            "api_url": "http://localhost:8000/v1",
+            "inference_engine": "llamacpp",
+        }
+    )
     captured: dict = {}
 
     payload = {
@@ -209,7 +229,9 @@ async def test_reasoning_content_surfaces_on_both_paths(message, reasoning, with
     backend, _ = _fake_backend(message)
     if with_tools:
         response = await backend.generate_with_tools(
-            [{"role": "user", "content": "hi"}], [], max_tokens=10,
+            [{"role": "user", "content": "hi"}],
+            [],
+            max_tokens=10,
         )
     else:
         response = await backend.generate("hi", max_tokens=10)
@@ -231,14 +253,19 @@ async def _connect_timeouts_by_route(config: dict) -> dict[str, float]:
         seen[route] = request.extensions["timeout"]["connect"]
         if route == "models":
             return httpx.Response(200, json={"data": [{"id": "gemma4"}]})
-        return httpx.Response(200, json={
-            "choices": [{"message": {"content": "hi"}, "finish_reason": "stop"}],
-        })
+        return httpx.Response(
+            200,
+            json={
+                "choices": [{"message": {"content": "hi"}, "finish_reason": "stop"}],
+            },
+        )
 
     with patch.object(
-        httpx, "AsyncClient",
+        httpx,
+        "AsyncClient",
         side_effect=lambda **kw: real_async_client(
-            transport=httpx.MockTransport(handler), **kw,
+            transport=httpx.MockTransport(handler),
+            **kw,
         ),
     ):
         backend = HttpBackend({"model_name": "gemma4", **config})
@@ -248,10 +275,13 @@ async def _connect_timeouts_by_route(config: dict) -> dict[str, float]:
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(("overrides", "completion"), [
-    ({"request_timeout_s": 120.0}, 120.0),
-    ({}, 60.0),
-])
+@pytest.mark.parametrize(
+    ("overrides", "completion"),
+    [
+        ({"request_timeout_s": 120.0}, 120.0),
+        ({}, 60.0),
+    ],
+)
 async def test_request_timeout_s_applies_to_the_completion_only(overrides, completion):
     """A raised budget reaches the generation POST, never the reachability probe."""
     seen = await _connect_timeouts_by_route(

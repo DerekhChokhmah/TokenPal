@@ -12,8 +12,7 @@ from tokenpal.actions.network._http import fetch_json, scrub_body, wrap_result
 from tokenpal.actions.registry import register_action
 
 _URL = (
-    "https://www.googleapis.com/books/v1/volumes"
-    "?q=subject:{genre}&maxResults=5&orderBy=relevance"
+    "https://www.googleapis.com/books/v1/volumes?q=subject:{genre}&maxResults=5&orderBy=relevance"
 )
 
 

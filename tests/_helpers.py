@@ -59,7 +59,10 @@ class ScriptedLLM(AbstractLLMBackend):
     async def teardown(self) -> None: ...
 
     async def generate(  # type: ignore[override]
-        self, prompt: str, max_tokens: int = 256, **kwargs: Any,
+        self,
+        prompt: str,
+        max_tokens: int = 256,
+        **kwargs: Any,
     ) -> LLMResponse:
         self.prompts.append(prompt)
         self.call_kwargs.append({"max_tokens": max_tokens, **kwargs})
@@ -91,7 +94,10 @@ def ok_response(text: str, tokens: int = 10) -> LLMResponse:
 
 
 def search_hit(
-    url: str, title: str, text: str, backend: str = "duckduckgo",
+    url: str,
+    title: str,
+    text: str,
+    backend: str = "duckduckgo",
 ) -> SearchResult:
     """Minimal SearchResult for test scaffolding."""
     return SearchResult(
@@ -163,7 +169,11 @@ def tool_call(name: str, arguments: dict[str, Any] | None = None, call_id: str =
 def tool_call_response(*calls: ToolCall) -> LLMResponse:
     """An LLM turn that makes *calls* and says nothing."""
     return LLMResponse(
-        text="", tokens_used=0, model_name="t", latency_ms=0, tool_calls=list(calls),
+        text="",
+        tokens_used=0,
+        model_name="t",
+        latency_ms=0,
+        tool_calls=list(calls),
     )
 
 
@@ -185,7 +195,9 @@ async def allow_confirm(_name: str, _args: dict[str, Any]) -> bool:
 
 
 def agent_brain(
-    llm: AbstractLLMBackend, actions: list[AbstractAction], memory: MemoryStore,
+    llm: AbstractLLMBackend,
+    actions: list[AbstractAction],
+    memory: MemoryStore,
 ) -> tuple[Brain, list[str]]:
     """A Brain whose trace sink mirrors the real one: every ``persist=True``
     line lands in *memory*'s chat log, so ``assert_no_leak(..., memory=memory)``
@@ -194,8 +206,9 @@ def agent_brain(
     Returns the brain and the captured trace buffer."""
     buf, capture = capture_logs()
 
-    def _log(text: str, *, markup: bool = False, url: str | None = None,
-             persist: bool = True) -> None:
+    def _log(
+        text: str, *, markup: bool = False, url: str | None = None, persist: bool = True
+    ) -> None:
         capture(text, markup=markup, url=url, persist=persist)
         if persist:
             memory.record_chat_entry(speaker="buddy", text=text, url=url)
@@ -207,7 +220,9 @@ def agent_brain(
         personality=PersonalityEngine("You are a test bot. Say 'ok' or [SILENT]."),
         actions=actions,
         agent_bridge=AgentBridge(
-            config=AgentConfig(), log_callback=_log, confirm_callback=allow_confirm,
+            config=AgentConfig(),
+            log_callback=_log,
+            confirm_callback=allow_confirm,
         ),
         log_callback=_log,
     )
@@ -215,7 +230,10 @@ def agent_brain(
 
 
 def selected_text(
-    text: str, *, whole_field: bool = False, truncated: bool = False,
+    text: str,
+    *,
+    whole_field: bool = False,
+    truncated: bool = False,
 ) -> SelectedText:
     """A successful read of *text* from TextEdit."""
     return SelectedText(

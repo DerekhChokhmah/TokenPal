@@ -8,6 +8,7 @@ test harness and aren't worth the weight for a simple settings screen.
 from __future__ import annotations
 
 import json
+import os
 import stat
 from pathlib import Path
 from typing import Any
@@ -24,20 +25,14 @@ def isolated(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> dict[str, Any]:
     secrets_path = tmp_path / ".secrets.json"
     state: dict[str, Any] = {"secrets_path": secrets_path, "toml_data": {}}
 
-    monkeypatch.setattr(
-        "tokenpal.config.secrets._default_path", lambda: secrets_path
-    )
+    monkeypatch.setattr("tokenpal.config.secrets._default_path", lambda: secrets_path)
 
     def fake_update_config(mutate, **_kwargs):  # type: ignore[no-untyped-def]
         mutate(state["toml_data"])
         return tmp_path / "config.toml"
 
-    monkeypatch.setattr(
-        "tokenpal.config.cloud_writer.update_config", fake_update_config
-    )
-    monkeypatch.setattr(
-        "tokenpal.config.toml_writer.update_config", fake_update_config
-    )
+    monkeypatch.setattr("tokenpal.config.cloud_writer.update_config", fake_update_config)
+    monkeypatch.setattr("tokenpal.config.toml_writer.update_config", fake_update_config)
     return state
 
 
@@ -53,16 +48,26 @@ def cfg() -> TokenPalConfig:
 
 def test_cloud_modal_state_with_no_key() -> None:
     s = CloudModalState(
-        enabled=False, research_synth=True, research_plan=False, research_deep=False, research_search=False,
-        model="claude-haiku-4-5", key_fingerprint=None,
+        enabled=False,
+        research_synth=True,
+        research_plan=False,
+        research_deep=False,
+        research_search=False,
+        model="claude-haiku-4-5",
+        key_fingerprint=None,
     )
     assert s.key_fingerprint is None
 
 
 def test_cloud_modal_result_immutable() -> None:
     r = CloudModalResult(
-        enabled=True, research_synth=True, research_plan=False, research_deep=False, research_search=False,
-        model="claude-haiku-4-5", new_api_key=None,
+        enabled=True,
+        research_synth=True,
+        research_plan=False,
+        research_deep=False,
+        research_search=False,
+        model="claude-haiku-4-5",
+        new_api_key=None,
     )
     with pytest.raises((AttributeError, Exception)):
         r.enabled = False  # type: ignore[misc]
@@ -73,13 +78,16 @@ def test_cloud_modal_result_immutable() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_apply_saves_new_key_and_flips_enabled(
-    isolated, cfg: TokenPalConfig
-) -> None:
+def test_apply_saves_new_key_and_flips_enabled(isolated, cfg: TokenPalConfig) -> None:
     key = "sk-ant-api03-" + "a" * 40
     result = CloudModalResult(
-        enabled=True, research_synth=True, research_plan=False, research_deep=False, research_search=False,
-        model="claude-haiku-4-5", new_api_key=key,
+        enabled=True,
+        research_synth=True,
+        research_plan=False,
+        research_deep=False,
+        research_search=False,
+        model="claude-haiku-4-5",
+        new_api_key=key,
     )
     _apply_cloud_modal_result(result, cfg)
     assert cfg.cloud_llm.enabled is True
@@ -88,38 +96,54 @@ def test_apply_saves_new_key_and_flips_enabled(
     assert stored["anthropic_key"] == key
 
 
-def test_apply_persists_key_at_0o600(
-    isolated, cfg: TokenPalConfig
-) -> None:
+@pytest.mark.skipif(
+    os.name == "nt",
+    reason="Unix file permissions are not enforced on Windows",
+)
+def test_apply_persists_key_at_0o600(isolated, cfg: TokenPalConfig) -> None:
     key = "sk-ant-api03-" + "b" * 40
     result = CloudModalResult(
-        enabled=True, research_synth=True, research_plan=False, research_deep=False, research_search=False,
-        model="claude-haiku-4-5", new_api_key=key,
+        enabled=True,
+        research_synth=True,
+        research_plan=False,
+        research_deep=False,
+        research_search=False,
+        model="claude-haiku-4-5",
+        new_api_key=key,
     )
     _apply_cloud_modal_result(result, cfg)
     mode = stat.S_IMODE(isolated["secrets_path"].stat().st_mode)
     assert mode == 0o600
 
 
-def test_apply_rejects_bad_key_without_touching_flags(
-    isolated, cfg: TokenPalConfig
-) -> None:
+def test_apply_rejects_bad_key_without_touching_flags(isolated, cfg: TokenPalConfig) -> None:
     result = CloudModalResult(
-        enabled=True, research_synth=True, research_plan=True, research_deep=False, research_search=False,
-        model="claude-haiku-4-5", new_api_key="not-a-real-key",
+        enabled=True,
+        research_synth=True,
+        research_plan=True,
+        research_deep=False,
+        research_search=False,
+        model="claude-haiku-4-5",
+        new_api_key="not-a-real-key",
     )
     _apply_cloud_modal_result(result, cfg)
     # enabled stays False because the bad-key branch bails before flipping
     assert cfg.cloud_llm.enabled is False
     # No key written
-    assert not isolated["secrets_path"].exists() or \
-        "cloud_key" not in json.loads(isolated["secrets_path"].read_text())
+    assert not isolated["secrets_path"].exists() or "cloud_key" not in json.loads(
+        isolated["secrets_path"].read_text()
+    )
 
 
 def test_apply_flips_site_flags(isolated, cfg: TokenPalConfig) -> None:
     result = CloudModalResult(
-        enabled=True, research_synth=False, research_plan=True, research_deep=False, research_search=False,
-        model="claude-haiku-4-5", new_api_key=None,
+        enabled=True,
+        research_synth=False,
+        research_plan=True,
+        research_deep=False,
+        research_search=False,
+        model="claude-haiku-4-5",
+        new_api_key=None,
     )
     _apply_cloud_modal_result(result, cfg)
     assert cfg.cloud_llm.research_synth is False
@@ -131,8 +155,13 @@ def test_apply_flips_site_flags(isolated, cfg: TokenPalConfig) -> None:
 
 def test_apply_changes_model(isolated, cfg: TokenPalConfig) -> None:
     result = CloudModalResult(
-        enabled=True, research_synth=True, research_plan=False, research_deep=False, research_search=False,
-        model="claude-sonnet-4-6", new_api_key=None,
+        enabled=True,
+        research_synth=True,
+        research_plan=False,
+        research_deep=False,
+        research_search=False,
+        model="claude-sonnet-4-6",
+        new_api_key=None,
     )
     _apply_cloud_modal_result(result, cfg)
     assert cfg.cloud_llm.model == "claude-sonnet-4-6"
@@ -141,8 +170,13 @@ def test_apply_changes_model(isolated, cfg: TokenPalConfig) -> None:
 
 def test_apply_ignores_unknown_model(isolated, cfg: TokenPalConfig) -> None:
     result = CloudModalResult(
-        enabled=True, research_synth=True, research_plan=False, research_deep=False, research_search=False,
-        model="claude-opus-3", new_api_key=None,  # not allowlisted
+        enabled=True,
+        research_synth=True,
+        research_plan=False,
+        research_deep=False,
+        research_search=False,
+        model="claude-opus-3",
+        new_api_key=None,  # not allowlisted
     )
     _apply_cloud_modal_result(result, cfg)
     # Original model preserved
@@ -152,8 +186,13 @@ def test_apply_ignores_unknown_model(isolated, cfg: TokenPalConfig) -> None:
 def test_apply_no_key_no_write(isolated, cfg: TokenPalConfig) -> None:
     """User opens modal, changes toggles only, saves without touching key."""
     result = CloudModalResult(
-        enabled=True, research_synth=False, research_plan=True, research_deep=False, research_search=False,
-        model="claude-haiku-4-5", new_api_key=None,
+        enabled=True,
+        research_synth=False,
+        research_plan=True,
+        research_deep=False,
+        research_search=False,
+        model="claude-haiku-4-5",
+        new_api_key=None,
     )
     _apply_cloud_modal_result(result, cfg)
     # Secrets file untouched
@@ -168,16 +207,26 @@ def test_apply_disable_preserves_key(isolated, cfg: TokenPalConfig) -> None:
     key = "sk-ant-api03-" + "c" * 40
     _apply_cloud_modal_result(
         CloudModalResult(
-            enabled=True, research_synth=True, research_plan=False, research_deep=False, research_search=False,
-            model="claude-haiku-4-5", new_api_key=key,
+            enabled=True,
+            research_synth=True,
+            research_plan=False,
+            research_deep=False,
+            research_search=False,
+            model="claude-haiku-4-5",
+            new_api_key=key,
         ),
         cfg,
     )
     # Now disable via modal
     _apply_cloud_modal_result(
         CloudModalResult(
-            enabled=False, research_synth=True, research_plan=False, research_deep=False, research_search=False,
-            model="claude-haiku-4-5", new_api_key=None,
+            enabled=False,
+            research_synth=True,
+            research_plan=False,
+            research_deep=False,
+            research_search=False,
+            model="claude-haiku-4-5",
+            new_api_key=None,
         ),
         cfg,
     )
@@ -192,12 +241,15 @@ def test_apply_disable_preserves_key(isolated, cfg: TokenPalConfig) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_apply_persists_deep_flag_for_sonnet(
-    isolated, cfg: TokenPalConfig
-) -> None:
+def test_apply_persists_deep_flag_for_sonnet(isolated, cfg: TokenPalConfig) -> None:
     result = CloudModalResult(
-        enabled=True, research_synth=True, research_plan=False,
-        research_deep=True, research_search=False, model="claude-sonnet-4-6", new_api_key=None,
+        enabled=True,
+        research_synth=True,
+        research_plan=False,
+        research_deep=True,
+        research_search=False,
+        model="claude-sonnet-4-6",
+        new_api_key=None,
     )
     _apply_cloud_modal_result(result, cfg)
     assert cfg.cloud_llm.research_deep is True
@@ -207,20 +259,27 @@ def test_apply_persists_deep_flag_for_sonnet(
 def test_apply_clears_deep_flag(isolated, cfg: TokenPalConfig) -> None:
     cfg.cloud_llm.research_deep = True
     result = CloudModalResult(
-        enabled=True, research_synth=True, research_plan=False,
-        research_deep=False, research_search=False, model="claude-sonnet-4-6", new_api_key=None,
+        enabled=True,
+        research_synth=True,
+        research_plan=False,
+        research_deep=False,
+        research_search=False,
+        model="claude-sonnet-4-6",
+        new_api_key=None,
     )
     _apply_cloud_modal_result(result, cfg)
     assert cfg.cloud_llm.research_deep is False
 
 
-def test_apply_persists_search_flag_for_sonnet(
-    isolated, cfg: TokenPalConfig
-) -> None:
+def test_apply_persists_search_flag_for_sonnet(isolated, cfg: TokenPalConfig) -> None:
     result = CloudModalResult(
-        enabled=True, research_synth=True, research_plan=False,
-        research_deep=False, research_search=True,
-        model="claude-sonnet-4-6", new_api_key=None,
+        enabled=True,
+        research_synth=True,
+        research_plan=False,
+        research_deep=False,
+        research_search=True,
+        model="claude-sonnet-4-6",
+        new_api_key=None,
     )
     _apply_cloud_modal_result(result, cfg)
     assert cfg.cloud_llm.research_search is True
@@ -234,8 +293,13 @@ def test_collect_forces_deep_off_for_haiku() -> None:
     from tokenpal.ui.cloud_modal import CloudModal
 
     state = CloudModalState(
-        enabled=True, research_synth=True, research_plan=False,
-        research_deep=True, research_search=False, model="claude-sonnet-4-6", key_fingerprint="ab*",
+        enabled=True,
+        research_synth=True,
+        research_plan=False,
+        research_deep=True,
+        research_search=False,
+        model="claude-sonnet-4-6",
+        key_fingerprint="ab*",
     )
     modal = CloudModal(state)
 
@@ -307,10 +371,12 @@ def _baseline_widgets(
         "#toggle-tavily-enabled": _Stub(tavily_enabled),
         "#tavily-depth-set": _RadioStub(tavily_depth),
         "#tavily-api-key-input": _Stub(
-            tavily_key_value, disabled=tavily_key_disabled,
+            tavily_key_value,
+            disabled=tavily_key_disabled,
         ),
         "#brave-api-key-input": _Stub(
-            brave_key_value, disabled=brave_key_disabled,
+            brave_key_value,
+            disabled=brave_key_disabled,
         ),
     }
 
@@ -327,8 +393,11 @@ def test_modal_carries_tavily_state_to_result() -> None:
     from tokenpal.ui.cloud_modal import CloudModal
 
     state = CloudModalState(
-        enabled=True, research_synth=True, research_plan=False,
-        research_deep=False, research_search=False,
+        enabled=True,
+        research_synth=True,
+        research_plan=False,
+        research_deep=False,
+        research_search=False,
         model="claude-haiku-4-5",
         key_fingerprint="sk-ant-...aaaa",
         tavily_enabled=True,
@@ -357,8 +426,11 @@ def test_modal_accepts_new_tavily_key() -> None:
     from tokenpal.ui.cloud_modal import CloudModal
 
     state = CloudModalState(
-        enabled=False, research_synth=True, research_plan=False,
-        research_deep=False, research_search=False,
+        enabled=False,
+        research_synth=True,
+        research_plan=False,
+        research_deep=False,
+        research_search=False,
         model="claude-haiku-4-5",
         key_fingerprint=None,
         tavily_enabled=False,
@@ -384,8 +456,11 @@ def test_modal_carries_brave_state_to_result() -> None:
     from tokenpal.ui.cloud_modal import CloudModal
 
     state = CloudModalState(
-        enabled=False, research_synth=True, research_plan=False,
-        research_deep=False, research_search=False,
+        enabled=False,
+        research_synth=True,
+        research_plan=False,
+        research_deep=False,
+        research_search=False,
         model="claude-haiku-4-5",
         key_fingerprint=None,
         tavily_enabled=False,
@@ -412,8 +487,11 @@ def test_modal_replace_tavily_key_toggle() -> None:
     from tokenpal.ui.cloud_modal import CloudModal
 
     state = CloudModalState(
-        enabled=True, research_synth=True, research_plan=False,
-        research_deep=False, research_search=False,
+        enabled=True,
+        research_synth=True,
+        research_plan=False,
+        research_deep=False,
+        research_search=False,
         model="claude-haiku-4-5",
         key_fingerprint="sk-ant-...aaaa",
         tavily_enabled=True,
@@ -455,7 +533,8 @@ def test_modal_replace_tavily_key_toggle() -> None:
 
 
 def test_modal_all_three_backends_coexist(
-    isolated, cfg: TokenPalConfig,
+    isolated,
+    cfg: TokenPalConfig,
 ) -> None:
     """All three keys set + Tavily flags saved together persist correctly."""
     anthropic_key = "sk-ant-api03-" + "d" * 40
@@ -463,8 +542,11 @@ def test_modal_all_three_backends_coexist(
     brave_key = "BSA" + "f" * 32
 
     result = CloudModalResult(
-        enabled=True, research_synth=True, research_plan=False,
-        research_deep=False, research_search=False,
+        enabled=True,
+        research_synth=True,
+        research_plan=False,
+        research_deep=False,
+        research_search=False,
         model="claude-haiku-4-5",
         new_api_key=anthropic_key,
         tavily_enabled=True,

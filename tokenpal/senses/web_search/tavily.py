@@ -46,16 +46,18 @@ def tavily_search(
     if not query or not key:
         return []
 
-    body = json.dumps({
-        "query": query,
-        "api_key": key,
-        "search_depth": search_depth,
-        "max_results": max(1, min(max_results, 10)),
-        # We do our own synth downstream; don't pay for Tavily's answer
-        # synthesis (it's a separate credit charge on some plans).
-        "include_answer": False,
-        "include_raw_content": False,
-    }).encode("utf-8")
+    body = json.dumps(
+        {
+            "query": query,
+            "api_key": key,
+            "search_depth": search_depth,
+            "max_results": max(1, min(max_results, 10)),
+            # We do our own synth downstream; don't pay for Tavily's answer
+            # synthesis (it's a separate credit charge on some plans).
+            "include_answer": False,
+            "include_raw_content": False,
+        }
+    ).encode("utf-8")
 
     payload = http_json(
         _API_URL,
@@ -80,10 +82,12 @@ def tavily_search(
             # No URL or no extracted text — useless to us even if Tavily
             # returned something like a stub result.
             continue
-        cleaned.append({
-            "url": url,
-            "title": title or url,
-            "content": content,
-            "score": float(item.get("score") or 0.0),
-        })
+        cleaned.append(
+            {
+                "url": url,
+                "title": title or url,
+                "content": content,
+                "score": float(item.get("score") or 0.0),
+            }
+        )
     return cleaned

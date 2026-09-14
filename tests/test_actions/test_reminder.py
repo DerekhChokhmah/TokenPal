@@ -55,9 +55,7 @@ async def test_arm_interval_registers_persists_and_names_next_fire(
     memory: MemoryStore,
 ) -> None:
     action, sched = _wire(memory)
-    result = await action.execute(
-        action="arm", label="Stretch break -- stand up.", every_min=60
-    )
+    result = await action.execute(action="arm", label="Stretch break -- stand up.", every_min=60)
 
     assert result.success
     assert _ids(sched) == ["stretch-break-stand-up"]
@@ -146,9 +144,7 @@ async def test_unknown_action_names_the_allowed_values() -> None:
         ("reply on whatsapp", "whatsapp"),
     ],
 )
-async def test_sensitive_label_refused_without_echoing_it(
-    label: str, term: str
-) -> None:
+async def test_sensitive_label_refused_without_echoing_it(label: str, term: str) -> None:
     action, sched = _wire()
     result = await action.execute(action="arm", label=label, every_min=30)
     assert result.success is False
@@ -160,17 +156,13 @@ async def test_sensitive_label_refused_without_echoing_it(
 async def test_sensitive_id_refused_without_echoing_it() -> None:
     """The id lands in the same persisted row and the same refusal text."""
     action, sched = _wire()
-    result = await action.execute(
-        action="arm", id="venmo", label="Move money", every_min=30
-    )
+    result = await action.execute(action="arm", id="venmo", label="Move money", every_min=30)
     assert result.success is False
     assert "venmo" not in result.output.lower()
     assert sched.armed() == []
 
 
-@pytest.mark.parametrize(
-    "label", ["take a health break", "stay calm", "check messages"]
-)
+@pytest.mark.parametrize("label", ["take a health break", "stay calm", "check messages"])
 async def test_ordinary_self_care_labels_still_arm(label: str) -> None:
     """The broad SENSITIVE_APPS list refuses all three (health, calm,
     messages are bare substrings of app names). The narrow content list is
@@ -197,9 +189,7 @@ async def test_arming_the_same_label_twice_arms_two_reminders() -> None:
 async def test_arm_with_an_explicit_id_replaces_and_says_so() -> None:
     action, sched = _wire()
     await action.execute(action="arm", label="Stretch", every_min=30)
-    result = await action.execute(
-        action="arm", id="stretch", label="Stretch harder", every_min=45
-    )
+    result = await action.execute(action="arm", id="stretch", label="Stretch harder", every_min=45)
     assert _ids(sched) == ["stretch"]
     assert sched.armed()[0].label == "Stretch harder"
     assert result.output.startswith("Replaced")
@@ -297,9 +287,7 @@ async def test_execute_accepts_no_mode_the_schema_does_not_advertise(
     action, sched = _wire()
     await action.execute(action="arm", label="stretch", every_min=30)
 
-    result = await action.execute(
-        action=mode, id="stretch", label="stretch", every_min=30
-    )
+    result = await action.execute(action=mode, id="stretch", label="stretch", every_min=30)
     assert result.success is False
     # Neither armed a second one nor cancelled the existing one.
     assert _ids(sched) == ["stretch"]
@@ -435,9 +423,7 @@ async def test_arming_stops_at_the_cap() -> None:
     assert len(sched.armed()) == MAX_ARMED
 
     # Replacing an existing reminder is not blocked by the cap.
-    replaced = await action.execute(
-        action="arm", id="n0", label="replaced", every_min=45
-    )
+    replaced = await action.execute(action="arm", id="n0", label="replaced", every_min=45)
     assert replaced.success
     assert len(sched.armed()) == MAX_ARMED
 
@@ -514,9 +500,7 @@ async def test_an_unstorable_label_refuses_and_leaves_nothing_armed(
 async def test_an_over_long_id_is_refused() -> None:
     """id is the primary key and is echoed in the reply and every list line."""
     action, sched = _wire()
-    result = await action.execute(
-        action="arm", id="Z" * 5000, label="hi", every_min=30
-    )
+    result = await action.execute(action="arm", id="Z" * 5000, label="hi", every_min=30)
     assert result.success is False
     assert len(result.output) < 200
     assert sched.armed() == []
@@ -528,9 +512,7 @@ def test_every_durable_sink_is_gated_after_a_desktop_content_read() -> None:
     from tokenpal.actions.registry import _ACTION_REGISTRY, discover_actions
 
     discover_actions()
-    declared = {
-        name for name, cls in _ACTION_REGISTRY.items() if cls.writes_durable_sink
-    }
+    declared = {name for name, cls in _ACTION_REGISTRY.items() if cls.writes_durable_sink}
 
     assert declared == {"reminder", "habit_streak", "mood_check"}
 

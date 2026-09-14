@@ -183,12 +183,13 @@ print(app.localizedName())  # e.g. "Safari"
 
 # Window titles via Quartz
 import Quartz
+
 windows = Quartz.CGWindowListCopyWindowInfo(
     Quartz.kCGWindowListOptionOnScreenOnly,
     Quartz.kCGNullWindowID,
 )
 for w in windows:
-    print(w.get('kCGWindowOwnerName'), w.get('kCGWindowName'))
+    print(w.get("kCGWindowOwnerName"), w.get("kCGWindowName"))
 ```
 
 ### Clipboard
@@ -229,7 +230,9 @@ Or simpler: `subprocess.run(["say", "Hello from TokenPal"])`
 ### Overlay window (NSWindow — for full-screen support)
 ```python
 from AppKit import (
-    NSWindow, NSApplication, NSFloatingWindowLevel,
+    NSWindow,
+    NSApplication,
+    NSFloatingWindowLevel,
     NSWindowCollectionBehaviorCanJoinAllSpaces,
     NSWindowCollectionBehaviorFullScreenAuxiliary,
     NSWindowCollectionBehaviorStationary,
@@ -259,7 +262,7 @@ import psutil
 
 psutil.cpu_percent(interval=1)
 psutil.virtual_memory().percent
-psutil.sensors_battery()          # battery info
+psutil.sensors_battery()  # battery info
 psutil.disk_io_counters()
 psutil.net_io_counters()
 ```
@@ -272,9 +275,11 @@ sudo powermetrics --samplers cpu_power,gpu_power,ane_power,thermal -n 1 -i 1000
 From Python (needs to run with elevated privileges or parse cached output):
 ```python
 import subprocess
+
 result = subprocess.run(
     ["sudo", "powermetrics", "--samplers", "cpu_power,thermal", "-n", "1", "-i", "1000"],
-    capture_output=True, text=True,
+    capture_output=True,
+    text=True,
 )
 # Parse result.stdout for thermal and power data
 ```

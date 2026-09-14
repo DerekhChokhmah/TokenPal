@@ -85,7 +85,8 @@ def test_summary_present_for_every_phase():
 async def test_setup_disables_when_no_weather_lat_lon():
     sense = SunPositionSense({})
     with patch(
-        "tokenpal.config.loader.load_config", return_value=_config_with_weather(0.0, 0.0),
+        "tokenpal.config.loader.load_config",
+        return_value=_config_with_weather(0.0, 0.0),
     ):
         await sense.setup()
     assert sense.enabled is False
@@ -94,7 +95,8 @@ async def test_setup_disables_when_no_weather_lat_lon():
 async def test_setup_enables_with_weather_lat_lon():
     sense = SunPositionSense({})
     with patch(
-        "tokenpal.config.loader.load_config", return_value=_config_with_weather(41.1, -74.0),
+        "tokenpal.config.loader.load_config",
+        return_value=_config_with_weather(41.1, -74.0),
     ):
         await sense.setup()
     assert sense.enabled is True
@@ -104,7 +106,8 @@ async def test_poll_emits_only_on_phase_transition():
     fixed_now = dt.datetime(2026, 4, 25, 12, 0, tzinfo=dt.UTC)
     sense = SunPositionSense({}, now_fn=lambda: fixed_now)
     with patch(
-        "tokenpal.config.loader.load_config", return_value=_config_with_weather(41.1, -74.0),
+        "tokenpal.config.loader.load_config",
+        return_value=_config_with_weather(41.1, -74.0),
     ):
         await sense.setup()
 
@@ -124,7 +127,8 @@ async def test_poll_emits_after_phase_change():
     times = iter([t1, t2])
     sense = SunPositionSense({}, now_fn=lambda: next(times))
     with patch(
-        "tokenpal.config.loader.load_config", return_value=_config_with_weather(41.1, -74.0),
+        "tokenpal.config.loader.load_config",
+        return_value=_config_with_weather(41.1, -74.0),
     ):
         await sense.setup()
     sense._cached_date = t1.astimezone(sense._solar_tz).date()
@@ -143,7 +147,8 @@ async def test_poll_uses_observer_local_day_not_utc_day():
     sunday_morning_utc = dt.datetime(2026, 4, 26, 13, 5, tzinfo=dt.UTC)
     sense = SunPositionSense({}, now_fn=lambda: sunday_morning_utc)
     with patch(
-        "tokenpal.config.loader.load_config", return_value=_config_with_weather(41.1, -74.0),
+        "tokenpal.config.loader.load_config",
+        return_value=_config_with_weather(41.1, -74.0),
     ):
         await sense.setup()
     reading = await sense.poll()
@@ -154,7 +159,8 @@ async def test_poll_uses_observer_local_day_not_utc_day():
 async def test_poll_returns_none_when_disabled():
     sense = SunPositionSense({})
     with patch(
-        "tokenpal.config.loader.load_config", return_value=_config_with_weather(0.0, 0.0),
+        "tokenpal.config.loader.load_config",
+        return_value=_config_with_weather(0.0, 0.0),
     ):
         await sense.setup()
     assert await sense.poll() is None
@@ -162,7 +168,8 @@ async def test_poll_returns_none_when_disabled():
 
 async def test_setup_disables_when_astral_missing(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(
-        "tokenpal.senses.sun_position.sense._HAS_ASTRAL", False,
+        "tokenpal.senses.sun_position.sense._HAS_ASTRAL",
+        False,
     )
     sense = SunPositionSense({})
     await sense.setup()

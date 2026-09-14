@@ -14,7 +14,8 @@ def store(tmp_path: Path) -> JsonFileJobStore:
 
 
 def _make_job(
-    job_id: str = "test-123", status: TrainingStatus = TrainingStatus.QUEUED,
+    job_id: str = "test-123",
+    status: TrainingStatus = TrainingStatus.QUEUED,
 ) -> TrainingJob:
     return TrainingJob(
         job_id=job_id,

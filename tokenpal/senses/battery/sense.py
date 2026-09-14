@@ -35,11 +35,11 @@ def _classify(percent: float, plugged: bool) -> str:
 
 
 _STATE_PHRASE: dict[str, str] = {
-    "full":        "battery fully charged",
-    "charging":    "plugged in, charging",
-    "on_battery":  "unplugged, running on battery",
-    "low":         "battery low, not plugged in",
-    "critical":    "battery CRITICAL, plug in soon",
+    "full": "battery fully charged",
+    "charging": "plugged in, charging",
+    "on_battery": "unplugged, running on battery",
+    "low": "battery low, not plugged in",
+    "critical": "battery CRITICAL, plug in soon",
 }
 
 

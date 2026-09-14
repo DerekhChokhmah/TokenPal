@@ -74,6 +74,7 @@ def _patch_pynput_darwin_tsm() -> None:
     # keyboard._darwin imports keycode_context by value — patch the rebound name
     _pynput_kbd_darwin.keycode_context = _safe_keycode_context
 
+
 Subscriber = Callable[[], None]
 
 _lock = threading.Lock()

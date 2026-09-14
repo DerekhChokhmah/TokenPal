@@ -199,9 +199,7 @@ class TestTimeOfDayPatterns:
     def test_needs_minimum_sessions(self, store: MemoryStore) -> None:
         # Only 2 sessions — below threshold
         for i in range(2):
-            _insert_app_switch(
-                store, "Slack", _ts(f"2026-04-0{8+i}", 9), f"s{i}"
-            )
+            _insert_app_switch(store, "Slack", _ts(f"2026-04-0{8 + i}", 9), f"s{i}")
 
         callbacks = store._detect_time_of_day_patterns(set())
         assert callbacks == []
@@ -368,7 +366,7 @@ class TestToolCalls:
 class TestResearchCache:
     def test_hit_and_miss(self, store: MemoryStore) -> None:
         assert store.get_research_answer("abc", 3600) is None
-        store.cache_research_answer("abc", "what?", "yes.", '[]')
+        store.cache_research_answer("abc", "what?", "yes.", "[]")
         hit = store.get_research_answer("abc", 3600)
         assert hit is not None
         answer, sources_json, age = hit
@@ -388,7 +386,8 @@ class TestResearchCache:
         assert store.get_research_answer("xyz", max_age_s=30.0) is not None
 
     def test_get_latest_research_returns_most_recent(
-        self, store: MemoryStore,
+        self,
+        store: MemoryStore,
     ) -> None:
         """Used by /refine - picks the latest research regardless of hash."""
         assert store.get_latest_research(3600) is None
@@ -410,7 +409,8 @@ class TestResearchCache:
         assert age < 5.0
 
     def test_get_latest_research_respects_max_age(
-        self, store: MemoryStore,
+        self,
+        store: MemoryStore,
     ) -> None:
         store.cache_research_answer("old", "q", "a", "[]")
         assert store._conn is not None
@@ -424,7 +424,8 @@ class TestResearchCache:
         assert store.get_latest_research(10800) is not None
 
     def test_append_research_sources_dedups_and_caps(
-        self, store: MemoryStore,
+        self,
+        store: MemoryStore,
     ) -> None:
         """Supplemental refine appends new sources to the cached row;
         canonical-URL dedup prevents re-adding an existing source, and the
@@ -451,6 +452,7 @@ class TestResearchCache:
         hit = store.get_latest_research(3600)
         assert hit is not None
         import json as _json
+
         parsed = _json.loads(hit[2])
         assert [s["url"] for s in parsed] == [
             "https://a.example",
@@ -460,7 +462,8 @@ class TestResearchCache:
         ]
 
     def test_append_research_sources_enforces_cap(
-        self, store: MemoryStore,
+        self,
+        store: MemoryStore,
     ) -> None:
         """When total after append exceeds cap, the tail (newest
         supplemental) is truncated so the original research pool wins."""
@@ -478,6 +481,7 @@ class TestResearchCache:
         hit = store.get_latest_research(3600)
         assert hit is not None
         import json as _json
+
         parsed = _json.loads(hit[2])
         assert len(parsed) == 5  # capped
         # Original pool preserved at the head.
@@ -486,19 +490,25 @@ class TestResearchCache:
         assert parsed[2]["url"] == "https://c.example"
 
     def test_append_research_sources_missing_row_returns_zero(
-        self, store: MemoryStore,
+        self,
+        store: MemoryStore,
     ) -> None:
         added = store.append_research_sources(
-            "nonexistent", [{"url": "https://x.example"}], cap=10,
+            "nonexistent",
+            [{"url": "https://x.example"}],
+            cap=10,
         )
         assert added == 0
 
     def test_append_research_sources_zero_cap_noop(
-        self, store: MemoryStore,
+        self,
+        store: MemoryStore,
     ) -> None:
         store.cache_research_answer("qh", "q", "a", "[]")
         added = store.append_research_sources(
-            "qh", [{"url": "https://x.example"}], cap=0,
+            "qh",
+            [{"url": "https://x.example"}],
+            cap=0,
         )
         assert added == 0
 
@@ -552,10 +562,13 @@ class TestPersonalizationSignals:
     def test_streak_days_three_in_a_row(self, store: MemoryStore) -> None:
         today = datetime.now().date()
         for offset in (0, 1, 2):
-            ts = datetime.combine(
-                today - timedelta(days=offset),
-                datetime.min.time(),
-            ).timestamp() + 3600
+            ts = (
+                datetime.combine(
+                    today - timedelta(days=offset),
+                    datetime.min.time(),
+                ).timestamp()
+                + 3600
+            )
             _insert_app_switch(store, "Ghostty", ts, session_id=f"s{offset}")
         assert store.get_daily_streak_days() == 3
 
@@ -563,10 +576,13 @@ class TestPersonalizationSignals:
         today = datetime.now().date()
         # Today + two days ago (missing yesterday = gap).
         for offset in (0, 2, 3):
-            ts = datetime.combine(
-                today - timedelta(days=offset),
-                datetime.min.time(),
-            ).timestamp() + 3600
+            ts = (
+                datetime.combine(
+                    today - timedelta(days=offset),
+                    datetime.min.time(),
+                ).timestamp()
+                + 3600
+            )
             _insert_app_switch(store, "Ghostty", ts, session_id=f"s{offset}")
         # Streak = 1 (just today).
         assert store.get_daily_streak_days() == 1

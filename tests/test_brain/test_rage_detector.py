@@ -58,7 +58,7 @@ def test_pattern_triggers(config: RageDetectConfig) -> None:
     # burst -> pause -> distraction switch
     d.ingest([_typing("rapid")])
     d.ingest([_typing("idle")])  # pause starts here
-    time.sleep(0.02)             # > rage_post_pause_min_s
+    time.sleep(0.02)  # > rage_post_pause_min_s
     signal = d.ingest([_app("Twitter")])
     assert isinstance(signal, RageSignal)
     assert "Twitter" in signal.app_name

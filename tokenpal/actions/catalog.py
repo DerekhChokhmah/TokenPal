@@ -181,8 +181,7 @@ FOCUS_SECTION = CatalogSection(
         ),
         CatalogEntry(
             "reminder",
-            "Arm, cancel or list recurring nudges (speech bubbles). "
-            "Pauses in conversation.",
+            "Arm, cancel or list recurring nudges (speech bubbles). Pauses in conversation.",
             kind="focus",
         ),
         CatalogEntry(
@@ -268,10 +267,7 @@ def default_tool_names() -> frozenset[str]:
 def all_optin_entries() -> tuple[CatalogEntry, ...]:
     """Every non-default catalog entry, flattened."""
     return tuple(
-        entry
-        for section in SECTIONS
-        if section is not DEFAULT_SECTION
-        for entry in section.entries
+        entry for section in SECTIONS if section is not DEFAULT_SECTION for entry in section.entries
     )
 
 

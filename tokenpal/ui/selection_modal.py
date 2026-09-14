@@ -123,8 +123,7 @@ class SelectionModal(ModalScreen[dict[str, list[str]] | None]):
                 toggleable = [i for i in group.items if not i.locked]
                 if toggleable:
                     selections = [
-                        Selection(i.label, i.value, initial_state=i.initial)
-                        for i in toggleable
+                        Selection(i.label, i.value, initial_state=i.initial) for i in toggleable
                     ]
                     yield SelectionList[str](*selections, id=self._list_id(group))
                 locked = [i for i in group.items if i.locked]

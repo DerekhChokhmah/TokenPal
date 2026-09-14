@@ -138,17 +138,30 @@ _PER_SOURCE_EXCERPT_CHARS = 4000
 # Keep the list tight: only strip known trackers, NOT arbitrary params
 # (some sites encode article identity in querystrings).
 _TRACKING_PARAM_PREFIXES: tuple[str, ...] = (
-    "utm_", "mc_", "_hsenc", "_hsmi", "hsa_", "vero_",
+    "utm_",
+    "mc_",
+    "_hsenc",
+    "_hsmi",
+    "hsa_",
+    "vero_",
 )
-_TRACKING_PARAM_EXACT: frozenset[str] = frozenset({
-    "srsltid",      # Google Shopping result tracking id
-    "fbclid", "gclid", "dclid", "msclkid",
-    "igshid",       # Instagram share id
-    "yclid",        # Yandex click id
-    "twclid",       # Twitter click id
-    "_ga", "_gl",
-    "ref", "ref_src", "ref_url",
-})
+_TRACKING_PARAM_EXACT: frozenset[str] = frozenset(
+    {
+        "srsltid",  # Google Shopping result tracking id
+        "fbclid",
+        "gclid",
+        "dclid",
+        "msclkid",
+        "igshid",  # Instagram share id
+        "yclid",  # Yandex click id
+        "twclid",  # Twitter click id
+        "_ga",
+        "_gl",
+        "ref",
+        "ref_src",
+        "ref_url",
+    }
+)
 
 
 def _canonical_url(url: str) -> str:
@@ -175,9 +188,16 @@ def _canonical_url(url: str) -> str:
             continue
         kept.append((key, value))
     new_query = urllib.parse.urlencode(kept, doseq=True)
-    return urllib.parse.urlunsplit((
-        parsed.scheme, parsed.netloc, parsed.path, new_query, parsed.fragment,
-    ))
+    return urllib.parse.urlunsplit(
+        (
+            parsed.scheme,
+            parsed.netloc,
+            parsed.path,
+            new_query,
+            parsed.fragment,
+        )
+    )
+
 
 # Fewer sources than this and we warn — synthesis from 1-2 pages tends to
 # produce either training-data hallucinations or single-source bias.
@@ -235,8 +255,7 @@ class ResearchRunner:
             self._cloud_search.enabled and self._api_keys.get("tavily")
         )
         self._semaphores: dict[BackendName, asyncio.Semaphore] = {
-            name: asyncio.Semaphore(limit)
-            for name, limit in _BACKEND_CONCURRENCY.items()
+            name: asyncio.Semaphore(limit) for name, limit in _BACKEND_CONCURRENCY.items()
         }
 
     def _log_runner_state(self) -> None:
@@ -271,7 +290,9 @@ class ResearchRunner:
             self._log_telemetry(session)
 
     async def _run_inner(
-        self, question: str, session: ResearchSession,
+        self,
+        question: str,
+        session: ResearchSession,
     ) -> ResearchSession:
         self._log(f"? {question}")
         self._set_status("researching: planning")
@@ -311,21 +332,21 @@ class ResearchRunner:
             return session
 
         if len(session.sources) < _THIN_POOL_THRESHOLD:
-            msg = (
-                f"thin source pool ({len(session.sources)} sources) "
-                "— answer may be unreliable"
-            )
+            msg = f"thin source pool ({len(session.sources)} sources) — answer may be unreliable"
             self._log(f"  warning: {msg}")
             session.warnings.append(msg)
             log.warning(
-                "Research returned %d sources (threshold %d) — synthesis "
-                "will be thin", len(session.sources), _THIN_POOL_THRESHOLD,
+                "Research returned %d sources (threshold %d) — synthesis will be thin",
+                len(session.sources),
+                _THIN_POOL_THRESHOLD,
             )
 
         self._set_status("researching: synthesizing")
         try:
             result, raw_text, used = await self._synthesize(
-                question, session.sources, session=session,
+                question,
+                session.sources,
+                session=session,
             )
         except Exception:
             log.exception("Research synthesizer failed")
@@ -354,9 +375,7 @@ class ResearchRunner:
         mix_str = ",".join(f"{k}={v}" for k, v in sorted(mix.items())) or "none"
         tried_str = ",".join(sorted(session.backends_tried)) or "none"
         synth_str = (
-            f"cloud={self._cloud_backend.model}"
-            if self._cloud_backend is not None
-            else "local"
+            f"cloud={self._cloud_backend.model}" if self._cloud_backend is not None else "local"
         )
         self._log(
             f"  telemetry: mode={mix_str} tried={tried_str} "
@@ -373,9 +392,7 @@ class ResearchRunner:
     ) -> str:
         max_n = len(sources)
         if result is None:
-            self._log(
-                "  synth: JSON parse failed, falling back to prose + marker strip"
-            )
+            self._log("  synth: JSON parse failed, falling back to prose + marker strip")
             log.warning("research synth returned invalid JSON, using prose fallback")
             all_markers = _DANGLING_MARKER_RE.findall(raw_text)
             stripped_text = _strip_dangling_markers(raw_text, max_n)
@@ -398,17 +415,16 @@ class ResearchRunner:
                 )
                 log.info(
                     "research dropped %d of %d picks: %s",
-                    len(dropped), len(result.picks), names,
+                    len(dropped),
+                    len(result.picks),
+                    names,
                 )
             if len(kept) == 0:
-                self._log(
-                    f"  synth: {len(result.picks)} picks generated, "
-                    f"0 verified, downgrading"
-                )
+                self._log(f"  synth: {len(result.picks)} picks generated, 0 verified, downgrading")
                 log.info(
-                    "research synth produced %d picks, 0 verified "
-                    "(raw len=%d)",
-                    len(result.picks), len(raw_text),
+                    "research synth produced %d picks, 0 verified (raw len=%d)",
+                    len(result.picks),
+                    len(raw_text),
                 )
                 return "Sources don't name enough verifiable picks."
             if len(kept) == 1:
@@ -417,9 +433,9 @@ class ResearchRunner:
                     f"only 1 verified, rendering with caveat"
                 )
                 log.info(
-                    "research synth produced %d picks, 1 verified "
-                    "(raw len=%d)",
-                    len(result.picks), len(raw_text),
+                    "research synth produced %d picks, 1 verified (raw len=%d)",
+                    len(result.picks),
+                    len(raw_text),
                 )
                 return _render_single_pick(kept[0])
             return _render_synth_result(replace(result, picks=kept))
@@ -431,14 +447,14 @@ class ResearchRunner:
 
     async def _plan(self, question: str, session: ResearchSession) -> list[PlannedQuery]:
         from datetime import datetime
+
         prompt = _PLANNER_PROMPT.format(
             question=question,
             max_queries=self._max_queries,
             current_year=datetime.now().year,
         )
         if self._cloud_backend is not None and self._cloud_plan:
-            log.info("research plan: dispatching to cloud (%s)",
-                     self._cloud_backend.model)
+            log.info("research plan: dispatching to cloud (%s)", self._cloud_backend.model)
             try:
                 response = await asyncio.to_thread(
                     self._cloud_backend.synthesize,
@@ -446,8 +462,11 @@ class ResearchRunner:
                     max_tokens=400,
                     json_schema=None,  # planner output is a tolerant JSON array
                 )
-                log.info("research plan: cloud returned %d tokens in %.1fs",
-                         response.tokens_used, response.latency_ms / 1000.0)
+                log.info(
+                    "research plan: cloud returned %d tokens in %.1fs",
+                    response.tokens_used,
+                    response.latency_ms / 1000.0,
+                )
             except CloudBackendError as e:
                 log.warning("cloud plan failed (%s): %s - using local", e.kind, e)
                 response = await self._llm.generate(prompt, max_tokens=400)
@@ -553,8 +572,7 @@ class ResearchRunner:
                 f"from {backends_str}) — topping up from ddg"
             )
             session.warnings.append(
-                f"thin pool ({len(collected)} sources from {backends_str}) "
-                "— topped up from ddg"
+                f"thin pool ({len(collected)} sources from {backends_str}) — topped up from ddg"
             )
             ddg_tasks = [self._search_many(q.query, "duckduckgo") for q in queries]
             ddg_batches = await asyncio.gather(*ddg_tasks, return_exceptions=True)
@@ -573,7 +591,10 @@ class ResearchRunner:
         return collected
 
     async def _search_many(
-        self, query: str, backend: BackendName, limit: int = 5,
+        self,
+        query: str,
+        backend: BackendName,
+        limit: int = 5,
     ) -> list[SearchResult]:
         sem = self._semaphores.get(backend)
         if sem is None:
@@ -582,7 +603,10 @@ class ResearchRunner:
             try:
                 return await asyncio.wait_for(
                     asyncio.to_thread(
-                        search_many, query, backend, limit,
+                        search_many,
+                        query,
+                        backend,
+                        limit,
                         api_keys=self._api_keys,
                         tavily_search_depth=self._cloud_search.search_depth,
                         tavily_timeout_s=self._cloud_search.timeout_s,
@@ -613,9 +637,7 @@ class ResearchRunner:
             self._set_status(f"researching: reading {done}/{total}")
             return src
 
-        results = await asyncio.gather(
-            *(_one(i, h) for i, h in enumerate(hits, start=1))
-        )
+        results = await asyncio.gather(*(_one(i, h) for i, h in enumerate(hits, start=1)))
         return [s for s in results if s is not None]
 
     async def _read(self, number: int, hit: SearchResult) -> Source | None:
@@ -707,9 +729,7 @@ class ResearchRunner:
                 "research synth input: excerpt chars per source = %s",
                 {s.number: len(s.excerpt) for s in sources},
             )
-        sources_block = "\n\n".join(
-            f"[{s.number}] {s.url}\n{s.excerpt}" for s in sources
-        )
+        sources_block = "\n\n".join(f"[{s.number}] {s.url}\n{s.excerpt}" for s in sources)
         marker_range = f"[1]..[{len(sources)}]"
         prompt = _SYNTH_PROMPT.format(
             sources_block=sources_block,
@@ -726,8 +746,7 @@ class ResearchRunner:
         cloud_budget = 4000
 
         if self._cloud_backend is not None:
-            log.info("research synth: dispatching to cloud (%s)",
-                     self._cloud_backend.model)
+            log.info("research synth: dispatching to cloud (%s)", self._cloud_backend.model)
             try:
                 response = await asyncio.to_thread(
                     self._cloud_backend.synthesize,
@@ -736,11 +755,16 @@ class ResearchRunner:
                     json_schema=SYNTH_SCHEMA,
                 )
                 self._log(f"  synth: cloud ({self._cloud_backend.model})")
-                log.info("research synth: cloud returned %d tokens in %.1fs",
-                         response.tokens_used, response.latency_ms / 1000.0)
+                log.info(
+                    "research synth: cloud returned %d tokens in %.1fs",
+                    response.tokens_used,
+                    response.latency_ms / 1000.0,
+                )
                 if session is not None:
                     self._stash_cloud_result(
-                        session, prompt=prompt, text=response.text,
+                        session,
+                        prompt=prompt,
+                        text=response.text,
                     )
             except CloudBackendError as e:
                 self._log(f"  synth: cloud failed ({e.kind}), falling back to local")
@@ -762,16 +786,17 @@ class ResearchRunner:
         raw_text = response.text.strip()
         log.debug(
             "research synth: %d chars, finish=%s, tokens=%d",
-            len(raw_text), response.finish_reason, response.tokens_used,
+            len(raw_text),
+            response.finish_reason,
+            response.tokens_used,
         )
         if response.finish_reason == "length":
-            self._log(
-                f"  warning: synth hit max_tokens ({budget}), JSON may be truncated"
-            )
+            self._log(f"  warning: synth hit max_tokens ({budget}), JSON may be truncated")
             log.warning(
                 "research synth truncated at max_tokens=%d (tokens_used=%d); "
                 "parse may fall back to prose path",
-                budget, response.tokens_used,
+                budget,
+                response.tokens_used,
             )
         result = _parse_synth_json(raw_text)
         return result, raw_text, response.tokens_used
@@ -814,20 +839,17 @@ class ResearchRunner:
         self._log(f"? {question}")
         label = "deep" if mode == "deep" else "search"
         self._set_status(
-            f"researching ({label}): "
-            f"{'searching + reading' if mode == 'deep' else 'searching'}"
+            f"researching ({label}): {'searching + reading' if mode == 'deep' else 'searching'}"
         )
 
         if self._cloud_backend is None:
             session.stopped_reason = ResearchStopReason.CRASHED
-            self._log(
-                f"  {label} mode requires /cloud enable (no backend configured)"
-            )
+            self._log(f"  {label} mode requires /cloud enable (no backend configured)")
             return session
 
-        prompt = (
-            _DEEP_SYNTH_PROMPT if mode == "deep" else _SEARCH_SYNTH_PROMPT
-        ).format(question=question)
+        prompt = (_DEEP_SYNTH_PROMPT if mode == "deep" else _SEARCH_SYNTH_PROMPT).format(
+            question=question
+        )
         try:
             deep = await asyncio.to_thread(
                 self._cloud_backend.research_deep,
@@ -857,12 +879,13 @@ class ResearchRunner:
         )
         log.info(
             "research %s: %d iterations, %d tokens in %.1fs",
-            label, deep.iterations, deep.tokens_used, deep.latency_ms / 1000.0,
+            label,
+            deep.iterations,
+            deep.tokens_used,
+            deep.latency_ms / 1000.0,
         )
         if deep.finish_reason == "length":
-            self._log(
-                f"  warning: {label}-mode hit max_tokens, JSON may be truncated"
-            )
+            self._log(f"  warning: {label}-mode hit max_tokens, JSON may be truncated")
 
         self._set_status(f"researching ({label}): validating")
         raw_text = deep.text.strip()
@@ -886,25 +909,18 @@ class ResearchRunner:
         through to prose when JSON parsing fails."""
         max_n = len(sources)
         if result is None:
-            self._log(
-                "  synth: deep-mode JSON parse failed, falling back to prose"
-            )
+            self._log("  synth: deep-mode JSON parse failed, falling back to prose")
             log.warning("research deep returned invalid JSON, using prose fallback")
             return _strip_dangling_markers(raw_text, max_n) if max_n else raw_text
 
         if result.kind == "comparison":
-            valid_picks = [
-                p for p in result.picks
-                if not sources or 1 <= p.citation <= max_n
-            ]
+            valid_picks = [p for p in result.picks if not sources or 1 <= p.citation <= max_n]
             if not valid_picks:
                 return "Deep-mode synth did not cite any picks in range."
             verdict = result.verdict
             if verdict is not None and max_n and not 1 <= verdict.citation <= max_n:
                 verdict = None
-            return _render_synth_result(
-                replace(result, picks=valid_picks, verdict=verdict)
-            )
+            return _render_synth_result(replace(result, picks=valid_picks, verdict=verdict))
 
         valid_citations = [c for c in result.citations if 1 <= c <= max_n]
         return _render_synth_result(replace(result, citations=valid_citations))
@@ -936,9 +952,7 @@ class ResearchRunner:
             )
 
         def _build_prompt(pool: list[Source]) -> str:
-            sources_block = "\n\n".join(
-                f"[{s.number}] {s.url}\n{s.excerpt}" for s in pool
-            )
+            sources_block = "\n\n".join(f"[{s.number}] {s.url}\n{s.excerpt}" for s in pool)
             marker_range = f"[1]..[{len(pool)}]"
             return _REFINE_PROMPT.format(
                 sources_block=sources_block,
@@ -985,14 +999,12 @@ class ResearchRunner:
             )
 
         log.info(
-            "research refine: needs_fresh_search=true, gap_query=%r, "
-            "firing supplemental (max=%d)",
-            gap_query, max_supp,
+            "research refine: needs_fresh_search=true, gap_query=%r, firing supplemental (max=%d)",
+            gap_query,
+            max_supp,
         )
 
-        seen_urls: set[str] = {
-            _canonical_url(s.url) for s in sources if s.url
-        }
+        seen_urls: set[str] = {_canonical_url(s.url) for s in sources if s.url}
         backend = self._default_backend()
         hits = await self._search_many(gap_query, backend, limit=max_supp)
         fresh_hits: list[SearchResult] = []
@@ -1034,8 +1046,8 @@ class ResearchRunner:
 
         if not new_sources:
             log.info(
-                "research refine: supplemental fetched %d hit(s) but all "
-                "failed to extract", len(fresh_hits),
+                "research refine: supplemental fetched %d hit(s) but all failed to extract",
+                len(fresh_hits),
             )
             return RefineOutcome(
                 result=result,
@@ -1104,9 +1116,13 @@ def _parse_planner_output(text: str, cap: int) -> list[PlannedQuery]:
                 intent = (item.get("intent") or "").strip()
                 backend = (item.get("backend") or "").strip().lower()
                 if q:
-                    queries.append(PlannedQuery(
-                        query=q, intent=intent, backend=backend,
-                    ))
+                    queries.append(
+                        PlannedQuery(
+                            query=q,
+                            intent=intent,
+                            backend=backend,
+                        )
+                    )
             elif isinstance(item, str):
                 s = item.strip()
                 if s:
@@ -1316,23 +1332,16 @@ def _dedupe_sources(
             continue
         by_url[url] = num
         title = str(item.get("title") or "")
-        sources.append(
-            Source(number=num, url=url, title=title, excerpt="", backend="cloud")
-        )
+        sources.append(Source(number=num, url=url, title=title, excerpt="", backend="cloud"))
     return sources, remap
 
 
 def _remap_citations(result: SynthResult, remap: dict[int, int]) -> SynthResult:
     """Rewrite pick/verdict/citation numbers that point at dropped dupes."""
-    picks = [
-        replace(p, citation=remap.get(p.citation, p.citation))
-        for p in result.picks
-    ]
+    picks = [replace(p, citation=remap.get(p.citation, p.citation)) for p in result.picks]
     verdict = result.verdict
     if verdict is not None:
-        verdict = replace(
-            verdict, citation=remap.get(verdict.citation, verdict.citation)
-        )
+        verdict = replace(verdict, citation=remap.get(verdict.citation, verdict.citation))
     citations = [remap.get(c, c) for c in result.citations]
     return replace(result, picks=picks, verdict=verdict, citations=citations)
 
@@ -1398,7 +1407,9 @@ def _parse_refine_synth_json(
 
 
 def _build_synth_result(
-    parsed: dict[str, Any], *, allow_empty_answer: bool = False,
+    parsed: dict[str, Any],
+    *,
+    allow_empty_answer: bool = False,
 ) -> SynthResult | None:
     kind = parsed.get("kind")
     if kind == "comparison":
@@ -1423,9 +1434,7 @@ def _build_synth_result(
         answer = str(parsed.get("answer") or "").strip()
         if not answer and not allow_empty_answer:
             return None
-        citations = [
-            int(c) for c in parsed.get("citations") or [] if isinstance(c, (int, float))
-        ]
+        citations = [int(c) for c in parsed.get("citations") or [] if isinstance(c, (int, float))]
         return SynthResult(kind="factual", answer=answer, citations=citations)
     return None
 
@@ -1440,9 +1449,7 @@ def _has_pick_fields(item: Any) -> bool:
 
 
 def _has_verdict_fields(item: dict[str, Any]) -> bool:
-    return isinstance(item.get("text"), str) and isinstance(
-        item.get("citation"), (int, float)
-    )
+    return isinstance(item.get("text"), str) and isinstance(item.get("citation"), (int, float))
 
 
 def _pick_name_in_excerpt(name: str, excerpt_lower: str) -> bool:
@@ -1463,9 +1470,7 @@ def _pick_name_in_excerpt(name: str, excerpt_lower: str) -> bool:
     return all(tok in excerpt_lower for tok in tokens)
 
 
-def _validate_picks(
-    picks: list[Pick], sources: list[Source]
-) -> tuple[list[Pick], list[Pick]]:
+def _validate_picks(picks: list[Pick], sources: list[Source]) -> tuple[list[Pick], list[Pick]]:
     """Keep a pick if its name is grounded in ANY source's excerpt.
 
     If the synth cited the wrong source number but the name appears
@@ -1492,20 +1497,20 @@ def _validate_picks(
         if repaired is not None:
             log.debug(
                 "research: pick repaired (name=%r [%d] -> [%d])",
-                pick.name, pick.citation, repaired.citation,
+                pick.name,
+                pick.citation,
+                repaired.citation,
             )
             kept.append(repaired)
         else:
             if log.isEnabledFor(logging.DEBUG):
                 tokens = re.findall(r"\w+", pick.name.lower())
-                diag = {
-                    num: [t for t in tokens if t in excerpts_lower[num]]
-                    for num in numbers
-                }
+                diag = {num: [t for t in tokens if t in excerpts_lower[num]] for num in numbers}
                 log.debug(
-                    "research: pick dropped (name=%r cited=[%d]) "
-                    "token hits per source: %s",
-                    pick.name, pick.citation, diag,
+                    "research: pick dropped (name=%r cited=[%d]) token hits per source: %s",
+                    pick.name,
+                    pick.citation,
+                    diag,
                 )
             dropped.append(pick)
     return kept, dropped
@@ -1527,15 +1532,10 @@ def _render_single_pick(pick: Pick) -> str:
 
 def _render_synth_result(result: SynthResult) -> str:
     if result.kind == "comparison":
-        lines = [
-            f"- {pick.name}: {pick.reason} [{pick.citation}]"
-            for pick in result.picks
-        ]
+        lines = [f"- {pick.name}: {pick.reason} [{pick.citation}]" for pick in result.picks]
         body = "\n".join(lines)
         if result.verdict:
-            body += (
-                f"\nVerdict: {result.verdict.text} [{result.verdict.citation}]."
-            )
+            body += f"\nVerdict: {result.verdict.text} [{result.verdict.citation}]."
         return body
     citations = " ".join(f"[{c}]" for c in result.citations)
     return f"{result.answer} {citations}".strip() if citations else result.answer

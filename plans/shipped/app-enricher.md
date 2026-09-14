@@ -43,8 +43,9 @@ class AppEnricher:
     RETRY_AFTER_HOURS = 24
     FETCH_TIMEOUT_S = 3.0
 
-    def __init__(self, memory: MemoryStore, search: SearchClient,
-                 sensitive_apps: set[str]) -> None: ...
+    def __init__(
+        self, memory: MemoryStore, search: SearchClient, sensitive_apps: set[str]
+    ) -> None: ...
 
     async def enrich(self, app_name: str) -> str | None:
         """Cached description if fresh; else blocks on search_web up to

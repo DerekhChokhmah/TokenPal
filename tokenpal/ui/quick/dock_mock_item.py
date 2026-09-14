@@ -11,6 +11,7 @@ Click-through: the item never accepts mouse events; whatever sits
 under the dock area receives the cursor instead. Matches the
 QWidget mock's ``WA_TransparentForMouseEvents`` semantics.
 """
+
 from __future__ import annotations
 
 from typing import cast

@@ -52,6 +52,7 @@ def test_fix_markup_strips_unparseable_line_as_last_resort() -> None:
     # An orphan [/] with nothing to open it should not crash the renderer;
     # the last-resort fallback strips every tag so raw glyphs remain.
     from rich.text import Text
+
     out = _fix_markup(["just text [/] with orphan close"])
     # Must parse cleanly after fixing.
     Text.from_markup(out[0])

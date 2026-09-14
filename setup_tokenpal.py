@@ -68,6 +68,7 @@ def ask(prompt: str, default: str = "y") -> bool:
 
 # ── Platform detection ───────────────────────────────────────────────────────
 
+
 def detect_platform() -> str:
     system = platform.system().lower()
     if system == "darwin":
@@ -90,6 +91,7 @@ def pip_extras(plat: str, mode: str = "default", headless: bool = False) -> str:
 
 
 # ── Steps ────────────────────────────────────────────────────────────────────
+
 
 def check_python() -> bool:
     step("Checking Python version")
@@ -136,16 +138,18 @@ def get_venv_python(venv_dir: Path) -> str:
 def install_deps(python: str, plat: str, mode: str = "default", headless: bool = False) -> bool:
     step("Installing dependencies")
     extras = pip_extras(plat, mode=mode, headless=headless)
-    print(f"  Running: pip install -e \".[{extras}]\"")
+    print(f'  Running: pip install -e ".[{extras}]"')
 
     subprocess.run(
         [python, "-m", "pip", "install", "--upgrade", "pip"],
-        capture_output=True, text=True,
+        capture_output=True,
+        text=True,
     )
 
     result = subprocess.run(
         [python, "-m", "pip", "install", "-e", f".[{extras}]"],
-        capture_output=True, text=True,
+        capture_output=True,
+        text=True,
         cwd=str(PROJECT_ROOT),
     )
     if result.returncode == 0:
@@ -293,7 +297,8 @@ def verify_install(python: str) -> bool:
     step("Verifying installation")
     result = subprocess.run(
         [python, "-c", "from tokenpal.app import main; print('OK')"],
-        capture_output=True, text=True,
+        capture_output=True,
+        text=True,
         cwd=str(PROJECT_ROOT),
     )
     if result.returncode == 0 and "OK" in result.stdout:
@@ -336,29 +341,43 @@ def print_summary(plat: str, venv_dir: Path) -> None:
 
 # ── Argument parsing ─────────────────────────────────────────────────────────
 
+
 def parse_setup_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="TokenPal setup — from fresh clone to running in one command.",
     )
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
-        "--local", action="store_const", dest="mode", const="local",
+        "--local",
+        action="store_const",
+        dest="mode",
+        const="local",
         help="full local install (Ollama + model download)",
     )
     group.add_argument(
-        "--client", action="store_const", dest="mode", const="client",
+        "--client",
+        action="store_const",
+        dest="mode",
+        const="client",
         help="client-only install (skip Ollama, configure remote server)",
     )
     group.add_argument(
-        "--server", action="store_const", dest="mode", const="server",
+        "--server",
+        action="store_const",
+        dest="mode",
+        const="server",
         help="server-only install (adds [server] extras for tokenpal-server)",
     )
     group.add_argument(
-        "--both", action="store_const", dest="mode", const="both",
+        "--both",
+        action="store_const",
+        dest="mode",
+        const="both",
         help="buddy + tokenpal-server on this box (adds [server] extras)",
     )
     parser.add_argument(
-        "--headless", action="store_true",
+        "--headless",
+        action="store_true",
         help="skip the Qt desktop extra — terminal UI only",
     )
     parser.set_defaults(mode="default")
@@ -366,6 +385,7 @@ def parse_setup_args() -> argparse.Namespace:
 
 
 # ── Main ─────────────────────────────────────────────────────────────────────
+
 
 def main() -> None:
     args = parse_setup_args()

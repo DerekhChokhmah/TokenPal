@@ -20,11 +20,15 @@ class TrainingStatus(StrEnum):
 
 class TrainRequest(BaseModel):
     wiki: str = Field(
-        ..., min_length=1, pattern=r"^[a-zA-Z0-9-]+$",
+        ...,
+        min_length=1,
+        pattern=r"^[a-zA-Z0-9-]+$",
         examples=["adventure-time"],
     )
     character: str = Field(
-        ..., min_length=1, pattern=r"^[a-zA-Z0-9 _.'-]+$",
+        ...,
+        min_length=1,
+        pattern=r"^[a-zA-Z0-9 _.'-]+$",
         examples=["BMO"],
     )
     base_model: str = "google/gemma-2-2b-it"
@@ -64,5 +68,7 @@ class ModelInfo(BaseModel):
 
 class PullRequest(BaseModel):
     model: str = Field(
-        ..., min_length=1, pattern=r"^[a-zA-Z0-9_.-]+(:[a-zA-Z0-9_.-]+)?$",
+        ...,
+        min_length=1,
+        pattern=r"^[a-zA-Z0-9_.-]+(:[a-zA-Z0-9_.-]+)?$",
     )
